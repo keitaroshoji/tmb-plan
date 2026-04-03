@@ -85,7 +85,7 @@ const USAGE_STATUS_LABELS: Record<string, string> = {
 function buildContext(answers: TmbWizardAnswers): string {
   const challenges = answers.challenges.map((c) => CHALLENGE_LABELS[c] ?? c).join('、')
   const barriers = answers.operationalBarriers.map((b) => BARRIER_LABELS[b] ?? b).join('、')
-  const goals = (answers.primaryGoals ?? []).map((g) => GOAL_LABELS[g] ?? g).join('、')
+  const goals = (answers.primaryGoal ? [answers.primaryGoal] : []).map((g) => GOAL_LABELS[g] ?? g).join('、')
   const kpi = KPI_LABELS[answers.priorityKpi ?? ''] ?? answers.priorityKpi
 
   const industryLabel = INDUSTRY_LABELS[answers.industry ?? ''] ?? answers.industry
