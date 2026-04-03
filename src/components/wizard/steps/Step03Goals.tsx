@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useWizardStore } from '@/src/store/wizardStore'
 import { Button } from '@/src/components/ui/Button'
 import { ChoiceCard } from '@/src/components/ui/ChoiceCard'
-import { PrimaryGoal, KpiType, PlanningPeriod } from '@/src/types/answers'
+import { PrimaryGoal, KpiType } from '@/src/types/answers'
 
 const GOALS: { value: PrimaryGoal; label: string; icon: string }[] = [
   { value: 'reduce_training_time', label: '研修・教育時間の削減', icon: '⏱️' },
@@ -18,42 +18,48 @@ const GOALS: { value: PrimaryGoal; label: string; icon: string }[] = [
 ]
 
 const KPIS: { value: KpiType; label: string; icon: string }[] = [
-  { value: 'time_reduction', label: '時間削減（研修・作成・問い合わせ）', icon: '⏱️' },
+  { value: 'time_reduction', label: '工数削減（研修・作成・問い合わせ）', icon: '⏱️' },
   { value: 'cost_reduction', label: 'コスト削減（印刷・移動・外注費等）', icon: '💰' },
   { value: 'quality_improvement', label: '品質向上（ミス率・合格率・CS）', icon: '📈' },
   { value: 'turnover_reduction', label: '定着率向上・離職率低下', icon: '👥' },
-]
-
-const PERIODS: { value: PlanningPeriod; label: string; desc: string }[] = [
-  { value: '3months', label: '3ヶ月', desc: '短期集中で早期成果を出す' },
-  { value: '6months', label: '6ヶ月', desc: '半年で基盤を整える' },
-  { value: '12months', label: '1年', desc: '年間計画で着実に定着させる' },
 ]
 
 export function Step03Goals() {
   const router = useRouter()
   const { answers, updateAnswers, nextStep, prevStep } = useWizardStore()
 
-  const canProceed = answers.primaryGoal !== null && answers.priorityKpi !== null && answers.planningPeriod !== null
+  const canProceed = answers.primaryGoals.length > 0 && answers.priorityKpi !== null
+
+  const toggleGoal = (value: PrimaryGoal) => {
+    const current = answers.primaryGoals
+    if (current.includes(value)) {
+      updateAnswers({ primaryGoals: current.filter((g) => g !== value) })
+    } else {
+      updateAnswers({ primaryGoals: [...current, value] })
+    }
+  }
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-xl font-bold text-gray-900">導入目的・期待効果</h1>
-        <p className="mt-1 text-sm text-gray-500">最も重要な導入目的と達成したいKPIを選択してください</p>
+        <p className="mt-1 text-sm text-gray-500">導入目的（複数選択可）と達成したいKPIを選択してください</p>
       </div>
 
-      {/* 主目的 */}
+      {/* 主目的（複数選択） */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">導入の主目的 <span className="text-red-500">*</span></label>
+        <label className="text-sm font-semibold text-gray-700">
+          導入の目的 <span className="text-red-500">*</span>
+          <span className="ml-2 text-xs font-normal text-gray-400">（複数選択可）</span>
+        </label>
         <div className="grid grid-cols-1 gap-2">
           {GOALS.map((item) => (
             <ChoiceCard
               key={item.value}
               label={item.label}
               icon={item.icon}
-              selected={answers.primaryGoal === item.value}
-              onClick={() => updateAnswers({ primaryGoal: item.value })}
+              selected={answers.primaryGoals.includes(item.value)}
+              onClick={() => toggleGoal(item.value)}
             />
           ))}
         </div>
@@ -85,22 +91,6 @@ export function Step03Goals() {
           placeholder="例：研修時間を50%削減、月間問い合わせを100件→20件に"
           className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
-      </div>
-
-      {/* 重点期間 */}
-      <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">重点期間 <span className="text-red-500">*</span></label>
-        <div className="grid grid-cols-3 gap-3">
-          {PERIODS.map((item) => (
-            <ChoiceCard
-              key={item.value}
-              label={item.label}
-              description={item.desc}
-              selected={answers.planningPeriod === item.value}
-              onClick={() => updateAnswers({ planningPeriod: item.value })}
-            />
-          ))}
-        </div>
       </div>
 
       <div className="flex justify-between pt-4">

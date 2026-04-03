@@ -78,17 +78,17 @@ function addChallengeSummarySlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
     support_foreign_staff: '外国人・多様な人材支援',
     dx_promotion: '現場DX推進',
   }
+  const goalsText = (answers.primaryGoals ?? []).map((g) => GOAL_LABELS[g] ?? g).join('、')
   slide.addText('■ 導入目的・KPI', { x: 5.0, y: 1.1, w: 4, h: 0.35, fontSize: 12, bold: true, color: BLUE })
-  slide.addText(`目的: ${GOAL_LABELS[answers.primaryGoal ?? ''] ?? ''}`, { x: 5.0, y: 1.5, w: 4.2, h: 0.35, fontSize: 11, color: DARK })
+  slide.addText(`目的: ${goalsText || ''}`, { x: 5.0, y: 1.5, w: 4.2, h: 0.5, fontSize: 11, color: DARK })
   if (answers.targetValue) {
-    slide.addText(`目標: ${answers.targetValue}`, { x: 5.0, y: 1.9, w: 4.2, h: 0.35, fontSize: 11, color: DARK })
+    slide.addText(`目標: ${answers.targetValue}`, { x: 5.0, y: 2.1, w: 4.2, h: 0.35, fontSize: 11, color: DARK })
   }
 
   // 企業概要バナー
   slide.addShape(prs.ShapeType.rect, { x: 0.5, y: 4.5, w: 9, h: 0.8, fill: { color: LIGHT_BLUE } })
-  const PERIOD_LABELS: Record<string, string> = { '3months': '3ヶ月', '6months': '6ヶ月', '12months': '1年' }
   slide.addText(
-    `${answers.companyName}  ／  ${answers.locationCount}拠点  ／  ${answers.isFranchise ? 'FC事業者' : '独立事業'}  ／  重点期間: ${PERIOD_LABELS[answers.planningPeriod ?? ''] ?? ''}`,
+    `${answers.companyName}  ／  ${answers.locationCount}拠点  ／  ${answers.isFranchise ? 'FC事業者' : '独立事業'}  ／  プラン期間: 12ヶ月`,
     { x: 0.5, y: 4.55, w: 9, h: 0.6, fontSize: 11, color: BLUE, bold: true, align: 'center' }
   )
 }

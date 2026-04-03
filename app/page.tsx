@@ -95,7 +95,7 @@ export default function Home() {
         partial.companySize = extracted.companySize
       }
       if (extracted.challenges?.length) partial.challenges = extracted.challenges
-      if (extracted.primaryGoal) partial.primaryGoal = extracted.primaryGoal
+      if (extracted.primaryGoal) partial.primaryGoals = [extracted.primaryGoal]
       if (extracted.currentUseCases) partial.currentUseCases = extracted.currentUseCases
       if (extracted.usageStatus) partial.usageStatus = extracted.usageStatus
       if (extracted.operationalBarriers?.length) partial.operationalBarriers = extracted.operationalBarriers

@@ -9,17 +9,23 @@ import { Industry, CompanySize } from '@/src/types/answers'
 import { RETAIL_SUB_INDUSTRIES, getSubIndustriesForIndustry } from '@/src/data/industry-segments'
 
 const INDUSTRIES: { value: Industry; label: string; icon: string }[] = [
-  { value: 'food_service', label: '飲食・フードサービス', icon: '🍽️' },
-  { value: 'retail', label: '小売・流通', icon: '🛍️' },
-  { value: 'manufacturing', label: '製造・工場', icon: '🏭' },
-  { value: 'logistics', label: '物流・配送', icon: '🚚' },
-  { value: 'medical', label: '医療・介護・福祉', icon: '🏥' },
-  { value: 'beauty', label: 'ビューティー・サロン', icon: '💄' },
-  { value: 'education', label: '教育・研修', icon: '📚' },
-  { value: 'it', label: 'IT・情報通信', icon: '💻' },
-  { value: 'real_estate', label: '不動産・建設', icon: '🏠' },
-  { value: 'finance', label: '金融・保険', icon: '💰' },
-  { value: 'other', label: 'その他', icon: '📋' },
+  { value: 'agriculture',  label: '農業・林業',                    icon: '🌾' },
+  { value: 'fishing',      label: '漁業',                          icon: '🐟' },
+  { value: 'mining',       label: '鉱業・採石業',                   icon: '⛏️' },
+  { value: 'construction', label: '建設業',                        icon: '🏗️' },
+  { value: 'manufacturing',label: '製造業',                        icon: '🏭' },
+  { value: 'utility',      label: '電気・ガス・熱供給・水道業',       icon: '⚡' },
+  { value: 'it',           label: '情報通信業',                     icon: '💻' },
+  { value: 'logistics',    label: '運輸業・郵便業',                  icon: '🚚' },
+  { value: 'retail',       label: '卸売業・小売業',                  icon: '🛍️' },
+  { value: 'finance',      label: '金融業・保険業',                  icon: '💰' },
+  { value: 'real_estate',  label: '不動産業・物品賃貸業',             icon: '🏠' },
+  { value: 'professional', label: '学術研究・専門・技術サービス業',    icon: '🔬' },
+  { value: 'food_service', label: '宿泊業・飲食サービス業',           icon: '🍽️' },
+  { value: 'beauty',       label: '生活関連サービス業・娯楽業',        icon: '💄' },
+  { value: 'education',    label: '教育・学習支援業',                 icon: '📚' },
+  { value: 'medical',      label: '医療・福祉',                     icon: '🏥' },
+  { value: 'other',        label: 'サービス業（その他）・公務',        icon: '📋' },
 ]
 
 const SIZES: { value: CompanySize; label: string; desc: string }[] = [
@@ -173,10 +179,14 @@ export function Step01BasicInfo() {
         <label className="text-sm font-semibold text-gray-700">拠点・店舗数</label>
         <div className="flex items-center gap-3">
           <input
-            type="number"
-            min={1}
+            type="text"
+            inputMode="numeric"
             value={answers.locationCount}
-            onChange={(e) => updateAnswers({ locationCount: Math.max(1, parseInt(e.target.value) || 1) })}
+            onChange={(e) => {
+              const val = parseInt(e.target.value.replace(/[^0-9]/g, ''), 10)
+              updateAnswers({ locationCount: isNaN(val) ? 1 : val })
+            }}
+            placeholder="例：5"
             className="w-28 rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <span className="text-sm text-gray-500">拠点</span>

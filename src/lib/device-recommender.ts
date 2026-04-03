@@ -103,12 +103,13 @@ export function recommendDevicePlan(answers: TmbWizardAnswers): DevicePlan {
     })
   }
 
-  // コスト計算（メイン端末 × 不足台数）
+  // コスト計算（メイン端末 × 不足台数、100円単位に丸め）
   const mainProduct = recommended[0]
   const contractMonths = 12
   const monthlyCost = mainProduct ? mainProduct.monthlyUnitPrice * shortfall : 0
   const initialCost = mainProduct ? mainProduct.initialCostPerUnit * shortfall : 0
-  const total12m = monthlyCost * contractMonths + initialCost
+  // 税込み総額は100円単位に丸める（浮動小数点誤差防止）
+  const total12m = Math.round((monthlyCost * contractMonths + initialCost) * 1.1 / 100) * 100
 
   return {
     recommendedProducts: recommended,
