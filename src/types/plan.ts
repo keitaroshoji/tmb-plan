@@ -101,4 +101,12 @@ export interface GeneratedPlan {
   roadmap?: RoadmapPhase[]
   counterScripts?: CounterScript[]
   bottleneckHints?: BottleneckHint[]
+  usageScenarios?: UsageScenario[]
+}
+
+export interface UsageScenario {
+  manualTitle: string   // マニュアルのタイトル例
+  user: string          // 誰が使うか
+  scene: string         // どのようなシーンで
+  effect: string        // どのような効果が出るか
 }

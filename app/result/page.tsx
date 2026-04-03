@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useWizardStore } from '@/src/store/wizardStore'
 import { matchCaseStudies } from '@/src/lib/case-matcher'
 import { recommendDevicePlan, DevicePlan } from '@/src/lib/device-recommender'
-import { CaseStudy, GeneratedPlan, ACTIVITY_CATEGORIES, BarrierAction, Phase } from '@/src/types/plan'
+import { CaseStudy, GeneratedPlan, ACTIVITY_CATEGORIES, BarrierAction, Phase, UsageScenario } from '@/src/types/plan'
 import { TmbWizardAnswers } from '@/src/types/answers'
 import { Button } from '@/src/components/ui/Button'
 
@@ -360,6 +360,9 @@ export default function ResultPage() {
               acc.kpiTargets = event.kpiTargets as GeneratedPlan['kpiTargets']
               setPartialPlan({ ...acc })
               setSectionReady(prev => ({ ...prev, barrier: true }))
+            } else if (event.type === 'usage') {
+              acc.usageScenarios = event.usageScenarios as GeneratedPlan['usageScenarios']
+              setPartialPlan({ ...acc })
             } else if (event.type === 'extras') {
               acc.useCaseProposals = event.useCaseProposals as GeneratedPlan['useCaseProposals']
               acc.roadmap = event.roadmap as GeneratedPlan['roadmap']
@@ -486,7 +489,38 @@ export default function ResultPage() {
           }
         </section>
 
-        {/* ==================== 3. 全体スケジュール（矢羽型 4×5） ==================== */}
+        {/* ==================== 3. マニュアル活用イメージ ==================== */}
+        <section>
+          <SectionHeading icon="📖" title="マニュアル活用イメージ" sub="どんなマニュアルを、誰が、どのシーンで使い、どんな効果を出すか" />
+          {(plan?.usageScenarios?.length ?? 0) > 0 ? (
+            <div className="grid grid-cols-2 gap-5">
+              {(plan!.usageScenarios as UsageScenario[]).map((s, i) => (
+                <div key={i} className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="bg-blue-700 px-5 py-3 flex items-center gap-2">
+                    <span className="text-blue-200 text-sm">📄</span>
+                    <p className="text-white font-bold text-sm leading-snug">{s.manualTitle}</p>
+                  </div>
+                  <div className="p-5 space-y-2.5">
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-xs font-bold text-gray-400 w-14 shrink-0 mt-0.5">誰が</span>
+                      <p className="text-sm text-gray-800">{s.user}</p>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-xs font-bold text-gray-400 w-14 shrink-0 mt-0.5">シーン</span>
+                      <p className="text-sm text-gray-700 leading-relaxed">{s.scene}</p>
+                    </div>
+                    <div className="flex items-start gap-2.5 rounded-lg bg-green-50 border border-green-200 px-3 py-2">
+                      <span className="text-xs font-bold text-green-600 w-14 shrink-0 mt-0.5">効果</span>
+                      <p className="text-sm text-green-800 font-medium leading-relaxed">{s.effect}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : isGenerating && <SectionSkeleton rows={4} />}
+        </section>
+
+        {/* ==================== 4. 全体スケジュール（矢羽型） ==================== */}
         <section>
           <SectionHeading icon="🗓️" title="全体スケジュール案" sub="3ヶ月ごとのフェーズ / 主要活動カテゴリ別" />
           {(plan?.phases?.length ?? 0) > 0 ? (
@@ -576,9 +610,9 @@ export default function ResultPage() {
           {(plan?.schedule?.length ?? 0) > 0 ? (
             <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
               <div className="grid bg-gray-800 text-white text-xs font-semibold uppercase tracking-wide"
-                style={{ gridTemplateColumns: '64px 140px 1fr 1fr 1.5fr 88px' }}>
-                {['月', 'フェーズ', 'テーマ', 'ゴール', '主要アクション', '効果測定'].map((h, i) => (
-                  <div key={h} className={`px-4 py-3 ${i < 5 ? 'border-r border-gray-700' : ''}`}>{h}</div>
+                style={{ gridTemplateColumns: '64px 140px 1fr 2fr 88px' }}>
+                {['月', 'フェーズ', 'テーマ', '主要アクション', '効果測定'].map((h, i) => (
+                  <div key={h} className={`px-4 py-3 ${i < 4 ? 'border-r border-gray-700' : ''}`}>{h}</div>
                 ))}
               </div>
               {plan!.schedule!.map((m) => {
@@ -588,7 +622,7 @@ export default function ResultPage() {
                 return (
                   <div key={m.month}
                     className="grid border-b border-gray-100 last:border-b-0 hover:bg-blue-50/20 transition-colors"
-                    style={{ gridTemplateColumns: '64px 140px 1fr 1fr 1.5fr 88px' }}>
+                    style={{ gridTemplateColumns: '64px 140px 1fr 2fr 88px' }}>
                     <div className="px-4 py-3 border-r border-gray-100 flex items-center">
                       <span className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
                         style={{ background: color.bg }}>{m.month}</span>
@@ -603,12 +637,12 @@ export default function ResultPage() {
                       <p className="text-sm font-semibold text-gray-800 leading-snug">{m.title}</p>
                     </div>
                     <div className="px-4 py-3 border-r border-gray-100 flex items-center">
-                      <p className="text-xs text-gray-600 leading-relaxed">{m.goal ?? ''}</p>
-                    </div>
-                    <div className="px-4 py-3 border-r border-gray-100 flex items-center">
-                      <ul className="space-y-0.5">
-                        {m.actions.slice(0, 2).map((a, ai) => (
-                          <li key={ai} className="text-xs text-gray-600">• {a}</li>
+                      <ul className="space-y-1">
+                        {m.actions.slice(0, 3).map((a, ai) => (
+                          <li key={ai} className="text-xs text-gray-600 flex gap-1.5">
+                            <span className="text-gray-400 shrink-0">•</span>
+                            <span className="leading-relaxed">{a}</span>
+                          </li>
                         ))}
                       </ul>
                     </div>
