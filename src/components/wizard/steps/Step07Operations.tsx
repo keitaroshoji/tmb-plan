@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useWizardStore } from '@/src/store/wizardStore'
 import { Button } from '@/src/components/ui/Button'
@@ -31,6 +31,7 @@ const DEVICE_LABELS: Record<DeviceType, string> = {
 export function Step07Operations() {
   const router = useRouter()
   const { answers, updateAnswers, completeWizard, prevStep, setGenerating } = useWizardStore()
+  const [staffInput, setStaffInput] = useState(String(answers.staffPerLocation ?? 1))
 
   const handleSubmit = async () => {
     completeWizard()
@@ -69,10 +70,21 @@ export function Step07Operations() {
         <label className="text-sm font-semibold text-gray-700">拠点あたりのスタッフ数 <span className="text-red-500">*</span></label>
         <div className="flex items-center gap-3">
           <input
-            type="number"
-            min={1}
-            value={answers.staffPerLocation}
-            onChange={(e) => updateAnswers({ staffPerLocation: Math.max(1, parseInt(e.target.value) || 1) })}
+            type="text"
+            inputMode="numeric"
+            value={staffInput}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/[^0-9]/g, '')
+              setStaffInput(raw)
+              const val = parseInt(raw, 10)
+              if (!isNaN(val) && val >= 1) updateAnswers({ staffPerLocation: val })
+            }}
+            onBlur={() => {
+              const val = parseInt(staffInput, 10)
+              const fixed = isNaN(val) || val < 1 ? 1 : val
+              setStaffInput(String(fixed))
+              updateAnswers({ staffPerLocation: fixed })
+            }}
             className="w-28 rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
           <span className="text-sm text-gray-500">名</span>

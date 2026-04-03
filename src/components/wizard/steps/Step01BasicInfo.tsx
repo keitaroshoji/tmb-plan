@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useWizardStore, ExtractedProfile } from '@/src/store/wizardStore'
 import { Button } from '@/src/components/ui/Button'
@@ -39,6 +39,7 @@ const SIZES: { value: CompanySize; label: string; desc: string }[] = [
 export function Step01BasicInfo() {
   const router = useRouter()
   const { answers, updateAnswers, nextStep, extractedProfile } = useWizardStore()
+  const [locationInput, setLocationInput] = useState(String(answers.locationCount ?? 1))
 
   const subIndustries = getSubIndustriesForIndustry(answers.industry)
   const requiresSubIndustry = subIndustries.length > 0
@@ -181,10 +182,18 @@ export function Step01BasicInfo() {
           <input
             type="text"
             inputMode="numeric"
-            value={answers.locationCount}
+            value={locationInput}
             onChange={(e) => {
-              const val = parseInt(e.target.value.replace(/[^0-9]/g, ''), 10)
-              updateAnswers({ locationCount: isNaN(val) ? 1 : val })
+              const raw = e.target.value.replace(/[^0-9]/g, '')
+              setLocationInput(raw)
+              const val = parseInt(raw, 10)
+              if (!isNaN(val) && val >= 1) updateAnswers({ locationCount: val })
+            }}
+            onBlur={() => {
+              const val = parseInt(locationInput, 10)
+              const fixed = isNaN(val) || val < 1 ? 1 : val
+              setLocationInput(String(fixed))
+              updateAnswers({ locationCount: fixed })
             }}
             placeholder="例：5"
             className="w-28 rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
