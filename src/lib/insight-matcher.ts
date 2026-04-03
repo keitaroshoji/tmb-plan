@@ -1,5 +1,8 @@
 import { TmbWizardAnswers } from '@/src/types/answers'
 import { INTERVIEW_INSIGHTS, InterviewInsight } from '@/src/data/interview-insights'
+import { AWARD_INSIGHTS } from '@/src/data/award-insights'
+
+const ALL_INSIGHTS: InterviewInsight[] = [...INTERVIEW_INSIGHTS, ...AWARD_INSIGHTS]
 
 function scoreInsight(insight: InterviewInsight, answers: TmbWizardAnswers): number {
   let score = 0
@@ -21,7 +24,7 @@ function scoreInsight(insight: InterviewInsight, answers: TmbWizardAnswers): num
 }
 
 export function matchInsights(answers: TmbWizardAnswers, topN = 3): InterviewInsight[] {
-  const scored = INTERVIEW_INSIGHTS
+  const scored = ALL_INSIGHTS
     .map((insight) => ({ insight, score: scoreInsight(insight, answers) }))
     .filter(({ score }) => score > 0)
     .sort((a, b) => b.score - a.score)
