@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { TmbWizardAnswers } from '@/src/types/answers'
 import { matchCaseStudies } from '@/src/lib/case-matcher'
+import { matchInsights } from '@/src/lib/insight-matcher'
 
 export const maxDuration = 90
 
@@ -99,6 +100,12 @@ function buildContext(answers: TmbWizardAnswers): string {
     ? '類似事例:\n' + similarCases.map((c) => `・${c.companyName}（${c.companySize}）: ${c.effect}`).join('\n')
     : ''
 
+  // インタビュー知見（上位3件）をコンパクトに挿入
+  const insights = matchInsights(answers, 3)
+  const insightsStr = insights.length > 0
+    ? '運用知見（実際のユーザーインタビューより）:\n' + insights.map((i) => `・${i.company}: ${i.tip}`).join('\n')
+    : ''
+
   const lines = [
     `企業:${answers.companyName} 業種:${industryStr}`,
     `規模:${answers.companySize} ${answers.locationCount}拠点×${answers.staffPerLocation}名 FC:${answers.isFranchise ? 'あり' : 'なし'}`,
@@ -109,6 +116,7 @@ function buildContext(answers: TmbWizardAnswers): string {
     usageStatusLabel ? `現在の利用状況:${usageStatusLabel}` : '',
     answers.currentUseCases ? `現在の用途:${answers.currentUseCases}` : '',
     casesStr,
+    insightsStr,
   ]
   return lines.filter(Boolean).join('\n')
 }
