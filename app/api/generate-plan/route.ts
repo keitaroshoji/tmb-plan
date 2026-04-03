@@ -1,33 +1,42 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { TmbWizardAnswers } from '@/src/types/answers'
-import { GeneratedPlan } from '@/src/types/plan'
+import { matchCaseStudies } from '@/src/lib/case-matcher'
 
-export const maxDuration = 60
+export const maxDuration = 90
 
 const client = new Anthropic()
+const MODEL = 'claude-haiku-4-5-20251001'
 
-// ==================== 定数 ====================
+// ==================== システムプロンプト ====================
 
-const SYSTEM_PROMPT_CORE = 'あなたはTeachme Bizの運用支援専門家です。SaaSの導入・定着支援の豊富な経験を持ち、業種・規模・課題に応じた最適な運用プランを提案できます。必ずJSON形式のみで回答してください。'
+const SYSTEM_PLAN = 'あなたはTeachme Bizの運用支援専門家です。JSON形式のみで回答してください。'
+const SYSTEM_EXTRAS = 'あなたはTeachme Bizの営業・CS支援の専門家です。JSON形式のみで出力してください。'
 
-const SYSTEM_PROMPT_EXTRAS = 'あなたはTeachme Bizの営業・CS支援の専門家です。顧客情報をもとに、用途提案・ロードマップ・カウンタースクリプト・ボトルネック示唆をJSON形式のみで出力してください。'
+// ==================== スキーマ（分割） ====================
 
-// コアプラン用スキーマ（コンパクト）
-const CORE_SCHEMA = `JSONのみ。scheduleのactionsは各月1件のみ:
-{"summary":"2文以内","phases":[{"name":"名","period":"期間","goal":"1文","kpi":"KPI","actions":[{"title":"名","description":"1文","owner":"担当"}]}],"schedule":[{"month":1,"title":"テーマ","actions":["アクション1件のみ"],"isReviewPoint":false}],"barrierActions":["1文"],"kpiTargets":[{"kpi":"名","target":"値","timing":"時期"}]}`
+const SCHEMA_PHASES = `JSONのみ:
+{"theme":"テーマ1行","summary":"サマリー300字","phases":[{"name":"名","period":"1〜3ヶ月目","goal":"ゴール1文","kpi":"KPI","actions":[{"title":"名","description":"1文","owner":"担当"}],"categoryActivities":{"初期設定":["活動1件"],"マニュアル作成":["活動1件"],"マニュアル活用":["活動1件"],"効果測定":["活動1件"],"その他":["活動1件"]}}]}`
 
-// v2補助情報用スキーマ
-const EXTRAS_SCHEMA = `JSONのみ:
+const SCHEMA_SCHEDULE = `JSONのみ:
+{"schedule":[{"month":1,"title":"月テーマ","actions":["アクション1件"],"isReviewPoint":false}]}`
+
+const SCHEMA_BARRIER = `JSONのみ:
+{"barrierActions":[{"challenge":"課題","counter":"対処策1文"}],"kpiTargets":[{"kpi":"名","target":"値","timing":"時期"}]}`
+
+const SCHEMA_EXTRAS = `JSONのみ:
 {"useCaseProposals":[{"title":"用途","description":"1〜2文","priority":"high|medium|low","effort":"easy|medium|hard"}],"roadmap":[{"phase":"名","period":"〇ヶ月目","theme":"テーマ","currentUsageExpansion":"既存深化","newUseCase":"新規用途","milestone":"達成目標"}],"counterScripts":[{"objection":"懸念","counter":"トーク","supportingData":"データ","proposalAction":"アクション"}],"bottleneckHints":[{"area":"端末環境|体制|リテラシー|既存マニュアル|更新運用","hint":"内容","severity":"要確認|注意|参考"}]}`
 
 // ==================== ラベルマップ ====================
 
 const INDUSTRY_LABELS: Record<string, string> = {
-  food_service: '飲食・フードサービス', retail: '小売・流通', manufacturing: '製造・工場',
-  logistics: '物流・配送', medical: '医療・介護・福祉', beauty: 'ビューティー・サロン',
-  education: '教育・研修', it: 'IT・情報通信', real_estate: '不動産・建設',
-  finance: '金融・保険', other: 'その他',
+  agriculture: '農業・林業', fishing: '漁業', mining: '鉱業・採石業',
+  construction: '建設業', manufacturing: '製造業', utility: '電気・ガス・熱供給・水道業',
+  it: '情報通信業', logistics: '運輸業・郵便業', retail: '卸売業・小売業',
+  finance: '金融業・保険業', real_estate: '不動産業・物品賃貸業',
+  professional: '学術研究・専門・技術サービス業', food_service: '宿泊業・飲食サービス業',
+  beauty: '生活関連サービス業・娯楽業', education: '教育・学習支援業',
+  medical: '医療・福祉', other: 'サービス業（その他）・公務',
 }
 
 const SUB_INDUSTRY_LABELS: Record<string, string> = {
@@ -62,12 +71,8 @@ const BARRIER_LABELS: Record<string, string> = {
 }
 
 const KPI_LABELS: Record<string, string> = {
-  time_reduction: '時間削減', cost_reduction: 'コスト削減',
+  time_reduction: '工数削減', cost_reduction: 'コスト削減',
   quality_improvement: '品質・合格率向上', turnover_reduction: '定着率向上・離職率低下',
-}
-
-const PERIOD_LABELS: Record<string, string> = {
-  '3months': '3ヶ月', '6months': '6ヶ月', '12months': '1年',
 }
 
 const USAGE_STATUS_LABELS: Record<string, string> = {
@@ -75,33 +80,35 @@ const USAGE_STATUS_LABELS: Record<string, string> = {
   active: '特定の用途で本格稼働中', expanding: '複数部門で展開中',
 }
 
-// ==================== プロンプト構築 ====================
+// ==================== コンテキスト構築 ====================
 
 function buildContext(answers: TmbWizardAnswers): string {
   const challenges = answers.challenges.map((c) => CHALLENGE_LABELS[c] ?? c).join('、')
   const barriers = answers.operationalBarriers.map((b) => BARRIER_LABELS[b] ?? b).join('、')
-  const goal = GOAL_LABELS[answers.primaryGoal ?? ''] ?? answers.primaryGoal
+  const goals = (answers.primaryGoals ?? []).map((g) => GOAL_LABELS[g] ?? g).join('、')
   const kpi = KPI_LABELS[answers.priorityKpi ?? ''] ?? answers.priorityKpi
-  const period = PERIOD_LABELS[answers.planningPeriod ?? ''] ?? answers.planningPeriod
-  const phaseCount = period === '3ヶ月' ? 3 : period === '6ヶ月' ? 3 : 4
-  const monthCount = period === '3ヶ月' ? 3 : period === '6ヶ月' ? 6 : 12
 
   const industryLabel = INDUSTRY_LABELS[answers.industry ?? ''] ?? answers.industry
   const subIndustryLabel = answers.subIndustry ? (SUB_INDUSTRY_LABELS[answers.subIndustry] ?? answers.subIndustry) : null
   const industryStr = subIndustryLabel ? `${industryLabel}（${subIndustryLabel}）` : industryLabel
   const usageStatusLabel = USAGE_STATUS_LABELS[answers.usageStatus ?? ''] ?? null
 
+  // 類似事例（上位3件）をコンパクトに挿入
+  const similarCases = matchCaseStudies(answers, 3)
+  const casesStr = similarCases.length > 0
+    ? '類似事例:\n' + similarCases.map((c) => `・${c.companyName}（${c.companySize}）: ${c.effect}`).join('\n')
+    : ''
+
   const lines = [
     `企業:${answers.companyName} 業種:${industryStr}`,
     `規模:${answers.companySize} ${answers.locationCount}拠点×${answers.staffPerLocation}名 FC:${answers.isFranchise ? 'あり' : 'なし'}`,
     answers.departmentNote ? `対象部門:${answers.departmentNote}` : '',
     `課題:${challenges || 'なし'}`,
-    `目的:${goal} KPI:${kpi}${answers.targetValue ? ` 目標:${answers.targetValue}` : ''}`,
-    `重点期間:${period}`,
+    `目的:${goals || 'なし'} KPI:${kpi}${answers.targetValue ? ` 目標:${answers.targetValue}` : ''}`,
     barriers ? `運用障壁:${barriers}` : '',
     usageStatusLabel ? `現在の利用状況:${usageStatusLabel}` : '',
     answers.currentUseCases ? `現在の用途:${answers.currentUseCases}` : '',
-    `フェーズ${phaseCount}個・スケジュール${monthCount}ヶ月分で生成。`,
+    casesStr,
   ]
   return lines.filter(Boolean).join('\n')
 }
@@ -115,55 +122,78 @@ function parseJson(text: string): Record<string, unknown> {
 // ==================== API ルート ====================
 
 export async function POST(req: NextRequest) {
-  try {
-    const answers: TmbWizardAnswers = await req.json()
-    const context = buildContext(answers)
+  const answers: TmbWizardAnswers = await req.json()
+  const context = buildContext(answers)
+  const encoder = new TextEncoder()
 
-    // コアプラン (Sonnet) と v2補助情報 (Haiku) を並列実行
-    const [coreResult, extrasResult] = await Promise.allSettled([
-      client.messages.create({
-        model: 'claude-sonnet-4-6',
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (type: string, data: Record<string, unknown>) => {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type, ...data })}\n\n`))
+      }
+
+      // 4並列 Haiku コール
+      const callA = client.messages.create({
+        model: MODEL,
         max_tokens: 4096,
-        system: [{ type: 'text', text: SYSTEM_PROMPT_CORE, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: `${context}\n\n${CORE_SCHEMA}` }],
-      }),
-      client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1536,
-        system: [{ type: 'text', text: SYSTEM_PROMPT_EXTRAS, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: `${context}\n\n用途提案3〜5件・ロードマップ・カウンタースクリプト3件・ボトルネック示唆2〜4件を生成。\n${EXTRAS_SCHEMA}` }],
-      }),
-    ])
+        system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: `${context}\n\n4フェーズ生成。\n${SCHEMA_PHASES}` }],
+      }).then((r) => {
+        try {
+          const text = r.content[0].type === 'text' ? r.content[0].text : ''
+          if (r.stop_reason === 'max_tokens') console.error('[callA] max_tokens hit, JSON may be truncated')
+          send('phases', parseJson(text))
+        } catch (e) { console.error('[callA] parse error:', e); send('phases', {}) }
+      }).catch((e) => { console.error('[callA] API error:', e); send('phases', {}) })
 
-    // コアプランのパース（必須）
-    if (coreResult.status === 'rejected') {
-      throw new Error('コアプラン生成に失敗しました')
-    }
-    const coreText = coreResult.value.content[0].type === 'text' ? coreResult.value.content[0].text : ''
-    const core = parseJson(coreText)
+      const callB = client.messages.create({
+        model: MODEL,
+        max_tokens: 2048,
+        system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: `${context}\n\n12ヶ月スケジュール生成。\n${SCHEMA_SCHEDULE}` }],
+      }).then((r) => {
+        try {
+          const text = r.content[0].type === 'text' ? r.content[0].text : ''
+          if (r.stop_reason === 'max_tokens') console.error('[callB] max_tokens hit, JSON may be truncated')
+          send('schedule', parseJson(text))
+        } catch (e) { console.error('[callB] parse error:', e); send('schedule', {}) }
+      }).catch((e) => { console.error('[callB] API error:', e); send('schedule', {}) })
 
-    // v2補助情報のパース（失敗しても続行）
-    let extras: Record<string, unknown> = {}
-    if (extrasResult.status === 'fulfilled') {
-      const extrasText = extrasResult.value.content[0].type === 'text' ? extrasResult.value.content[0].text : ''
-      try { extras = parseJson(extrasText) } catch { /* 無視して続行 */ }
-    }
+      const callC = client.messages.create({
+        model: MODEL,
+        max_tokens: 800,
+        system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: `${context}\n\n運用障壁3件・KPI目標3件生成。\n${SCHEMA_BARRIER}` }],
+      }).then((r) => {
+        try {
+          const text = r.content[0].type === 'text' ? r.content[0].text : ''
+          send('barrier', parseJson(text))
+        } catch { send('barrier', {}) }
+      }).catch(() => send('barrier', {}))
 
-    const plan: GeneratedPlan = {
-      summary: (core.summary as string) ?? '',
-      phases: (core.phases as GeneratedPlan['phases']) ?? [],
-      schedule: (core.schedule as GeneratedPlan['schedule']) ?? [],
-      barrierActions: (core.barrierActions as string[]) ?? [],
-      kpiTargets: (core.kpiTargets as GeneratedPlan['kpiTargets']) ?? [],
-      useCaseProposals: extras.useCaseProposals as GeneratedPlan['useCaseProposals'],
-      roadmap: extras.roadmap as GeneratedPlan['roadmap'],
-      counterScripts: extras.counterScripts as GeneratedPlan['counterScripts'],
-      bottleneckHints: extras.bottleneckHints as GeneratedPlan['bottleneckHints'],
-    }
+      const callD = client.messages.create({
+        model: MODEL,
+        max_tokens: 1200,
+        system: [{ type: 'text', text: SYSTEM_EXTRAS, cache_control: { type: 'ephemeral' } }],
+        messages: [{ role: 'user', content: `${context}\n\n用途提案3〜5件・ロードマップ・カウンタースクリプト3件・ボトルネック示唆2〜4件。\n${SCHEMA_EXTRAS}` }],
+      }).then((r) => {
+        try {
+          const text = r.content[0].type === 'text' ? r.content[0].text : ''
+          send('extras', parseJson(text))
+        } catch { send('extras', {}) }
+      }).catch(() => send('extras', {}))
 
-    return NextResponse.json({ plan })
-  } catch (err) {
-    console.error('Plan generation error:', err)
-    return NextResponse.json({ error: 'プランの生成に失敗しました' }, { status: 500 })
-  }
+      await Promise.all([callA, callB, callC, callD])
+      send('done', {})
+      controller.close()
+    },
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+    },
+  })
 }
