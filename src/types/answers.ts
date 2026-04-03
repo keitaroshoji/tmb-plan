@@ -6,6 +6,7 @@ export type UsageStatus = 'none' | 'partial' | 'active' | 'expanding'
 
 // ==================== 業種 ====================
 export type Industry =
+  | 'agriculture'
   | 'food_service'
   | 'retail'
   | 'manufacturing'
@@ -16,6 +17,8 @@ export type Industry =
   | 'it'
   | 'real_estate'
   | 'finance'
+  | 'professional'
+  | 'utility'
   | 'other'
 
 // ==================== 企業規模 ====================
