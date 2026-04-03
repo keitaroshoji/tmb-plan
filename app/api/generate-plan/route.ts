@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
       // 4並列 Haiku コール
       const callA = client.messages.create({
         model: MODEL,
-        max_tokens: 4096,
+        max_tokens: 8192,
         system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
         messages: [{ role: 'user', content: `${context}\n\n4フェーズ生成。\n${SCHEMA_PHASES}` }],
       }).then((r) => {
