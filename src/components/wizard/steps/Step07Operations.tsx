@@ -30,7 +30,7 @@ const DEVICE_LABELS: Record<DeviceType, string> = {
 
 export function Step07Operations() {
   const router = useRouter()
-  const { answers, updateAnswers, completeWizard, prevStep, setGenerating, setCases } = useWizardStore()
+  const { answers, updateAnswers, completeWizard, prevStep, setGenerating } = useWizardStore()
 
   const handleSubmit = async () => {
     completeWizard()

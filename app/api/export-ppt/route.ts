@@ -13,9 +13,14 @@ export async function POST(req: NextRequest) {
       devicePlan: DevicePlan
     } = await req.json()
 
-    const buffer = await generatePptBuffer(answers, plan, cases, devicePlan)
+    if (!answers || !plan) {
+      return NextResponse.json({ error: '必要なデータが不足しています' }, { status: 400 })
+    }
 
-    const filename = `TeachmeBiz_運用プラン_${answers.companyName}_${new Date().toISOString().slice(0, 10)}.pptx`
+    const buffer = await generatePptBuffer(answers, plan, cases ?? [], devicePlan)
+
+    const safeName = (answers.companyName || '顧客').replace(/[/\\?%*:|"<>]/g, '_').slice(0, 50)
+    const filename = `TeachmeBiz_運用プラン_${safeName}_${new Date().toISOString().slice(0, 10)}.pptx`
 
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,

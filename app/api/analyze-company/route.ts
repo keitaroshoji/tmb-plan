@@ -18,29 +18,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '企業名を入力してください' }, { status: 400 })
     }
 
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system: [
-        {
-          type: 'text',
-          text: SYSTEM_PROMPT,
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      messages: [
-        {
-          role: 'user',
-          content: `企業名: ${companyName.trim()}\n\n${JSON_SCHEMA}`,
-        },
-      ],
-    })
+    const message = await client.messages.create(
+      {
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        system: [
+          {
+            type: 'text',
+            text: SYSTEM_PROMPT,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: [
+          {
+            role: 'user',
+            content: `企業名: ${companyName.trim()}\n\n${JSON_SCHEMA}`,
+          },
+        ],
+      },
+      { timeout: 8000 }
+    )
 
     const text = message.content[0].type === 'text' ? message.content[0].text : ''
     const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/)
     const jsonStr = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text
 
-    const profile = JSON.parse(jsonStr)
+    let profile: Record<string, unknown>
+    try {
+      profile = JSON.parse(jsonStr)
+    } catch {
+      return NextResponse.json({ error: '企業情報の解析に失敗しました' }, { status: 500 })
+    }
     return NextResponse.json({ profile })
   } catch (err) {
     console.error('Company analysis error:', err)

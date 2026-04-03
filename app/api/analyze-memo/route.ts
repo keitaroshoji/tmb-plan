@@ -23,29 +23,37 @@ export async function POST(req: NextRequest) {
     // メモが長すぎる場合は最初の3000文字に制限
     const truncatedMemo = memoText.slice(0, 3000)
 
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
-      system: [
-        {
-          type: 'text',
-          text: SYSTEM_PROMPT,
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      messages: [
-        {
-          role: 'user',
-          content: `以下のメモから情報を抽出してください:\n\n---\n${truncatedMemo}\n---\n\n${JSON_SCHEMA}`,
-        },
-      ],
-    })
+    const message = await client.messages.create(
+      {
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1024,
+        system: [
+          {
+            type: 'text',
+            text: SYSTEM_PROMPT,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        messages: [
+          {
+            role: 'user',
+            content: `以下のメモから情報を抽出してください:\n\n---\n${truncatedMemo}\n---\n\n${JSON_SCHEMA}`,
+          },
+        ],
+      },
+      { timeout: 8000 }
+    )
 
     const text = message.content[0].type === 'text' ? message.content[0].text : ''
     const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/)
     const jsonStr = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text
 
-    const extracted = JSON.parse(jsonStr)
+    let extracted: Record<string, unknown>
+    try {
+      extracted = JSON.parse(jsonStr)
+    } catch {
+      return NextResponse.json({ error: 'メモの解析に失敗しました' }, { status: 500 })
+    }
     return NextResponse.json({ extracted })
   } catch (err) {
     console.error('Memo analysis error:', err)

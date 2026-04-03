@@ -26,12 +26,16 @@ export default function Home() {
     if (!companyName.trim()) return
     setLoading(true)
     setError(null)
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 12000)
     try {
       const res = await fetch('/api/analyze-company', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ companyName: companyName.trim() }),
+        signal: controller.signal,
       })
+      clearTimeout(timer)
       if (!res.ok) throw new Error()
       const { profile } = await res.json()
 
@@ -50,8 +54,12 @@ export default function Home() {
       }
       updateAnswers(partial)
       router.push('/wizard?step=1')
-    } catch {
-      setError('企業情報の取得に失敗しました。手動で入力してください。')
+    } catch (e) {
+      clearTimeout(timer)
+      const msg = e instanceof Error && e.name === 'AbortError'
+        ? 'タイムアウトしました。手動で入力してください。'
+        : '企業情報の取得に失敗しました。手動で入力してください。'
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -61,12 +69,16 @@ export default function Home() {
     if (!memoText.trim()) return
     setLoading(true)
     setError(null)
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 12000)
     try {
       const res = await fetch('/api/analyze-memo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memoText: memoText.trim() }),
+        signal: controller.signal,
       })
+      clearTimeout(timer)
       if (!res.ok) throw new Error()
       const { extracted } = await res.json()
 
@@ -90,8 +102,12 @@ export default function Home() {
 
       updateAnswers(partial)
       router.push('/wizard?step=1')
-    } catch {
-      setError('メモの解析に失敗しました。手動で入力してください。')
+    } catch (e) {
+      clearTimeout(timer)
+      const msg = e instanceof Error && e.name === 'AbortError'
+        ? 'タイムアウトしました。手動で入力してください。'
+        : 'メモの解析に失敗しました。手動で入力してください。'
+      setError(msg)
     } finally {
       setLoading(false)
     }

@@ -64,7 +64,7 @@ export function recommendDevicePlan(answers: TmbWizardAnswers): DevicePlan {
 
   // メイン端末の選定
   const isCellular = answers.isFranchise || answers.locationCount >= 5
-  if (answers.deviceTypes.includes('smartphone') || answers.deviceTypes.includes('tablet')) {
+  if (answers.deviceTypes?.includes('smartphone') || answers.deviceTypes?.includes('tablet')) {
     const key = isCellular ? 'mobile_cellular' : 'mobile_wifi'
     const p = PRODUCTS[key]
     recommended.push({
@@ -79,7 +79,7 @@ export function recommendDevicePlan(answers: TmbWizardAnswers): DevicePlan {
   }
 
   // 大型モニター
-  if (answers.deviceTypes.includes('large_monitor')) {
+  if (answers.deviceTypes?.includes('large_monitor')) {
     const p = PRODUCTS['smart_monitor']
     recommended.push({
       productKey: 'smart_monitor',
@@ -91,7 +91,7 @@ export function recommendDevicePlan(answers: TmbWizardAnswers): DevicePlan {
   }
 
   // カメラ
-  if (answers.useCases.includes('video_shooting')) {
+  if (answers.useCases?.includes('video_shooting')) {
     const key = answers.shootingEnvironment === 'very_noisy' ? 'camera_wearable_mic' : 'camera_wearable'
     const p = PRODUCTS[key]
     recommended.push({

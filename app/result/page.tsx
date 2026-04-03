@@ -37,6 +37,7 @@ export default function ResultPage() {
     if (!generatedPlan) {
       generatePlan()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isComplete])
 
   const generatePlan = async () => {
@@ -156,7 +157,7 @@ export default function ResultPage() {
         {plan && (
           <section>
             <h2 className="text-lg font-bold text-gray-900 mb-4">🎯 推奨 運用プラン</h2>
-            <div className={`grid gap-4 grid-cols-1 md:grid-cols-${Math.min(plan.phases.length, 4)}`}>
+            <div className={`grid gap-4 grid-cols-1 ${plan.phases.length >= 4 ? 'md:grid-cols-4' : plan.phases.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
               {plan.phases.map((phase, i) => (
                 <div key={i} className="rounded-xl border border-gray-200 overflow-hidden">
                   <div className="bg-blue-600 px-4 py-2.5">

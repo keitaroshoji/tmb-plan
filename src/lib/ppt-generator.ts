@@ -23,7 +23,7 @@ function addTitleSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
   })
 
   // 顧客名
-  slide.addText(answers.companyName + ' 様', {
+  slide.addText((answers.companyName || '顧客') + ' 様', {
     x: 0.8, y: 3.2, w: 8.4, h: 0.6,
     fontSize: 20, color: LIGHT_BLUE, align: 'left',
   })
@@ -110,8 +110,9 @@ function addOperationPlanSlide(prs: PptxGenJS, plan: GeneratedPlan) {
     })
   }
 
-  const colW = 9 / Math.max(plan.phases.length, 1)
-  plan.phases.forEach((phase, i) => {
+  const phases = plan.phases ?? []
+  const colW = 9 / Math.max(phases.length, 1)
+  phases.forEach((phase, i) => {
     const x = 0.5 + i * colW
     const y = 1.7
 
@@ -159,7 +160,7 @@ function addScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan) {
   })
   slide.addShape(prs.ShapeType.line, { x: 0.5, y: 0.95, w: 9, h: 0, line: { color: BLUE, width: 2 } })
 
-  const months = plan.schedule.slice(0, 12)
+  const months = (plan.schedule ?? []).slice(0, 12)
   const cols = months.length <= 6 ? months.length : 6
   const rows = Math.ceil(months.length / cols)
   const cellW = 9 / cols
@@ -431,7 +432,7 @@ export async function generatePptBuffer(
 ): Promise<Buffer> {
   const prs = new PptxGenJS()
   prs.layout = 'LAYOUT_WIDE' // 16:9
-  prs.title = `${answers.companyName} 運用プランご提案`
+  prs.title = `${answers.companyName || '顧客'} 運用プランご提案`
 
   addTitleSlide(prs, answers)
   addChallengeSummarySlide(prs, answers)
