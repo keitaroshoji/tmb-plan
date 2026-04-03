@@ -32,17 +32,12 @@ const PHASE_COLORS = [
 
 // ==================== 矢羽型ヘッダー ====================
 
-function ChevronHeader({ label, period, index, total }: {
+function ChevronHeader({ label, period, index }: {
   label: string; period: string; index: number; total: number
 }) {
   const color = PHASE_COLORS[index % PHASE_COLORS.length]
-  const isLast = index === total - 1
   const A = 18
-  const clipPath = index === 0
-    ? `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
-    : isLast
-    ? `polygon(${A}px 0, 100% 0, 100% 100%, ${A}px 100%, 0 50%)`
-    : `polygon(${A}px 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, ${A}px 100%, 0 50%)`
+  const clipPath = `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
 
   return (
     <div style={{ background: color.bg, clipPath }} className="flex flex-col items-center justify-center py-3 px-6 min-h-[62px]">
@@ -95,23 +90,52 @@ function SectionSkeleton({ rows = 3 }: { rows?: number }) {
 
 // ==================== デバイス配置ビジュアル ====================
 
+const DEVICE_ICONS: Record<string, string> = {
+  smartphone: '📱', tablet: '📟', pc: '💻', large_monitor: '🖥️',
+}
+const DEVICE_LABELS: Record<string, string> = {
+  smartphone: 'スマートフォン', tablet: 'タブレット', pc: 'PC', large_monitor: '大型モニター',
+}
+
+function DeviceIconGrid({ type, count, textColor }: { type: string; count: number; textColor: string }) {
+  const icon = DEVICE_ICONS[type] ?? '📦'
+  const label = DEVICE_LABELS[type] ?? type
+  const MAX = 10
+  const shown = Math.min(count, MAX)
+  const overflow = count > MAX ? count - MAX : 0
+  return (
+    <div className="flex items-center gap-2 bg-white/70 rounded-lg px-3 py-2">
+      <div className="flex flex-wrap gap-0.5 min-w-0">
+        {Array.from({ length: shown }).map((_, i) => (
+          <span key={i} className="text-lg leading-none">{icon}</span>
+        ))}
+        {overflow > 0 && <span className={`text-xs font-bold ${textColor} self-end ml-0.5`}>+{overflow}</span>}
+      </div>
+      <div className="ml-auto shrink-0 text-right">
+        <p className={`text-xs font-medium ${textColor}`}>{label}</p>
+        <p className={`text-lg font-bold ${textColor}`}>{count}<span className="text-xs font-normal ml-0.5">台</span></p>
+      </div>
+    </div>
+  )
+}
+
 function DeviceVisual({ answers, devicePlan }: {
   answers: TmbWizardAnswers
   devicePlan: DevicePlan
 }) {
-  const DEVICE_ICONS: Record<string, string> = {
-    smartphone: '📱', tablet: '📟', pc: '💻', large_monitor: '🖥️',
-  }
-  const DEVICE_LABELS: Record<string, string> = {
-    smartphone: 'スマートフォン', tablet: 'タブレット', pc: 'PC', large_monitor: '大型モニター',
-  }
   const hqDevices = answers.headquartersDevicesByType
   const storeDevices = answers.currentDevicesByType
   const hqTotal = Object.values(hqDevices).reduce<number>((s, v) => s + (v ?? 0), 0)
   const storeTotal = Object.values(storeDevices).reduce<number>((s, v) => s + (v ?? 0), 0)
+  const locationCount = answers.locationCount ?? 1
+  const staffPerLocation = answers.staffPerLocation ?? 0
+
+  // 表示する店舗カード数（最大4枚、残りは省略）
+  const shownStores = Math.min(locationCount, 4)
+  const hiddenStores = locationCount - shownStores
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       {/* 数値サマリー */}
       <div className="grid grid-cols-3 gap-5">
         {[
@@ -126,56 +150,91 @@ function DeviceVisual({ answers, devicePlan }: {
         ))}
       </div>
 
-      {/* 配置図 */}
-      <div className="grid grid-cols-2 gap-6">
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-2xl">🏢</span>
-            <span className="font-bold text-blue-900 text-base">本社・管理部門</span>
-          </div>
-          {hqTotal > 0 ? (
-            <div className="space-y-2">
-              {(Object.entries(hqDevices) as [string, number | undefined][]).filter(([, v]) => (v ?? 0) > 0).map(([type, count]) => (
-                <div key={type} className="flex items-center gap-2.5 bg-white/60 rounded-lg px-3 py-2">
-                  <span className="text-xl">{DEVICE_ICONS[type] ?? '📦'}</span>
-                  <span className="text-sm text-blue-800">{DEVICE_LABELS[type] ?? type}</span>
-                  <span className="ml-auto font-bold text-blue-900">{count ?? 0}台</span>
-                </div>
-              ))}
+      {/* 本社→店舗 階層ダイアグラム */}
+      <div>
+        <p className="text-sm font-bold text-gray-600 mb-4">端末配置イメージ</p>
+
+        {/* 本社カード */}
+        <div className="flex justify-center mb-2">
+          <div className="rounded-xl border-2 border-blue-300 bg-blue-50 p-5 w-full max-w-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">🏢</span>
+              <span className="font-bold text-blue-900 text-base">本社・管理部門</span>
+              {hqTotal > 0 && (
+                <span className="ml-auto text-xs bg-blue-200 text-blue-800 px-2.5 py-1 rounded-full font-semibold">
+                  計 {hqTotal}台
+                </span>
+              )}
             </div>
-          ) : (
-            <div className="bg-white/60 rounded-lg px-3 py-3 text-sm text-blue-400 italic">端末情報なし（管理者PC等を別途ご準備ください）</div>
-          )}
+            {hqTotal > 0 ? (
+              <div className="space-y-2">
+                {(Object.entries(hqDevices) as [string, number | undefined][])
+                  .filter(([, v]) => (v ?? 0) > 0)
+                  .map(([type, count]) => (
+                    <DeviceIconGrid key={type} type={type} count={count ?? 0} textColor="text-blue-800" />
+                  ))}
+              </div>
+            ) : (
+              <p className="text-sm text-blue-400 italic bg-white/60 rounded-lg px-3 py-2">端末情報なし（管理者PC等を別途ご準備ください）</p>
+            )}
+          </div>
         </div>
 
-        <div className="rounded-xl border border-green-200 bg-green-50 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🏪</span>
-              <span className="font-bold text-green-900 text-base">現場（1拠点あたり）</span>
-            </div>
-            <span className="text-xs bg-green-200 text-green-800 px-2.5 py-1 rounded-full font-semibold">
-              × {answers.locationCount}拠点
-            </span>
+        {/* 接続線 */}
+        <div className="flex justify-center">
+          <div className="flex flex-col items-center">
+            <div className="w-0.5 h-6 bg-gray-300" />
+            <div className="w-3 h-3 border-b-2 border-r-2 border-gray-400 rotate-45 -mt-2" />
           </div>
-          {storeTotal > 0 ? (
-            <div className="space-y-2">
-              {(Object.entries(storeDevices) as [string, number | undefined][]).filter(([, v]) => (v ?? 0) > 0).map(([type, count]) => (
-                <div key={type} className="flex items-center gap-2.5 bg-white/60 rounded-lg px-3 py-2">
-                  <span className="text-xl">{DEVICE_ICONS[type] ?? '📦'}</span>
-                  <span className="text-sm text-green-800">{DEVICE_LABELS[type] ?? type}</span>
-                  <span className="ml-auto font-bold text-green-900">{count ?? 0}台</span>
+        </div>
+
+        {/* 全拠点ラベル */}
+        <div className="flex justify-center mb-2 mt-1">
+          <div className="inline-flex items-center gap-2 bg-gray-100 border border-gray-300 rounded-full px-4 py-1.5">
+            <span className="text-sm font-bold text-gray-700">全 {locationCount} 拠点</span>
+            <span className="text-xs text-gray-500">（スタッフ {staffPerLocation}名 / 拠点）</span>
+          </div>
+        </div>
+
+        {/* 接続線 */}
+        <div className="flex justify-center">
+          <div className="flex flex-col items-center">
+            <div className="w-0.5 h-4 bg-gray-300" />
+          </div>
+        </div>
+
+        {/* 店舗カード群 */}
+        <div className={`grid gap-4 mt-1 ${shownStores === 1 ? 'grid-cols-1 max-w-lg mx-auto' : shownStores === 2 ? 'grid-cols-2' : shownStores === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
+          {Array.from({ length: shownStores }).map((_, idx) => (
+            <div key={idx} className="rounded-xl border-2 border-green-300 bg-green-50 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xl">🏪</span>
+                  <span className="font-bold text-green-900 text-sm">
+                    {locationCount === 1 ? '現場' : `拠点 ${idx + 1}`}
+                  </span>
                 </div>
-              ))}
-              <div className="flex items-center gap-2.5 bg-white/60 rounded-lg px-3 py-2 mt-3">
-                <span className="text-xl">👥</span>
-                <span className="text-sm text-green-800">スタッフ数</span>
-                <span className="ml-auto font-bold text-green-900">{answers.staffPerLocation}名</span>
+                <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full font-medium">
+                  {staffPerLocation}名
+                </span>
               </div>
+              {storeTotal > 0 ? (
+                <div className="space-y-1.5">
+                  {(Object.entries(storeDevices) as [string, number | undefined][])
+                    .filter(([, v]) => (v ?? 0) > 0)
+                    .map(([type, count]) => (
+                      <DeviceIconGrid key={type} type={type} count={count ?? 0} textColor="text-green-800" />
+                    ))}
+                </div>
+              ) : (
+                <p className="text-xs text-green-400 italic">端末情報なし</p>
+              )}
             </div>
-          ) : (
-            <div className="bg-white/60 rounded-lg px-3 py-3 text-sm text-green-400 italic">
-              端末情報なし（{answers.locationCount}拠点 × {answers.staffPerLocation}名/拠点）
+          ))}
+          {hiddenStores > 0 && (
+            <div className="rounded-xl border-2 border-dashed border-green-200 bg-green-50/40 p-4 flex flex-col items-center justify-center min-h-[100px]">
+              <span className="text-2xl text-green-400">+{hiddenStores}</span>
+              <span className="text-xs text-green-500 mt-1">拠点（同構成）</span>
             </div>
           )}
         </div>
