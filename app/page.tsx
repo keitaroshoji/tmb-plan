@@ -27,7 +27,7 @@ export default function Home() {
     setLoading(true)
     setError(null)
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 12000)
+    const timer = setTimeout(() => controller.abort(), 20000)
     try {
       const res = await fetch('/api/analyze-company', {
         method: 'POST',
@@ -70,7 +70,7 @@ export default function Home() {
     setLoading(true)
     setError(null)
     const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 12000)
+    const timer = setTimeout(() => controller.abort(), 20000)
     try {
       const res = await fetch('/api/analyze-memo', {
         method: 'POST',
