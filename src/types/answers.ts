@@ -6,20 +6,23 @@ export type UsageStatus = 'none' | 'partial' | 'active' | 'expanding'
 
 // ==================== 業種 ====================
 export type Industry =
-  | 'agriculture'
-  | 'food_service'
-  | 'retail'
-  | 'manufacturing'
-  | 'logistics'
-  | 'medical'
-  | 'beauty'
-  | 'education'
-  | 'it'
-  | 'real_estate'
-  | 'finance'
-  | 'professional'
-  | 'utility'
-  | 'other'
+  | 'agriculture'       // A. 農業，林業
+  | 'fishing'           // B. 漁業
+  | 'mining'            // C. 鉱業，採石業
+  | 'construction'      // D. 建設業
+  | 'manufacturing'     // E. 製造業
+  | 'utility'           // F. 電気・ガス・熱供給・水道業
+  | 'it'                // G. 情報通信業
+  | 'logistics'         // H. 運輸業，郵便業
+  | 'retail'            // I. 卸売業，小売業
+  | 'finance'           // J. 金融業，保険業
+  | 'real_estate'       // K. 不動産業，物品賃貸業
+  | 'professional'      // L. 学術研究，専門・技術サービス業
+  | 'food_service'      // M. 宿泊業，飲食サービス業
+  | 'beauty'            // N. 生活関連サービス業，娯楽業
+  | 'education'         // O. 教育，学習支援業
+  | 'medical'           // P. 医療，福祉
+  | 'other'             // R. サービス業（他に分類されないもの）・その他
 
 // ==================== 企業規模 ====================
 export type CompanySize = 'under50' | 'under200' | 'under500' | 'under1000' | 'over1000'
@@ -131,10 +134,9 @@ export interface TmbWizardAnswers {
   challenges: Challenge[]
 
   // Step 3: 導入目的・期待効果
-  primaryGoal: PrimaryGoal | null
+  primaryGoals: PrimaryGoal[]
   priorityKpi: KpiType | null
   targetValue: string
-  planningPeriod: PlanningPeriod | null
 
   // Step 3b: 現在の用途（新規）
   usageStatus: UsageStatus | null  // 現在の利用状況
@@ -175,10 +177,9 @@ export const INITIAL_ANSWERS: TmbWizardAnswers = {
   isFranchise: null,
   departmentNote: '',
   challenges: [],
-  primaryGoal: null,
+  primaryGoals: [],
   priorityKpi: null,
   targetValue: '',
-  planningPeriod: null,
   usageStatus: null,
   currentUseCases: '',
   operationalBarriers: [],
