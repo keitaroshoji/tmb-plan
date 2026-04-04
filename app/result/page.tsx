@@ -618,7 +618,7 @@ export default function ResultPage() {
             )}
             <Button variant="outline" size="sm" onClick={() => { resetWizard(); router.push('/') }}>最初から</Button>
             <Button size="sm" onClick={handleDownloadPpt} disabled={!generatedPlan || downloading} loading={downloading}
-              className="bg-green-600 hover:bg-green-700">
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold shadow-md">
               📊 PPTをダウンロード
             </Button>
           </div>
@@ -996,7 +996,7 @@ export default function ResultPage() {
           <p className="text-white font-bold text-2xl mb-2">提案資料（PowerPoint）をダウンロード</p>
           <p className="text-blue-100 text-sm mb-6">上記の内容がすべて含まれたPowerPointファイルを生成します</p>
           <Button size="lg" onClick={handleDownloadPpt} disabled={!plan || downloading} loading={downloading}
-            className="bg-white text-blue-600 hover:bg-blue-50 font-bold px-10">
+            className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-10 shadow-lg text-base">
             📊 PPTをダウンロード
           </Button>
         </div>
