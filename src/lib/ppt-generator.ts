@@ -274,12 +274,14 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
     x: MG + 0.07, y: Y0, w: LW - 0.11, h: 0.22,
     fontFace: FONT, fontSize: 7, bold: true, color: WHITE, valign: 'middle',
   })
+  const TEXT_H = 1.1  // 概要・ポイントのテキストボックス高さ
+
   sl.addShape(prs.ShapeType.rect, {
-    x: MG, y: Y0 + 0.22, w: LW, h: 1.5,
+    x: MG, y: Y0 + 0.22, w: LW, h: TEXT_H,
     fill: { color: PRIMARY_LT }, line: { color: 'BFDBFE', width: 0.5 },
   })
   sl.addText(plan.projectOverview ?? plan.summary ?? '', {
-    x: MG + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: 1.4,
+    x: MG + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: TEXT_H - 0.10,
     fontFace: FONT, fontSize: 7, color: PRIMARY_DK, valign: 'top', align: 'left',
   })
 
@@ -293,16 +295,45 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
     fontFace: FONT, fontSize: 7, bold: true, color: WHITE, valign: 'middle',
   })
   sl.addShape(prs.ShapeType.rect, {
-    x: RX, y: Y0 + 0.22, w: LW, h: 1.5,
+    x: RX, y: Y0 + 0.22, w: LW, h: TEXT_H,
     fill: { color: ORANGE_LT }, line: { color: 'FDE68A', width: 0.5 },
   })
   sl.addText(plan.promotionPoints ?? '', {
-    x: RX + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: 1.4,
+    x: RX + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: TEXT_H - 0.10,
     fontFace: FONT, fontSize: 7, color: ORANGE_DK, valign: 'top', align: 'left',
   })
 
+  // --- KPI目標 ---
+  const KPI_Y = Y0 + 0.22 + TEXT_H + 0.09
+  const kpiTargets = plan.kpiTargets ?? []
+  if (kpiTargets.length > 0) {
+    secBar(sl, prs, MG, KPI_Y, CW, 'KPI目標', GREEN)
+    const kpiCardW = (CW - 0.08 * (kpiTargets.length - 1)) / kpiTargets.length
+    const kpiCardH = 0.42
+    kpiTargets.slice(0, 3).forEach((k, i) => {
+      const kx = MG + i * (kpiCardW + 0.08)
+      const ky = KPI_Y + 0.24
+      sl.addShape(prs.ShapeType.rect, {
+        x: kx, y: ky, w: kpiCardW, h: kpiCardH,
+        fill: { color: GREEN_LT }, line: { color: 'A7F3D0', width: 0.5 },
+      })
+      sl.addText(k.kpi, {
+        x: kx + 0.07, y: ky + 0.03, w: kpiCardW - 0.12, h: 0.16,
+        fontFace: FONT, fontSize: 6.5, bold: true, color: GREEN_DK, valign: 'middle',
+      })
+      sl.addText(k.target, {
+        x: kx + 0.07, y: ky + 0.20, w: kpiCardW - 0.12, h: 0.16,
+        fontFace: FONT, fontSize: 8, bold: true, color: GREEN_DK, valign: 'middle',
+      })
+      sl.addText(k.timing, {
+        x: kx + 0.07, y: ky + 0.32, w: kpiCardW - 0.12, h: 0.10,
+        fontFace: FONT, fontSize: 5.5, color: GREEN, valign: 'middle',
+      })
+    })
+  }
+
   // --- マニュアル活用イメージ ---
-  const MY = Y0 + 1.84
+  const MY = KPI_Y + (kpiTargets.length > 0 ? 0.68 : 0) + 0.08
   sl.addShape(prs.ShapeType.rect, {
     x: MG, y: MY, w: CW, h: 0.22,
     fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },

@@ -219,7 +219,7 @@ export function Step01BasicInfo() {
             className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           >
             <option value="">年を選択</option>
-            {[2025, 2026, 2027, 2028, 2029, 2030].map((y) => (
+            {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i).map((y) => (
               <option key={y} value={String(y)}>{y}年</option>
             ))}
           </select>

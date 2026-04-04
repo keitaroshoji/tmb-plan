@@ -619,7 +619,7 @@ export default function ResultPage() {
             )}
             <Button variant="outline" size="sm" onClick={() => { resetWizard(); router.push('/') }}>最初から</Button>
             <Button variant="outline" size="sm"
-              onClick={() => { clearPlan(); setPartialPlan({}); generatePlan() }}
+              onClick={() => { clearPlan(); setPartialPlan({}); window.scrollTo({ top: 0, behavior: 'smooth' }); generatePlan() }}
               disabled={isGenerating}>
               🔄 再生成
             </Button>
