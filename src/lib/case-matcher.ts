@@ -50,3 +50,23 @@ export function matchCaseStudies(answers: TmbWizardAnswers, count = 3): CaseStud
 
   return scored.slice(0, count).map(({ industry: _i, challenges: _c, useCases: _u, sizeCategory: _s, ...rest }) => rest)
 }
+
+export interface CaseHint {
+  label: string   // 表示テキスト
+  url?: string    // 元記事URL
+}
+
+/** トップ3以降の事例をヒントとして返す（最大 extraCount 件） */
+export function matchCaseHints(answers: TmbWizardAnswers, skip = 3, extraCount = 7): CaseHint[] {
+  const scored = CASE_STUDIES.map((c) => ({
+    ...c,
+    matchScore: scoreCase(c, answers),
+  })).filter((c) => c.matchScore > 0)
+
+  scored.sort((a, b) => b.matchScore - a.matchScore)
+
+  return scored.slice(skip, skip + extraCount).map((c) => ({
+    label: `${c.companyName}（${c.companySize}）— ${c.effect}`,
+    url: c.url,
+  }))
+}

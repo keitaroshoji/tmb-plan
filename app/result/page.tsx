@@ -3,7 +3,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useWizardStore } from '@/src/store/wizardStore'
-import { matchCaseStudies } from '@/src/lib/case-matcher'
+import { matchCaseStudies, matchCaseHints, CaseHint } from '@/src/lib/case-matcher'
+import { matchInsights } from '@/src/lib/insight-matcher'
 import { recommendDevicePlan, DevicePlan } from '@/src/lib/device-recommender'
 import { CaseStudy, GeneratedPlan, ACTIVITY_CATEGORIES, BarrierAction, Phase, UsageScenario } from '@/src/types/plan'
 import { TmbWizardAnswers } from '@/src/types/answers'
@@ -322,6 +323,8 @@ export default function ResultPage() {
   const router = useRouter()
   const { answers, isComplete, resetWizard, generatedPlan, setPlan, isGenerating, setGenerating } = useWizardStore()
   const [cases, setCases] = useState<CaseStudy[]>([])
+  const [caseHints, setCaseHints] = useState<CaseHint[]>([])
+  const [insightHints, setInsightHints] = useState<{ label: string; url?: string }[]>([])
   const [devicePlan, setDevicePlan] = useState<DevicePlan | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [downloading, setDownloading] = useState(false)
@@ -332,6 +335,10 @@ export default function ResultPage() {
   useEffect(() => {
     if (!isComplete) { router.replace('/wizard?step=1'); return }
     setCases(matchCaseStudies(answers, 3))
+    setCaseHints(matchCaseHints(answers, 3, 8))
+    setInsightHints(
+      matchInsights(answers, 6).map((i) => ({ label: `${i.company}: ${i.tip}`, url: i.source }))
+    )
     setDevicePlan(recommendDevicePlan(answers))
     if (!generatedPlan) generatePlan()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -741,6 +748,41 @@ export default function ResultPage() {
                 </div>
               ))}
             </div>
+
+            {/* その他のヒント */}
+            {(caseHints.length > 0 || insightHints.length > 0) && (
+              <div className="mt-6 rounded-xl bg-gray-50 border border-gray-200 px-7 py-6">
+                <p className="text-sm font-bold text-gray-700 mb-4">💡 その他のヒント — 運用イメージの参考になる事例・知見</p>
+                <div className="grid grid-cols-2 gap-x-10 gap-y-1.5">
+                  {caseHints.map((h, i) => (
+                    <div key={`case-${i}`} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className="text-gray-400 shrink-0 mt-0.5">•</span>
+                      <span className="leading-relaxed">
+                        {h.url ? (
+                          <a href={h.url} target="_blank" rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline hover:text-blue-800">
+                            {h.label}
+                          </a>
+                        ) : h.label}
+                      </span>
+                    </div>
+                  ))}
+                  {insightHints.map((h, i) => (
+                    <div key={`insight-${i}`} className="flex items-start gap-2 text-sm text-gray-700">
+                      <span className="text-gray-400 shrink-0 mt-0.5">•</span>
+                      <span className="leading-relaxed">
+                        {h.url ? (
+                          <a href={h.url} target="_blank" rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline hover:text-blue-800">
+                            {h.label}
+                          </a>
+                        ) : h.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
