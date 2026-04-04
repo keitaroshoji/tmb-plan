@@ -81,7 +81,7 @@ function ChevronHeader({ label, period, calendarPeriod, index }: {
       <span className="text-white font-bold text-sm leading-tight text-center">{label}</span>
       <span className="text-white/80 text-xs mt-0.5">{period}</span>
       {/* calendarPeriod が無い場合も同じ行数を確保して高さを統一する */}
-      <span className="text-white/60 text-xs mt-0.5">{calendarPeriod ?? '\u00A0'}</span>
+      <span className="text-white/90 text-[11px] font-semibold mt-0.5 tracking-wide">{calendarPeriod ?? '\u00A0'}</span>
     </div>
   )
 }
@@ -823,7 +823,7 @@ export default function ResultPage() {
           {(plan?.schedule?.length ?? 0) > 0 ? (
             <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
               <div className="grid bg-gray-700 text-white text-xs font-semibold uppercase tracking-wide"
-                style={{ gridTemplateColumns: '80px 180px 1fr 2fr 88px' }}>
+                style={{ gridTemplateColumns: '100px 180px 1fr 2fr 88px' }}>
                 {['月', 'フェーズ', 'テーマ', '主要アクション', '効果測定'].map((h, i) => (
                   <div key={h} className={`px-4 py-3 ${i < 4 ? 'border-r border-gray-700' : ''}`}>{h}</div>
                 ))}
@@ -841,14 +841,17 @@ export default function ResultPage() {
                 return (
                   <div key={m.month}
                     className={`grid border-b border-gray-100 last:border-b-0 transition-colors ${isAfter13 ? 'bg-gray-50 hover:bg-gray-100/60' : 'hover:bg-blue-50/20'}`}
-                    style={{ gridTemplateColumns: '80px 180px 1fr 2fr 88px' }}>
+                    style={{ gridTemplateColumns: '100px 180px 1fr 2fr 88px' }}>
                     <div className="px-3 py-3 border-r border-gray-100 flex flex-col items-center justify-center gap-0.5">
                       <span className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
                         style={{ background: color.bg }}>
                         {isAfter13 ? '…' : m.month}
                       </span>
+                      <span className="text-[10px] font-semibold text-gray-500 leading-tight">
+                        {isAfter13 ? '13ヶ月目〜' : `${m.month}ヶ月目`}
+                      </span>
                       {calendarLabel && (
-                        <span className="text-center font-medium leading-tight" style={{ fontSize: '10px', color: color.bg }}>{calendarLabel}</span>
+                        <span className="text-[11px] font-bold leading-tight text-center" style={{ color: color.bg }}>{calendarLabel}</span>
                       )}
                     </div>
                     <div className="px-3 py-3 border-r border-gray-100 flex items-center">
