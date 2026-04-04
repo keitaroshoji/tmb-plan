@@ -96,13 +96,13 @@ const CAT_ICONS: Record<string, string> = {
 
 function SectionHeading({ icon, title, sub }: { icon: string; title: string; sub?: string }) {
   return (
-    <div className="flex items-end gap-3 mb-5">
-      <span className="text-2xl leading-none">{icon}</span>
-      <div className="leading-tight">
-        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-        {sub && <p className="text-sm text-gray-500 mt-0.5">{sub}</p>}
+    <div className="mb-6 pb-4 border-b border-gray-200">
+      <div className="flex items-center gap-3">
+        <div className="w-1 h-7 rounded-full bg-blue-600 shrink-0" />
+        <span className="text-xl leading-none">{icon}</span>
+        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
       </div>
-      <div className="flex-1 border-b border-gray-200 mb-0.5" />
+      {sub && <p className="text-sm text-gray-400 mt-1.5 ml-[2.75rem]">{sub}</p>}
     </div>
   )
 }
@@ -626,7 +626,7 @@ export default function ResultPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1600px] px-16 py-10 space-y-12">
+      <main className="mx-auto max-w-[1600px] px-16 py-10 space-y-16">
 
         {/* ==================== 1. タイトル ==================== */}
         <section className="rounded-xl bg-white border border-gray-200 shadow-sm px-8 py-7">
