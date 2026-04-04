@@ -789,7 +789,7 @@ export default function ResultPage() {
                                 {items.filter(Boolean).slice(0, 3).map((item, k) => (
                                   <li key={k} className="text-xs text-gray-700 flex gap-1.5">
                                     <span className="text-gray-400 shrink-0 mt-0.5">•</span>
-                                    <span className="leading-relaxed">{item}</span>
+                                    <span className="line-clamp-1 leading-relaxed">{item}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -868,8 +868,8 @@ export default function ResultPage() {
                       <ul className="space-y-1">
                         {m.actions.slice(0, 2).map((a, ai) => (
                           <li key={ai} className="text-xs text-gray-600 flex gap-1.5">
-                            <span className="text-gray-400 shrink-0">•</span>
-                            <span className="leading-relaxed">{a}</span>
+                            <span className="text-gray-400 shrink-0 mt-0.5">•</span>
+                            <span className="line-clamp-2 leading-relaxed">{a}</span>
                           </li>
                         ))}
                       </ul>

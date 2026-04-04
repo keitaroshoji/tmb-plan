@@ -19,11 +19,11 @@ const SYSTEM_PLAN = 'あなたはTeachme Bizの運用支援専門家です。JSO
 
 // ==================== スキーマ（分割） ====================
 
-const SCHEMA_PHASES = `JSONのみ（4フェーズ必須。categoryActivitiesは全カテゴリ・全フェーズに必ず1件以上記入）:
-{"theme":"テーマ1行","summary":"サマリー300字","phases":[{"name":"名","period":"1〜3ヶ月目","goal":"ゴール1文","kpi":"KPI","actions":[{"title":"名","description":"1文","owner":"担当"}],"categoryActivities":{"初期設定":["具体的な活動"],"マニュアル作成":["具体的な活動"],"マニュアル活用":["具体的な活動"],"効果測定":["具体的な活動"],"その他":["具体的な活動"]}}]}`
+const SCHEMA_PHASES = `JSONのみ（4フェーズ必須。categoryActivitiesは全カテゴリ・全フェーズに必ず1〜3件記入）:
+{"theme":"テーマ1行","summary":"サマリー300字","phases":[{"name":"名","period":"1〜3ヶ月目","goal":"ゴール1文","kpi":"KPI","actions":[{"title":"名","description":"1文","owner":"担当"}],"categoryActivities":{"初期設定":["短文活動（20字以内）"],"マニュアル作成":["短文活動（20字以内）"],"マニュアル活用":["短文活動（20字以内）"],"効果測定":["短文活動（20字以内）"],"その他":["短文活動（20字以内）"]}}]}`
 
 const SCHEMA_SCHEDULE = `JSONのみ（month=1〜12の12ヶ月分＋month=13として13ヶ月目以降の中長期取り組みを1件追加、計13件）:
-{"schedule":[{"month":1,"title":"月テーマ","actions":["アクション1","アクション2","アクション3"],"isReviewPoint":false},{"month":13,"title":"13ヶ月目以降の取り組みテーマ","actions":["中長期アクション1","中長期アクション2","中長期アクション3"],"isReviewPoint":true}]}`
+{"schedule":[{"month":1,"title":"月テーマ","actions":["アクション1（40〜60字の丁寧な文章）","アクション2（40〜60字の丁寧な文章）"],"isReviewPoint":false},{"month":13,"title":"13ヶ月目以降の取り組みテーマ","actions":["中長期アクション1（40〜60字）","中長期アクション2（40〜60字）"],"isReviewPoint":true}]}`
 
 const SCHEMA_USAGE = `JSONのみ（4件）:
 {"usageScenarios":[{"manualTitle":"マニュアルのタイトル例","user":"誰が使うか（役職・立場）","scene":"どのようなシーンで使うか","effect":"どのような効果・成果が出るか"}]}`
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         model: MODEL,
         max_tokens: 8192,
         system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n4フェーズ生成。categoryActivitiesは全5カテゴリ×全4フェーズすべてに具体的な活動を1件以上必ず記入すること。活動内容は「現場担当者が無理なく取り組める」現実的でマイルドなトーンにすること。初期フェーズほど小さな成功体験を重視し、負担感を感じさせない表現・粒度にすること。\n${SCHEMA_PHASES}` }] }],
+        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n4フェーズ生成。categoryActivitiesは全5カテゴリ×全4フェーズすべてに1〜3件記入すること。各活動は20字以内の短いショートセンテンスで書くこと（例：「運用ルールを文書化する」「マニュアル閲覧数を週次確認」）。活動内容は「現場担当者が無理なく取り組める」現実的でマイルドなトーンにすること。初期フェーズほど小さな成功体験を重視すること。\n${SCHEMA_PHASES}` }] }],
       }).then((r) => {
         try {
           const text = r.content[0].type === 'text' ? r.content[0].text : ''
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
         model: MODEL,
         max_tokens: 4096,
         system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n12ヶ月スケジュール生成（各月actionsは必ず3件、各アクションは25字以内で簡潔に）＋month=13として13ヶ月目以降の中長期取り組みを1件追加すること。アクションは「現場がストレスなく実行できる」現実的で小さなステップにすること。最初の数ヶ月は特にシンプルに抑え、段階的に難易度を上げること。月ごとのテーマも「〜を始める」「〜を試す」など取り組みやすい語感にすること。\n${SCHEMA_SCHEDULE}` }] }],
+        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n12ヶ月スケジュール生成（各月actionsは必ず2件）＋month=13として13ヶ月目以降の中長期取り組みを1件追加すること。各アクションは40〜60字程度の丁寧な文章で、1項目が2行を超えないよう簡潔にまとめること。「〜することで〜できる」など具体的で行動ベースの書き方にすること。最初の数ヶ月は特にシンプルに抑え、段階的に深度を上げること。月ごとのテーマも「〜を始める」「〜を定着させる」など語感を統一すること。\n${SCHEMA_SCHEDULE}` }] }],
       }).then((r) => {
         try {
           const text = r.content[0].type === 'text' ? r.content[0].text : ''
