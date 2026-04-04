@@ -594,12 +594,6 @@ export default function ResultPage() {
             } else if (event.type === 'usage') {
               acc.usageScenarios = event.usageScenarios as GeneratedPlan['usageScenarios']
               setPartialPlan({ ...acc })
-            } else if (event.type === 'extras') {
-              acc.useCaseProposals = event.useCaseProposals as GeneratedPlan['useCaseProposals']
-              acc.roadmap = event.roadmap as GeneratedPlan['roadmap']
-              acc.counterScripts = event.counterScripts as GeneratedPlan['counterScripts']
-              acc.bottleneckHints = event.bottleneckHints as GeneratedPlan['bottleneckHints']
-              setPartialPlan({ ...acc })
             } else if (event.type === 'done') {
               setPlan(accumulatedRef.current as GeneratedPlan)
             }
@@ -905,7 +899,7 @@ export default function ResultPage() {
                         {isAfter13 ? '…' : m.month}
                       </span>
                       {calendarLabel && (
-                        <span className="text-center text-gray-400 leading-tight" style={{ fontSize: '10px' }}>{calendarLabel}</span>
+                        <span className="text-center font-medium leading-tight" style={{ fontSize: '10px', color: color.bg }}>{calendarLabel}</span>
                       )}
                     </div>
                     <div className="px-3 py-3 border-r border-gray-100 flex items-center">
