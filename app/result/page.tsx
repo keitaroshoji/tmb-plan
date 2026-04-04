@@ -240,6 +240,32 @@ function DeviceVisual({ answers, devicePlan }: {
         </div>
       </div>
 
+      {/* 特別環境対応アクセサリー示唆 */}
+      {devicePlan.accessoryHints.length > 0 && (
+        <div className="rounded-xl border-2 border-orange-200 bg-orange-50 p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">⚠️</span>
+            <p className="text-sm font-bold text-orange-800">特別環境への対応品（ケース・フィルム等）</p>
+          </div>
+          {devicePlan.accessoryHints.map((hint, i) => (
+            <div key={i}>
+              <p className="text-xs font-semibold text-orange-700 mb-2">📍 {hint.condition}</p>
+              <ul className="space-y-1.5">
+                {hint.items.map((item, j) => (
+                  <li key={j} className="flex items-center gap-2 text-sm text-orange-900">
+                    <span className="text-orange-400 shrink-0">•</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <p className="text-xs text-orange-600 border-t border-orange-200 pt-3">
+            ※ 上記は端末本体に加えて別途ご検討いただくことを推奨するアクセサリーです。導入環境に合わせてご確認ください。
+          </p>
+        </div>
+      )}
+
       {/* 推奨製品 */}
       {devicePlan.recommendedProducts.length > 0 && (
         <div>

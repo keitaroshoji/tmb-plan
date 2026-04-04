@@ -44,6 +44,8 @@ export function Step06DeviceEnv() {
     })
   }
 
+  const hasSpecial = answers.environmentConditions.some((e) => e !== 'normal')
+  const isOnlyNormal = answers.environmentConditions.length === 1 && answers.environmentConditions[0] === 'normal'
   const canProceed = answers.deviceTypes.length > 0 && answers.environmentConditions.length > 0
 
   return (
@@ -72,19 +74,37 @@ export function Step06DeviceEnv() {
 
       {/* 利用環境 */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">利用環境の条件 <span className="text-red-500">*</span></label>
-        <div className="grid grid-cols-1 gap-2">
-          {ENV_CONDITIONS.map((item) => (
-            <ChoiceCard
-              key={item.value}
-              label={item.label}
-              description={item.desc}
-              icon={item.icon}
-              selected={answers.environmentConditions.includes(item.value)}
-              onClick={() => toggleEnv(item.value)}
-            />
-          ))}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-semibold text-gray-700">利用環境の条件 <span className="text-red-500">*</span></label>
+          {hasSpecial && (
+            <span className="text-xs bg-orange-100 text-orange-700 border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
+              複数選択可
+            </span>
+          )}
         </div>
+        <div className="grid grid-cols-1 gap-2">
+          {ENV_CONDITIONS.map((item) => {
+            const isNormal = item.value === 'normal'
+            const disabled = isNormal ? hasSpecial : isOnlyNormal
+            return (
+              <ChoiceCard
+                key={item.value}
+                label={item.label}
+                description={item.desc}
+                icon={item.icon}
+                selected={answers.environmentConditions.includes(item.value)}
+                onClick={() => toggleEnv(item.value)}
+                disabled={disabled}
+              />
+            )
+          })}
+        </div>
+        {hasSpecial && (
+          <p className="text-xs text-orange-600 flex items-center gap-1.5">
+            <span>⚠️</span>
+            特別な環境条件が選択されています。デバイスの推奨プランに、ケース・フィルム等の特別対応品の示唆が追加されます。
+          </p>
+        )}
       </div>
 
       <div className="flex justify-between pt-4">

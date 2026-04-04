@@ -18,6 +18,40 @@ export interface DevicePlan {
   estimatedTotalCost12m: number
   contractMonths: number
   operationStyleLabel: string
+  accessoryHints: AccessoryHint[]
+}
+
+export interface AccessoryHint {
+  condition: string   // 環境条件ラベル
+  items: string[]     // 推奨アクセサリー
+}
+
+// 環境条件ごとのアクセサリー示唆
+const ENV_ACCESSORY_MAP: Record<string, { label: string; items: string[] }> = {
+  water_humidity: {
+    label: '水・湿気への配慮が必要な環境',
+    items: ['防水・防滴ケース（IP67/68対応）', '防水保護フィルム（結露対策）', '防水スタンド・マウント'],
+  },
+  dust_dirt: {
+    label: '粉塵・汚れへの配慮が必要な環境',
+    items: ['防塵・耐衝撃ケース（MIL規格対応）', '強化ガラス保護フィルム', '防塵インナーフレーム'],
+  },
+  hygiene: {
+    label: '衛生管理が必要な環境',
+    items: ['抗菌・抗ウイルスケース', '抗菌コーティングフィルム', 'タッチペン（直接触れない運用用）'],
+  },
+  food_factory: {
+    label: '食品工場規格への準拠が必要な環境',
+    items: ['金属探知機対応ケース（非金属素材）', '食品安全基準対応カバー', '色付き（視認性）ストラップ', '防水・防塵ケース（IP68）'],
+  },
+  outdoor_sunlight: {
+    label: '屋外・直射日光下での使用',
+    items: ['アンチグレアフィルム（反射防止）', '耐衝撃・耐UV素材ケース', '落下防止ストラップ', 'ショルダーホルスター'],
+  },
+  low_temperature: {
+    label: '低温環境での使用',
+    items: ['低温対応断熱ケース', '手袋対応タッチパネルフィルム（感度向上）', '結露防止インナーケース'],
+  },
 }
 
 // 製品マスター（device-planning-toolから流用・簡略版）
@@ -111,6 +145,14 @@ export function recommendDevicePlan(answers: TmbWizardAnswers): DevicePlan {
   // 税込み総額は100円単位に丸める（浮動小数点誤差防止）
   const total12m = Math.round((monthlyCost * contractMonths + initialCost) * 1.1 / 100) * 100
 
+  // 特別環境条件ごとのアクセサリー示唆
+  const accessoryHints: AccessoryHint[] = (answers.environmentConditions ?? [])
+    .filter((c) => c !== 'normal' && ENV_ACCESSORY_MAP[c])
+    .map((c) => ({
+      condition: ENV_ACCESSORY_MAP[c].label,
+      items: ENV_ACCESSORY_MAP[c].items,
+    }))
+
   return {
     recommendedProducts: recommended,
     idealDeviceCount: ideal,
@@ -121,5 +163,6 @@ export function recommendDevicePlan(answers: TmbWizardAnswers): DevicePlan {
     estimatedTotalCost12m: total12m,
     contractMonths,
     operationStyleLabel: OPERATION_STYLE_LABELS[style],
+    accessoryHints,
   }
 }
