@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
         model: MODEL,
         max_tokens: 8192,
         system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: `${context}\n\n4フェーズ生成。categoryActivitiesは全5カテゴリ×全4フェーズすべてに具体的な活動を1件以上必ず記入すること。\n${SCHEMA_PHASES}` }],
+        messages: [{ role: 'user', content: `${context}\n\n4フェーズ生成。categoryActivitiesは全5カテゴリ×全4フェーズすべてに具体的な活動を1件以上必ず記入すること。活動内容は「現場担当者が無理なく取り組める」現実的でマイルドなトーンにすること。初期フェーズほど小さな成功体験を重視し、負担感を感じさせない表現・粒度にすること。\n${SCHEMA_PHASES}` }],
       }).then((r) => {
         try {
           const text = r.content[0].type === 'text' ? r.content[0].text : ''
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
         model: MODEL,
         max_tokens: 4096,
         system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: `${context}\n\n12ヶ月スケジュール生成（各月actionsは必ず3件）＋month=13として13ヶ月目以降の中長期取り組みを1件追加すること。\n${SCHEMA_SCHEDULE}` }],
+        messages: [{ role: 'user', content: `${context}\n\n12ヶ月スケジュール生成（各月actionsは必ず3件）＋month=13として13ヶ月目以降の中長期取り組みを1件追加すること。アクションは「現場がストレスなく実行できる」現実的で小さなステップにすること。最初の数ヶ月は特にシンプルに抑え、段階的に難易度を上げること。月ごとのテーマも「〜を始める」「〜を試す」など取り組みやすい語感にすること。\n${SCHEMA_SCHEDULE}` }],
       }).then((r) => {
         try {
           const text = r.content[0].type === 'text' ? r.content[0].text : ''
