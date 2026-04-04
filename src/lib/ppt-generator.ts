@@ -1,4 +1,5 @@
 import PptxGenJS from 'pptxgenjs'
+import path from 'path'
 import { TmbWizardAnswers } from '@/src/types/answers'
 import { GeneratedPlan, ACTIVITY_CATEGORIES, Phase } from '@/src/types/plan'
 import { DevicePlan } from './device-recommender'
@@ -8,41 +9,52 @@ import {
   BARRIER_LABELS,
 } from '@/src/data/labels'
 
-// ==================== カラー定数 ====================
+// ==================== カラー定数（テンプレート準拠） ====================
 
-const BLUE         = '1E40AF'
-const BLUE_LIGHT   = 'DBEAFE'
-const BLUE_TEXT    = '1E3A8A'
-const GREEN        = '065F46'
-const GREEN_LIGHT  = 'D1FAE5'
-const GREEN_TEXT   = '064E3B'
-const AMBER        = '92400E'
-const AMBER_LIGHT  = 'FEF3C7'
-const AMBER_TEXT   = '78350F'
-const PURPLE       = '4C1D95'
-const PURPLE_LIGHT = 'EDE9FE'
-const PURPLE_TEXT  = '3B0764'
-const RED_DARK     = 'B91C1C'
-const DARK         = '1F2937'
-const GRAY         = '6B7280'
-const GRAY_LIGHT   = 'F3F4F6'
+const PRIMARY      = '3B88ED'   // accent1 プライマリブルー
+const PRIMARY_DK   = '1244CC'   // accent2 ダークブルー
+const PRIMARY_LT   = 'D6E8FB'   // ライトブルー
+const ORANGE       = 'F7970F'   // accent5 オレンジ
+const ORANGE_LT    = 'FEF3DC'   // ライトオレンジ
+const ORANGE_DK    = 'B06B0A'   // ダークオレンジ
+const GREEN        = '2D8653'   // グリーン
+const GREEN_LT     = 'D1FAE5'   // ライトグリーン
+const GREEN_DK     = '1B5E3A'   // ダークグリーン
+const PURPLE       = '6B4FBB'   // パープル
+const PURPLE_LT    = 'EDE9FE'   // ライトパープル
+const PURPLE_DK    = '4C1D95'   // ダークパープル
+const RED          = 'D91616'   // accent6 レッド
+const DARK         = '2B2F33'   // dk1 ダークテキスト
+const GRAY         = '7A848F'   // accent3 グレー
+const GRAY_LT      = 'F3F4F6'   // ライトグレー
+const COVER_BAR    = '3C434D'   // カバースライドの黒帯
 const WHITE        = 'FFFFFF'
-const GRAY13       = '374151'  // 13ヶ月目以降カラー
-const GRAY13_LIGHT = 'F9FAFB'
+const GRAY13       = '4C5359'   // 13ヶ月以降
+const GRAY13_LT    = 'F9FAFB'
 
 const PHASE_COLORS = [
-  { bg: BLUE,   light: BLUE_LIGHT,   text: BLUE_TEXT   },
-  { bg: GREEN,  light: GREEN_LIGHT,  text: GREEN_TEXT  },
-  { bg: AMBER,  light: AMBER_LIGHT,  text: AMBER_TEXT  },
-  { bg: PURPLE, light: PURPLE_LIGHT, text: PURPLE_TEXT },
+  { bg: PRIMARY, light: PRIMARY_LT, text: PRIMARY_DK  },
+  { bg: GREEN,   light: GREEN_LT,   text: GREEN_DK    },
+  { bg: ORANGE,  light: ORANGE_LT,  text: ORANGE_DK   },
+  { bg: PURPLE,  light: PURPLE_LT,  text: PURPLE_DK   },
 ]
 
-// スライドサイズ: LAYOUT_WIDE 16:9 = 13.33" × 7.5"
-const SW     = 13.33
-const SH     = 7.5
-const HDR_H  = 0.85
-const MG     = 0.3
-const CW     = SW - MG * 2   // 12.73"
+// ==================== スライドサイズ（LAYOUT_16x9 = 10" × 5.625"） ====================
+
+const SW    = 10
+const SH    = 5.625
+const HDR_H = 0.64
+const MG    = 0.22
+const CW    = SW - MG * 2    // 9.56"
+
+// ==================== フォント ====================
+
+const FONT = 'Noto Sans JP'
+
+// ==================== 画像パス ====================
+
+const COVER_BG_PATH    = path.join(process.cwd(), 'public', 'ppt-cover-bg.png')
+const STUDIST_LOGO_PATH = path.join(process.cwd(), 'public', 'ppt-studist-logo.png')
 
 // ==================== 型エイリアス ====================
 
@@ -53,28 +65,28 @@ type Sl = ReturnType<InstanceType<typeof PptxGenJS>['addSlide']>
 function addHeader(sl: Sl, prs: PptxGenJS, title: string, sub?: string) {
   sl.addShape(prs.ShapeType.rect, {
     x: 0, y: 0, w: SW, h: HDR_H,
-    fill: { color: BLUE }, line: { color: BLUE, width: 0 },
+    fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },
   })
   sl.addText(title, {
-    x: MG, y: 0, w: 8, h: HDR_H,
-    fontSize: 22, bold: true, color: WHITE, valign: 'middle',
+    x: MG, y: 0, w: 6, h: HDR_H,
+    fontFace: FONT, fontSize: 16, bold: true, color: WHITE, valign: 'middle',
   })
   if (sub) {
     sl.addText(sub, {
-      x: 8.2, y: 0, w: SW - 8.5, h: HDR_H,
-      fontSize: 10, color: BLUE_LIGHT, valign: 'middle', align: 'right',
+      x: 6.2, y: 0, w: SW - 6.45, h: HDR_H,
+      fontFace: FONT, fontSize: 8, color: PRIMARY_LT, valign: 'middle', align: 'right',
     })
   }
 }
 
-function secBar(sl: Sl, prs: PptxGenJS, x: number, y: number, w: number, text: string, color = BLUE) {
+function secBar(sl: Sl, prs: PptxGenJS, x: number, y: number, w: number, text: string, color = PRIMARY) {
   sl.addShape(prs.ShapeType.rect, {
-    x, y, w, h: 0.3,
+    x, y, w, h: 0.22,
     fill: { color }, line: { color, width: 0 },
   })
   sl.addText(text, {
-    x: x + 0.1, y, w: w - 0.15, h: 0.3,
-    fontSize: 9, bold: true, color: WHITE, valign: 'middle',
+    x: x + 0.07, y, w: w - 0.11, h: 0.22,
+    fontFace: FONT, fontSize: 7, bold: true, color: WHITE, valign: 'middle',
   })
 }
 
@@ -95,6 +107,63 @@ function getPhaseIdx(month: number, phases: Phase[]): number {
   return Math.min(Math.floor((month - 1) / 3), (phases.length || 4) - 1)
 }
 
+// ==================== Slide 0: 表紙 ====================
+
+function addCoverSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
+  const sl = prs.addSlide()
+
+  // フル背景画像
+  try {
+    sl.addImage({ path: COVER_BG_PATH, x: 0, y: 0, w: SW, h: SH })
+  } catch {
+    sl.background = { color: COVER_BAR }
+  }
+
+  // Studistロゴ
+  try {
+    sl.addImage({ path: STUDIST_LOGO_PATH, x: 0.732, y: 2.162, w: 1.240, h: 0.282 })
+  } catch {
+    // ロゴ画像が見つからない場合はスキップ
+  }
+
+  // タイトル背景バー（テンプレートの暗いバー）
+  sl.addShape(prs.ShapeType.rect, {
+    x: 0.756, y: 2.398, w: 8.362, h: 0.404,
+    fill: { color: COVER_BAR }, line: { color: COVER_BAR, width: 0 },
+  })
+
+  // タイトルテキスト
+  const company = answers.companyName || '顧客'
+  sl.addText(`${company} 様　Teachme Biz 運用プランご提案`, {
+    x: 0.832, y: 2.398, w: 8.210, h: 0.404,
+    fontFace: FONT, fontSize: 13, bold: true, color: WHITE, valign: 'middle',
+  })
+
+  // 日付行の背景
+  sl.addShape(prs.ShapeType.rect, {
+    x: 0.732, y: 4.127, w: 8.362, h: 0.22,
+    fill: { color: COVER_BAR }, line: { color: COVER_BAR, width: 0 },
+  })
+
+  // 提案日
+  const today = new Date()
+  const dateStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`
+  sl.addText(dateStr, {
+    x: 0.832, y: 4.127, w: 4, h: 0.22,
+    fontFace: FONT, fontSize: 8, color: WHITE, valign: 'middle',
+  })
+
+  // 企業名（下段）
+  sl.addShape(prs.ShapeType.rect, {
+    x: 0.732, y: 4.357, w: 8.362, h: 0.22,
+    fill: { color: COVER_BAR }, line: { color: COVER_BAR, width: 0 },
+  })
+  sl.addText(company, {
+    x: 0.832, y: 4.357, w: 6, h: 0.22,
+    fontFace: FONT, fontSize: 9, bold: true, color: WHITE, valign: 'middle',
+  })
+}
+
 // ==================== Slide 1: 前提情報 ====================
 
 function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
@@ -109,15 +178,17 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
 
   addHeader(sl, prs, '前提情報', `${company} 様`)
 
-  const Y0 = HDR_H + 0.12
-  const LX = MG, LW = 6.0
-  const RX = MG + LW + 0.23, RW = SW - MG * 2 - LW - 0.23
+  const Y0 = HDR_H + 0.09
+  const LX = MG
+  const LW = 4.5
+  const RX = MG + LW + 0.17
+  const RW = CW - LW - 0.17
 
   // ===== 左カラム: 企業情報 + 障壁 =====
   let ly = Y0
 
-  secBar(sl, prs, LX, ly, LW, '企業・組織情報', BLUE)
-  ly += 0.33
+  secBar(sl, prs, LX, ly, LW, '企業・組織情報', PRIMARY)
+  ly += 0.25
 
   const orgRows: [string, string][] = [
     ['業種',   industryStr || '—'],
@@ -132,36 +203,36 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
   }
 
   orgRows.forEach(([label, value], i) => {
-    const ry = ly + i * 0.37
+    const ry = ly + i * 0.28
     sl.addShape(prs.ShapeType.rect, {
-      x: LX, y: ry, w: LW, h: 0.36,
-      fill: { color: i % 2 === 0 ? GRAY_LIGHT : WHITE },
+      x: LX, y: ry, w: LW, h: 0.27,
+      fill: { color: i % 2 === 0 ? GRAY_LT : WHITE },
       line: { color: 'E5E7EB', width: 0.5 },
     })
-    sl.addText(label, { x: LX + 0.1, y: ry + 0.04, w: 1.35, h: 0.28, fontSize: 8.5, color: GRAY, bold: true, valign: 'middle' })
-    sl.addText(value, { x: LX + 1.5, y: ry + 0.04, w: LW - 1.6, h: 0.28, fontSize: 9, color: DARK, valign: 'middle' })
+    sl.addText(label, { x: LX + 0.07, y: ry + 0.03, w: 1.1, h: 0.21, fontFace: FONT, fontSize: 7, color: GRAY, bold: true, valign: 'middle' })
+    sl.addText(value, { x: LX + 1.2,  y: ry + 0.03, w: LW - 1.3, h: 0.21, fontFace: FONT, fontSize: 7.5, color: DARK, valign: 'middle' })
   })
-  ly += orgRows.length * 0.37 + 0.25
+  ly += orgRows.length * 0.28 + 0.19
 
-  secBar(sl, prs, LX, ly, LW, '推進上の障壁', RED_DARK)
-  ly += 0.33
+  secBar(sl, prs, LX, ly, LW, '推進上の障壁', RED)
+  ly += 0.25
   answers.operationalBarriers.map(b => BARRIER_LABELS[b] ?? b).slice(0, 5).forEach((b, i) => {
-    sl.addText(`• ${b}`, { x: LX + 0.12, y: ly + i * 0.31, w: LW - 0.22, h: 0.29, fontSize: 8.5, color: DARK })
+    sl.addText(`• ${b}`, { x: LX + 0.09, y: ly + i * 0.23, w: LW - 0.16, h: 0.22, fontFace: FONT, fontSize: 7, color: DARK })
   })
 
   // ===== 右カラム: 課題 + 目的KPI =====
-  let ry = Y0
+  let ry2 = Y0
 
-  secBar(sl, prs, RX, ry, RW, '経営課題', BLUE)
-  ry += 0.33
+  secBar(sl, prs, RX, ry2, RW, '経営課題', PRIMARY)
+  ry2 += 0.25
   const challenges = answers.challenges.map(c => CHALLENGE_LABELS[c] ?? c)
   challenges.slice(0, 5).forEach((c, i) => {
-    sl.addText(`• ${c}`, { x: RX + 0.12, y: ry + i * 0.31, w: RW - 0.22, h: 0.29, fontSize: 8.5, color: DARK })
+    sl.addText(`• ${c}`, { x: RX + 0.09, y: ry2 + i * 0.23, w: RW - 0.16, h: 0.22, fontFace: FONT, fontSize: 7, color: DARK })
   })
-  ry += Math.min(challenges.length, 5) * 0.31 + 0.25
+  ry2 += Math.min(challenges.length, 5) * 0.23 + 0.19
 
-  secBar(sl, prs, RX, ry, RW, '導入目的・KPI', BLUE)
-  ry += 0.33
+  secBar(sl, prs, RX, ry2, RW, '導入目的・KPI', PRIMARY)
+  ry2 += 0.25
   const goals       = (answers.primaryGoals ?? []).map(g => GOAL_LABELS[g] ?? g).join('、')
   const kpi         = KPI_LABELS[answers.priorityKpi ?? ''] ?? ''
   const usageStatus = USAGE_STATUS_LABELS[answers.usageStatus ?? ''] ?? ''
@@ -171,14 +242,14 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
   if (usageStatus) goalRows.push(['利用状況', usageStatus])
 
   goalRows.forEach(([label, value], i) => {
-    const rowY = ry + i * 0.37
+    const rowY = ry2 + i * 0.28
     sl.addShape(prs.ShapeType.rect, {
-      x: RX, y: rowY, w: RW, h: 0.36,
-      fill: { color: i % 2 === 0 ? GRAY_LIGHT : WHITE },
+      x: RX, y: rowY, w: RW, h: 0.27,
+      fill: { color: i % 2 === 0 ? GRAY_LT : WHITE },
       line: { color: 'E5E7EB', width: 0.5 },
     })
-    sl.addText(label, { x: RX + 0.1, y: rowY + 0.04, w: 1.2, h: 0.28, fontSize: 8.5, color: GRAY, bold: true, valign: 'middle' })
-    sl.addText(value, { x: RX + 1.35, y: rowY + 0.04, w: RW - 1.45, h: 0.28, fontSize: 9, color: DARK, valign: 'middle' })
+    sl.addText(label, { x: RX + 0.07, y: rowY + 0.03, w: 1.0, h: 0.21, fontFace: FONT, fontSize: 7, color: GRAY, bold: true, valign: 'middle' })
+    sl.addText(value, { x: RX + 1.1,  y: rowY + 0.03, w: RW - 1.2, h: 0.21, fontFace: FONT, fontSize: 7.5, color: DARK, valign: 'middle' })
   })
 }
 
@@ -190,87 +261,85 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
 
   addHeader(sl, prs, 'プランサマリー')
 
-  const Y0  = HDR_H + 0.12
-  const LX  = MG
-  const LW  = (CW - 0.2) / 2   // ≈ 6.265"
-  const RX  = LX + LW + 0.2
-  const RW  = LW
+  const Y0 = HDR_H + 0.09
+  const LW = (CW - 0.15) / 2
+  const RX = MG + LW + 0.15
 
   // --- プロジェクト概要 ---
   sl.addShape(prs.ShapeType.rect, {
-    x: LX, y: Y0, w: LW, h: 0.3,
-    fill: { color: BLUE }, line: { color: BLUE, width: 0 },
+    x: MG, y: Y0, w: LW, h: 0.22,
+    fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },
   })
   sl.addText('プロジェクト概要', {
-    x: LX + 0.1, y: Y0, w: LW - 0.15, h: 0.3,
-    fontSize: 9, bold: true, color: WHITE, valign: 'middle',
+    x: MG + 0.07, y: Y0, w: LW - 0.11, h: 0.22,
+    fontFace: FONT, fontSize: 7, bold: true, color: WHITE, valign: 'middle',
   })
   sl.addShape(prs.ShapeType.rect, {
-    x: LX, y: Y0 + 0.3, w: LW, h: 2.0,
-    fill: { color: BLUE_LIGHT }, line: { color: 'BFDBFE', width: 0.5 },
+    x: MG, y: Y0 + 0.22, w: LW, h: 1.5,
+    fill: { color: PRIMARY_LT }, line: { color: 'BFDBFE', width: 0.5 },
   })
   sl.addText(plan.projectOverview ?? plan.summary ?? '', {
-    x: LX + 0.14, y: Y0 + 0.36, w: LW - 0.28, h: 1.88,
-    fontSize: 9, color: BLUE_TEXT, valign: 'top', align: 'left',
+    x: MG + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: 1.4,
+    fontFace: FONT, fontSize: 7, color: PRIMARY_DK, valign: 'top', align: 'left',
   })
 
   // --- 推進上のポイント ---
   sl.addShape(prs.ShapeType.rect, {
-    x: RX, y: Y0, w: RW, h: 0.3,
-    fill: { color: AMBER }, line: { color: AMBER, width: 0 },
+    x: RX, y: Y0, w: LW, h: 0.22,
+    fill: { color: ORANGE }, line: { color: ORANGE, width: 0 },
   })
   sl.addText('推進上のポイント', {
-    x: RX + 0.1, y: Y0, w: RW - 0.15, h: 0.3,
-    fontSize: 9, bold: true, color: WHITE, valign: 'middle',
+    x: RX + 0.07, y: Y0, w: LW - 0.11, h: 0.22,
+    fontFace: FONT, fontSize: 7, bold: true, color: WHITE, valign: 'middle',
   })
   sl.addShape(prs.ShapeType.rect, {
-    x: RX, y: Y0 + 0.3, w: RW, h: 2.0,
-    fill: { color: AMBER_LIGHT }, line: { color: 'FDE68A', width: 0.5 },
+    x: RX, y: Y0 + 0.22, w: LW, h: 1.5,
+    fill: { color: ORANGE_LT }, line: { color: 'FDE68A', width: 0.5 },
   })
   sl.addText(plan.promotionPoints ?? '', {
-    x: RX + 0.14, y: Y0 + 0.36, w: RW - 0.28, h: 1.88,
-    fontSize: 9, color: AMBER_TEXT, valign: 'top', align: 'left',
+    x: RX + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: 1.4,
+    fontFace: FONT, fontSize: 7, color: ORANGE_DK, valign: 'top', align: 'left',
   })
 
   // --- マニュアル活用イメージ ---
-  const MY = Y0 + 2.45
+  const MY = Y0 + 1.84
   sl.addShape(prs.ShapeType.rect, {
-    x: MG, y: MY, w: CW, h: 0.3,
-    fill: { color: BLUE }, line: { color: BLUE, width: 0 },
+    x: MG, y: MY, w: CW, h: 0.22,
+    fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },
   })
   sl.addText('マニュアル活用イメージ', {
-    x: MG + 0.1, y: MY, w: CW - 0.2, h: 0.3,
-    fontSize: 9, bold: true, color: WHITE, valign: 'middle',
+    x: MG + 0.07, y: MY, w: CW - 0.11, h: 0.22,
+    fontFace: FONT, fontSize: 7, bold: true, color: WHITE, valign: 'middle',
   })
 
   const scenarios = plan.usageScenarios ?? []
-  const cardW  = (CW - 0.15 * 3) / 4   // 4列
-  const cardY  = MY + 0.33
-  const cardH  = SH - cardY - 0.18
+  const cardW = (CW - 0.11 * 3) / 4
+  const cardY = MY + 0.25
+  const cardH = SH - cardY - 0.14
 
   scenarios.slice(0, 4).forEach((s, i) => {
-    const cx = MG + i * (cardW + 0.15)
+    const cx = MG + i * (cardW + 0.11)
 
     sl.addShape(prs.ShapeType.rect, {
-      x: cx, y: cardY, w: cardW, h: 0.3,
-      fill: { color: BLUE }, line: { color: BLUE, width: 0 },
+      x: cx, y: cardY, w: cardW, h: 0.22,
+      fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },
     })
     sl.addText(s.manualTitle, {
-      x: cx + 0.07, y: cardY, w: cardW - 0.1, h: 0.3,
-      fontSize: 7.5, bold: true, color: WHITE, valign: 'middle',
+      x: cx + 0.05, y: cardY, w: cardW - 0.07, h: 0.22,
+      fontFace: FONT, fontSize: 6.5, bold: true, color: WHITE, valign: 'middle',
     })
 
     sl.addShape(prs.ShapeType.rect, {
-      x: cx, y: cardY + 0.3, w: cardW, h: cardH - 0.3,
-      fill: { color: GRAY_LIGHT }, line: { color: 'E5E7EB', width: 0.5 },
+      x: cx, y: cardY + 0.22, w: cardW, h: cardH - 0.22,
+      fill: { color: GRAY_LT }, line: { color: 'E5E7EB', width: 0.5 },
     })
 
-    const rowH = (cardH - 0.3) / 3
+    const rowH = (cardH - 0.22) / 3
     const labelRows: [string, string][] = [['誰が', s.user], ['場面', s.scene], ['効果', s.effect]]
     labelRows.forEach(([label, text], ri) => {
-      const inY = cardY + 0.33 + ri * rowH
-      sl.addText(label, { x: cx + 0.08, y: inY, w: 0.48, h: 0.22, fontSize: 7.5, color: GRAY, bold: true })
-      sl.addText(text, { x: cx + 0.58, y: inY, w: cardW - 0.66, h: rowH - 0.06, fontSize: 7.5, color: DARK, valign: 'top' })
+      const inY = cardY + 0.25 + ri * rowH
+      sl.addText(label, { x: cx + 0.06, y: inY, w: 0.36, h: 0.18, fontFace: FONT, fontSize: 6.5, color: GRAY, bold: true })
+      sl.addText(text,  { x: cx + 0.44, y: inY, w: cardW - 0.50, h: rowH - 0.05, fontFace: FONT, fontSize: 6.5, color: DARK, valign: 'top' })
     })
   })
 }
@@ -283,12 +352,12 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
 
   addHeader(sl, prs, '全体スケジュール案', '4フェーズの活動計画')
 
-  const phases    = plan.phases ?? []
-  const Y0        = HDR_H + 0.1
-  const LABEL_W   = 1.4
-  const PHASE_W   = (CW - LABEL_W) / Math.max(phases.length, 1)   // ≈ 2.83"
-  const PHASE_HDR = 0.75
-  const CAT_H     = (SH - Y0 - PHASE_HDR - 0.05) / ACTIVITY_CATEGORIES.length  // ≈ 1.17"
+  const phases   = plan.phases ?? []
+  const Y0       = HDR_H + 0.08
+  const LABEL_W  = 1.05
+  const PHASE_W  = (CW - LABEL_W) / Math.max(phases.length, 1)
+  const PHASE_HDR = 0.56
+  const CAT_H    = (SH - Y0 - PHASE_HDR - 0.04) / ACTIVITY_CATEGORIES.length
 
   // フェーズヘッダー
   phases.forEach((phase, pi) => {
@@ -296,16 +365,16 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
     const color = PHASE_COLORS[pi % PHASE_COLORS.length]
 
     sl.addShape(prs.ShapeType.rect, {
-      x: px, y: Y0, w: PHASE_W - 0.06, h: PHASE_HDR,
+      x: px, y: Y0, w: PHASE_W - 0.05, h: PHASE_HDR,
       fill: { color: color.bg }, line: { color: color.bg, width: 0 },
     })
     sl.addText(phase.name, {
-      x: px, y: Y0 + 0.04, w: PHASE_W - 0.06, h: 0.3,
-      fontSize: 10, bold: true, color: WHITE, align: 'center', valign: 'middle',
+      x: px, y: Y0 + 0.03, w: PHASE_W - 0.05, h: 0.24,
+      fontFace: FONT, fontSize: 8, bold: true, color: WHITE, align: 'center', valign: 'middle',
     })
     sl.addText(phase.period, {
-      x: px, y: Y0 + 0.36, w: PHASE_W - 0.06, h: 0.22,
-      fontSize: 8.5, color: 'BFDBFE', align: 'center',
+      x: px, y: Y0 + 0.28, w: PHASE_W - 0.05, h: 0.17,
+      fontFace: FONT, fontSize: 7, color: PRIMARY_LT, align: 'center',
     })
     if (answers.projectStartDate) {
       const ns = phase.period.match(/\d+/g)?.map(Number) ?? []
@@ -313,8 +382,8 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
         const from = monthToCalLabel(answers.projectStartDate, ns[0] - 1)
         const to   = monthToCalLabel(answers.projectStartDate, ns[1] - 1)
         sl.addText(`${from}〜${to}`, {
-          x: px, y: Y0 + 0.56, w: PHASE_W - 0.06, h: 0.17,
-          fontSize: 7.5, color: 'BFDBFE', align: 'center',
+          x: px, y: Y0 + 0.42, w: PHASE_W - 0.05, h: 0.13,
+          fontFace: FONT, fontSize: 6, color: PRIMARY_LT, align: 'center',
         })
       }
     }
@@ -323,33 +392,31 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
   // カテゴリ行
   const catY0 = Y0 + PHASE_HDR + 0.02
   ACTIVITY_CATEGORIES.forEach((cat, ci) => {
-    const rowY  = catY0 + ci * CAT_H
+    const rowY   = catY0 + ci * CAT_H
     const isEven = ci % 2 === 0
 
-    // カテゴリラベルセル
     sl.addShape(prs.ShapeType.rect, {
-      x: MG, y: rowY, w: LABEL_W, h: CAT_H - 0.05,
-      fill: { color: isEven ? '1E3A8A' : BLUE }, line: { color: BLUE, width: 0 },
+      x: MG, y: rowY, w: LABEL_W, h: CAT_H - 0.04,
+      fill: { color: isEven ? PRIMARY_DK : PRIMARY }, line: { color: PRIMARY, width: 0 },
     })
     sl.addText(cat, {
-      x: MG, y: rowY, w: LABEL_W, h: CAT_H - 0.05,
-      fontSize: 9, bold: true, color: WHITE, align: 'center', valign: 'middle',
+      x: MG, y: rowY, w: LABEL_W, h: CAT_H - 0.04,
+      fontFace: FONT, fontSize: 7, bold: true, color: WHITE, align: 'center', valign: 'middle',
     })
 
-    // フェーズごとの活動セル
     phases.forEach((phase, pi) => {
-      const cx     = MG + LABEL_W + pi * PHASE_W
-      const color  = PHASE_COLORS[pi % PHASE_COLORS.length]
-      const items  = phase.categoryActivities?.[cat] ?? []
+      const cx    = MG + LABEL_W + pi * PHASE_W
+      const color = PHASE_COLORS[pi % PHASE_COLORS.length]
+      const items = phase.categoryActivities?.[cat] ?? []
 
       sl.addShape(prs.ShapeType.rect, {
-        x: cx, y: rowY, w: PHASE_W - 0.06, h: CAT_H - 0.05,
+        x: cx, y: rowY, w: PHASE_W - 0.05, h: CAT_H - 0.04,
         fill: { color: isEven ? color.light : WHITE },
         line: { color: 'E5E7EB', width: 0.5 },
       })
       sl.addText(items.slice(0, 2).map(a => `• ${a}`).join('\n'), {
-        x: cx + 0.08, y: rowY + 0.06, w: PHASE_W - 0.2, h: CAT_H - 0.15,
-        fontSize: 8, color: DARK, align: 'left', valign: 'top',
+        x: cx + 0.06, y: rowY + 0.05, w: PHASE_W - 0.15, h: CAT_H - 0.12,
+        fontFace: FONT, fontSize: 6.5, color: DARK, align: 'left', valign: 'top',
       })
     })
   })
@@ -371,15 +438,15 @@ function addMonthlySlide(
 
   const phases = plan.phases ?? []
 
-  const COL_MONTH  = 0.82
-  const COL_PHASE  = 1.55
-  const COL_TITLE  = 3.3
-  const COL_ACTION = CW - COL_MONTH - COL_PHASE - COL_TITLE   // ≈ 7.06"
+  const COL_MONTH  = 0.62
+  const COL_PHASE  = 1.16
+  const COL_TITLE  = 2.47
+  const COL_ACTION = CW - COL_MONTH - COL_PHASE - COL_TITLE
 
-  const HDR_ROW_H  = 0.35
-  const DATA_ROW_H = (SH - HDR_H - HDR_ROW_H - 0.12) / monthNums.length
+  const HDR_ROW_H  = 0.26
+  const DATA_ROW_H = (SH - HDR_H - HDR_ROW_H - 0.09) / monthNums.length
 
-  const tableY = HDR_H + 0.08
+  const tableY = HDR_H + 0.06
   const tableX = MG
 
   // テーブルヘッダー行
@@ -395,8 +462,8 @@ function addMonthlySlide(
     { text: '主要アクション', w: COL_ACTION },
   ]) {
     sl.addText(text, {
-      x: hx + 0.08, y: tableY, w: w, h: HDR_ROW_H,
-      fontSize: 8.5, bold: true, color: WHITE, valign: 'middle',
+      x: hx + 0.06, y: tableY, w: w, h: HDR_ROW_H,
+      fontFace: FONT, fontSize: 7, bold: true, color: WHITE, valign: 'middle',
     })
     hx += w
   }
@@ -411,10 +478,10 @@ function addMonthlySlide(
     const pi        = isAfter13 ? phases.length - 1 : getPhaseIdx(m.month, phases)
     const phase     = phases[pi]
     const color     = isAfter13
-      ? { bg: GRAY13, light: GRAY13_LIGHT, text: DARK }
+      ? { bg: GRAY13, light: GRAY13_LT, text: DARK }
       : PHASE_COLORS[pi % PHASE_COLORS.length]
     const rowY      = tableY + HDR_ROW_H + ri * DATA_ROW_H
-    const rowBg     = isAfter13 ? GRAY13_LIGHT : (ri % 2 === 0 ? WHITE : BLUE_LIGHT)
+    const rowBg     = isAfter13 ? GRAY13_LT : (ri % 2 === 0 ? WHITE : PRIMARY_LT)
 
     sl.addShape(prs.ShapeType.rect, {
       x: tableX, y: rowY, w: CW, h: DATA_ROW_H,
@@ -423,54 +490,54 @@ function addMonthlySlide(
 
     let cx = tableX
 
-    // 月 (円 + カレンダーラベル)
-    const circleSize = Math.min(DATA_ROW_H * 0.65, 0.52)
+    // 月（円）
+    const circleSize = Math.min(DATA_ROW_H * 0.65, 0.40)
     const circleX    = cx + (COL_MONTH - circleSize) / 2
-    const circleY    = rowY + (DATA_ROW_H - circleSize) / 2 - 0.08
+    const circleY    = rowY + (DATA_ROW_H - circleSize) / 2 - 0.06
     sl.addShape(prs.ShapeType.ellipse, {
       x: circleX, y: circleY, w: circleSize, h: circleSize,
       fill: { color: color.bg }, line: { color: color.bg, width: 0 },
     })
     sl.addText(isAfter13 ? '…' : String(m.month), {
       x: circleX, y: circleY, w: circleSize, h: circleSize,
-      fontSize: 9, bold: true, color: WHITE, align: 'center', valign: 'middle',
+      fontFace: FONT, fontSize: 7.5, bold: true, color: WHITE, align: 'center', valign: 'middle',
     })
     if (answers.projectStartDate) {
       const calStr = isAfter13
         ? monthToCalLabel(answers.projectStartDate, 12) + '〜'
         : monthToCalLabel(answers.projectStartDate, m.month - 1)
       sl.addText(calStr, {
-        x: cx + 0.02, y: circleY + circleSize + 0.02, w: COL_MONTH - 0.04, h: 0.18,
-        fontSize: 6.5, color: color.bg, align: 'center', bold: true,
+        x: cx + 0.02, y: circleY + circleSize + 0.02, w: COL_MONTH - 0.04, h: 0.14,
+        fontFace: FONT, fontSize: 5.5, color: color.bg, align: 'center', bold: true,
       })
     }
     cx += COL_MONTH
 
     // フェーズタグ
-    const tagH = 0.26, tagW = COL_PHASE - 0.18
+    const tagH = 0.20, tagW = COL_PHASE - 0.14
     sl.addShape(prs.ShapeType.rect, {
-      x: cx + 0.09, y: rowY + (DATA_ROW_H - tagH) / 2, w: tagW, h: tagH,
+      x: cx + 0.07, y: rowY + (DATA_ROW_H - tagH) / 2, w: tagW, h: tagH,
       fill: { color: isAfter13 ? 'E5E7EB' : color.light },
       line: { color: 'E5E7EB', width: 0 },
     })
     sl.addText(isAfter13 ? '13ヶ月目以降' : (phase?.name ?? `P${pi + 1}`), {
-      x: cx + 0.09, y: rowY + (DATA_ROW_H - tagH) / 2, w: tagW, h: tagH,
-      fontSize: 7.5, color: isAfter13 ? GRAY : color.text, align: 'center', valign: 'middle', bold: true,
+      x: cx + 0.07, y: rowY + (DATA_ROW_H - tagH) / 2, w: tagW, h: tagH,
+      fontFace: FONT, fontSize: 6, color: isAfter13 ? GRAY : color.text, align: 'center', valign: 'middle', bold: true,
     })
     cx += COL_PHASE
 
     // テーマ
     sl.addText(m.title, {
-      x: cx + 0.08, y: rowY + 0.04, w: COL_TITLE - 0.14, h: DATA_ROW_H - 0.08,
-      fontSize: 9, bold: !isAfter13, color: isAfter13 ? GRAY : DARK, valign: 'middle',
+      x: cx + 0.06, y: rowY + 0.03, w: COL_TITLE - 0.10, h: DATA_ROW_H - 0.06,
+      fontFace: FONT, fontSize: 7, bold: !isAfter13, color: isAfter13 ? GRAY : DARK, valign: 'middle',
     })
     cx += COL_TITLE
 
     // アクション（2件）
     const actText = m.actions.slice(0, 2).map(a => `• ${a}`).join('\n')
     sl.addText(actText, {
-      x: cx + 0.08, y: rowY + 0.04, w: COL_ACTION - 0.14, h: DATA_ROW_H - 0.08,
-      fontSize: 7.5, color: DARK, valign: 'top', align: 'left',
+      x: cx + 0.06, y: rowY + 0.03, w: COL_ACTION - 0.10, h: DATA_ROW_H - 0.06,
+      fontFace: FONT, fontSize: 6.5, color: DARK, valign: 'top', align: 'left',
     })
   })
 }
@@ -483,16 +550,16 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
 
   addHeader(sl, prs, 'デバイス配置イメージ', `運用スタイル: ${devicePlan.operationStyleLabel}`)
 
-  const Y0 = HDR_H + 0.18
+  const Y0 = HDR_H + 0.14
 
   // --- 台数サマリー (3ボックス) ---
-  const BOX_W   = 3.5
-  const BOX_H   = 1.05
-  const boxGap  = (CW - BOX_W * 3) / 2
+  const BOX_W  = 2.62
+  const BOX_H  = 0.79
+  const boxGap = (CW - BOX_W * 3) / 2
   const boxes = [
-    { label: '理想台数',   value: `${devicePlan.idealDeviceCount}`,   bg: BLUE_LIGHT,  text: BLUE  },
-    { label: '現在の台数', value: `${devicePlan.currentDeviceCount}`, bg: GRAY_LIGHT,  text: GRAY  },
-    { label: '不足台数',   value: `${devicePlan.shortfallCount}`,     bg: GREEN_LIGHT, text: GREEN },
+    { label: '理想台数',   value: `${devicePlan.idealDeviceCount}`,   bg: PRIMARY_LT, text: PRIMARY    },
+    { label: '現在の台数', value: `${devicePlan.currentDeviceCount}`, bg: GRAY_LT,    text: GRAY       },
+    { label: '不足台数',   value: `${devicePlan.shortfallCount}`,     bg: GREEN_LT,   text: GREEN      },
   ]
   boxes.forEach((box, i) => {
     const bx = MG + i * (BOX_W + boxGap)
@@ -500,46 +567,47 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
       x: bx, y: Y0, w: BOX_W, h: BOX_H,
       fill: { color: box.bg }, line: { color: 'E5E7EB', width: 0.5 },
     })
-    sl.addText(box.label, { x: bx, y: Y0 + 0.1, w: BOX_W, h: 0.26, fontSize: 9, color: box.text, align: 'center' })
-    sl.addText(box.value, { x: bx, y: Y0 + 0.32, w: BOX_W * 0.85, h: 0.52, fontSize: 30, bold: true, color: box.text, align: 'right' })
-    sl.addText('台', { x: bx + BOX_W * 0.85, y: Y0 + 0.58, w: BOX_W * 0.12, h: 0.26, fontSize: 11, color: box.text })
+    sl.addText(box.label, { x: bx, y: Y0 + 0.07, w: BOX_W, h: 0.20, fontFace: FONT, fontSize: 7, color: box.text, align: 'center' })
+    sl.addText(box.value, { x: bx, y: Y0 + 0.24, w: BOX_W * 0.85, h: 0.40, fontFace: FONT, fontSize: 22, bold: true, color: box.text, align: 'right' })
+    sl.addText('台', { x: bx + BOX_W * 0.85, y: Y0 + 0.44, w: BOX_W * 0.12, h: 0.20, fontFace: FONT, fontSize: 9, color: box.text })
   })
 
   // --- 推奨製品 ---
-  const PROD_Y = Y0 + BOX_H + 0.25
-  secBar(sl, prs, MG, PROD_Y, CW, '推奨製品', BLUE)
+  const PROD_Y = Y0 + BOX_H + 0.19
+  secBar(sl, prs, MG, PROD_Y, CW, '推奨製品', PRIMARY)
 
   const products = devicePlan.recommendedProducts.slice(0, 3)
   products.forEach((p, i) => {
-    const py = PROD_Y + 0.33 + i * 0.62
+    const py = PROD_Y + 0.25 + i * 0.47
     sl.addShape(prs.ShapeType.rect, {
-      x: MG, y: py, w: CW, h: 0.58,
-      fill: { color: i === 0 ? BLUE_LIGHT : WHITE },
+      x: MG, y: py, w: CW, h: 0.44,
+      fill: { color: i === 0 ? PRIMARY_LT : WHITE },
       line: { color: 'E5E7EB', width: 0.5 },
     })
-    sl.addText(p.productName, { x: MG + 0.12, y: py + 0.05, w: 5.5, h: 0.26, fontSize: 10, bold: true, color: DARK })
-    sl.addText(p.reason,      { x: MG + 0.12, y: py + 0.31, w: 8.0, h: 0.2,  fontSize: 8,  color: GRAY })
+    sl.addText(p.productName, { x: MG + 0.09, y: py + 0.04, w: 4.0, h: 0.20, fontFace: FONT, fontSize: 8, bold: true, color: DARK })
+    sl.addText(p.reason,      { x: MG + 0.09, y: py + 0.24, w: 6.0, h: 0.16, fontFace: FONT, fontSize: 6.5, color: GRAY })
     sl.addText(`¥${p.monthlyUnitPrice.toLocaleString()}/月・台`, {
-      x: MG + 8.5, y: py + 0.05, w: CW - 8.6, h: 0.5,
-      fontSize: 12, bold: true, color: BLUE, align: 'right', valign: 'middle',
+      x: MG + 6.5, y: py + 0.04, w: CW - 6.6, h: 0.38,
+      fontFace: FONT, fontSize: 9, bold: true, color: PRIMARY, align: 'right', valign: 'middle',
     })
   })
 
   // --- アクセサリーヒント（あれば最大1件） ---
   if (devicePlan.accessoryHints?.length) {
-    const AHY = PROD_Y + 0.33 + products.length * 0.62 + 0.15
-    secBar(sl, prs, MG, AHY, CW, '特別環境向けアクセサリー推奨', AMBER)
+    const AHY = PROD_Y + 0.25 + products.length * 0.47 + 0.11
+    secBar(sl, prs, MG, AHY, CW, '特別環境向けアクセサリー推奨', ORANGE)
     devicePlan.accessoryHints.slice(0, 1).forEach((hint, i) => {
       sl.addText(`【${hint.condition}】 ${hint.items.join('  /  ')}`, {
-        x: MG + 0.12, y: AHY + 0.33 + i * 0.28, w: CW - 0.2, h: 0.26, fontSize: 8.5, color: DARK,
+        x: MG + 0.09, y: AHY + 0.25 + i * 0.21, w: CW - 0.15, h: 0.20,
+        fontFace: FONT, fontSize: 7, color: DARK,
       })
     })
   }
 
   // --- 注記 ---
   sl.addText('※ デバイスレンタルサービス料金（Studist提供）の概算です。実際の見積は別途ご案内します。', {
-    x: MG, y: SH - 0.3, w: CW, h: 0.25,
-    fontSize: 7.5, color: GRAY, italic: true,
+    x: MG, y: SH - 0.22, w: CW, h: 0.19,
+    fontFace: FONT, fontSize: 6, color: GRAY, italic: true,
   })
 }
 
@@ -552,13 +620,14 @@ export async function generatePptBuffer(
   devicePlan: DevicePlan,
 ): Promise<Buffer> {
   const prs = new PptxGenJS()
-  prs.layout = 'LAYOUT_WIDE'
+  prs.layout = 'LAYOUT_16x9'
   prs.title  = `${answers.companyName || '顧客'} 運用プランご提案`
 
-  const allMonths   = (plan.schedule ?? []).map(s => s.month)
-  const firstHalf   = allMonths.filter(m => m >= 1 && m <= 6)
-  const secondHalf  = allMonths.filter(m => m >= 7)
+  const allMonths  = (plan.schedule ?? []).map(s => s.month)
+  const firstHalf  = allMonths.filter(m => m >= 1 && m <= 6)
+  const secondHalf = allMonths.filter(m => m >= 7)
 
+  addCoverSlide(prs, answers)
   addPremiseSlide(prs, answers)
   addSummarySlide(prs, plan)
   addPhaseScheduleSlide(prs, plan, answers)

@@ -77,10 +77,11 @@ function ChevronHeader({ label, period, calendarPeriod, index }: {
   const clipPath = `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
 
   return (
-    <div style={{ background: color.bg, clipPath }} className="flex flex-col items-center justify-center py-3 px-6 min-h-[68px]">
+    <div style={{ background: color.bg, clipPath }} className="flex flex-col items-center justify-center py-3 px-6 h-[84px]">
       <span className="text-white font-bold text-sm leading-tight text-center">{label}</span>
       <span className="text-white/80 text-xs mt-0.5">{period}</span>
-      {calendarPeriod && <span className="text-white/60 text-xs mt-0.5">{calendarPeriod}</span>}
+      {/* calendarPeriod が無い場合も同じ行数を確保して高さを統一する */}
+      <span className="text-white/60 text-xs mt-0.5">{calendarPeriod ?? '\u00A0'}</span>
     </div>
   )
 }
