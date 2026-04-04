@@ -575,6 +575,8 @@ export default function ResultPage() {
             if (event.type === 'phases') {
               acc.theme = event.theme as string
               acc.summary = event.summary as string
+              acc.projectOverview = event.projectOverview as string | undefined
+              acc.promotionPoints = event.promotionPoints as string | undefined
               acc.phases = event.phases as GeneratedPlan['phases']
               setPartialPlan({ ...acc })
               setSectionReady(prev => ({ ...prev, phases: true }))
@@ -714,10 +716,35 @@ export default function ResultPage() {
         {/* ==================== 2. サマリー ==================== */}
         <section>
           <SectionHeading icon="📋" title="プランサマリー" />
-          {plan?.summary
-            ? <div className="rounded-xl bg-white border border-gray-200 px-8 py-6 shadow-sm">
-                <p className="text-gray-800 text-base leading-[1.9]">{plan.summary}</p>
+          {(plan?.projectOverview || plan?.promotionPoints || plan?.summary)
+            ? (
+              <div className="grid grid-cols-2 gap-5">
+                {/* プロジェクト概要 */}
+                <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="flex items-center gap-2 bg-blue-700 px-5 py-3">
+                    <span className="text-blue-200 text-base">🎯</span>
+                    <h3 className="text-white font-bold text-sm">プロジェクト概要</h3>
+                  </div>
+                  <div className="px-6 py-5">
+                    <p className="text-gray-800 text-sm leading-[1.9]">
+                      {plan.projectOverview ?? plan.summary}
+                    </p>
+                  </div>
+                </div>
+                {/* 推進上のポイント */}
+                <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="flex items-center gap-2 bg-amber-600 px-5 py-3">
+                    <span className="text-amber-100 text-base">💡</span>
+                    <h3 className="text-white font-bold text-sm">推進上のポイント</h3>
+                  </div>
+                  <div className="px-6 py-5">
+                    <p className="text-gray-800 text-sm leading-[1.9]">
+                      {plan.promotionPoints ?? '推進上のポイントを生成中です…'}
+                    </p>
+                  </div>
+                </div>
               </div>
+            )
             : isGenerating && <SectionSkeleton rows={4} />
           }
         </section>

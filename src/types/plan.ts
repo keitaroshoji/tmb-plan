@@ -90,7 +90,9 @@ export interface BottleneckHint {
 
 export interface GeneratedPlan {
   theme: string                  // 運用テーマ（1行）
-  summary: string                // サマリー（300文字程度）
+  summary: string                // サマリー（後方互換用）
+  projectOverview?: string       // プロジェクト概要（300文字程度）
+  promotionPoints?: string       // 推進上のポイント（300文字程度）
   phases: Phase[]                // 運用フェーズ（4個）
   schedule: MonthlyMilestone[]   // 12ヶ月マイルストーン
   barrierActions: BarrierAction[]  // 運用課題と対処策
