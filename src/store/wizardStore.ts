@@ -106,13 +106,26 @@ export const useWizardStore = create<WizardState>()(
     }),
     {
       name: 'tmb-wizard-store',
-      storage: createJSONStorage(() => localStorage),
-      version: 2,
-      migrate: (persistedState: unknown, version: number) => {
-        if (version === 1) {
-          // v1→v2: 新フィールドを追加
-          const state = persistedState as WizardState
+      storage: createJSONStorage(() => {
+        // localStorage へのアクセスを try-catch でラップ（プライベートブラウジング等での SSR エラー対策）
+        try {
+          return localStorage
+        } catch {
+          // フォールバック: インメモリストレージ
+          const mem: Record<string, string> = {}
           return {
+            getItem: (k: string) => mem[k] ?? null,
+            setItem: (k: string, v: string) => { mem[k] = v },
+            removeItem: (k: string) => { delete mem[k] },
+          }
+        }
+      }),
+      version: 3,
+      migrate: (persistedState: unknown, version: number) => {
+        let state = persistedState as WizardState
+        if (version <= 1) {
+          // v1→v2: 新フィールドを追加
+          state = {
             ...state,
             extractedProfile: null,
             roadmapStartPoint: 'none' as RoadmapStartPoint,
@@ -127,7 +140,17 @@ export const useWizardStore = create<WizardState>()(
             },
           }
         }
-        return persistedState as WizardState
+        if (version <= 2) {
+          // v2→v3: projectStartDate を追加
+          state = {
+            ...state,
+            answers: {
+              ...state.answers,
+              projectStartDate: '',
+            },
+          }
+        }
+        return state
       },
     }
   )

@@ -3,6 +3,10 @@ import Anthropic from '@anthropic-ai/sdk'
 import { TmbWizardAnswers } from '@/src/types/answers'
 import { matchCaseStudies } from '@/src/lib/case-matcher'
 import { matchInsights } from '@/src/lib/insight-matcher'
+import {
+  INDUSTRY_LABELS, SUB_INDUSTRY_LABELS, CHALLENGE_LABELS,
+  GOAL_LABELS, KPI_LABELS, USAGE_STATUS_LABELS, BARRIER_LABELS,
+} from '@/src/data/labels'
 
 export const maxDuration = 90
 
@@ -28,58 +32,7 @@ const SCHEMA_USAGE = `JSONのみ（4件）:
 const SCHEMA_BARRIER_AND_SUMMARY = `JSONのみ:
 {"barrierActions":[{"challenge":"課題","counter":"対処策1文"}],"kpiTargets":[{"kpi":"名","target":"値","timing":"時期"}],"projectOverview":"プロジェクトの目的・背景・期待効果を300字程度","promotionPoints":"推進の重要ポイント・注意点・成功の鍵を300字程度"}`
 
-// ==================== ラベルマップ ====================
-
-const INDUSTRY_LABELS: Record<string, string> = {
-  agriculture: '農業・林業', fishing: '漁業', mining: '鉱業・採石業',
-  construction: '建設業', manufacturing: '製造業', utility: '電気・ガス・熱供給・水道業',
-  it: '情報通信業', logistics: '運輸業・郵便業', retail: '卸売業・小売業',
-  finance: '金融業・保険業', real_estate: '不動産業・物品賃貸業',
-  professional: '学術研究・専門・技術サービス業', food_service: '宿泊業・飲食サービス業',
-  beauty: '生活関連サービス業・娯楽業', education: '教育・学習支援業',
-  medical: '医療・福祉', other: 'サービス業（その他）・公務',
-}
-
-const SUB_INDUSTRY_LABELS: Record<string, string> = {
-  gms_supermarket: 'GMS・スーパー', convenience: 'コンビニ（FC）', apparel: 'アパレル',
-  electronics: '家電量販', auto_dealer: '自動車販売', home_center: 'ホームセンター',
-}
-
-const CHALLENGE_LABELS: Record<string, string> = {
-  talent_development: '人材育成・研修の効率化', standardization: '品質・サービスの標準化',
-  knowledge_transfer: '技術・ノウハウの伝承', manual_creation: 'マニュアル作成・更新の負担',
-  foreign_staff: '外国人・多様な人材への教育', cost_reduction: 'コスト削減',
-  iso_compliance: 'ISO・法令対応', multi_store: '多店舗・多拠点への展開',
-  remote_management: '遠隔管理・モニタリング', security: 'セキュリティ強化',
-}
-
-const GOAL_LABELS: Record<string, string> = {
-  reduce_training_time: '研修・教育時間の削減', standardize_quality: '品質・サービスの標準化',
-  eliminate_dependency: '業務の属人化解消', reduce_cost: 'コスト削減',
-  improve_compliance: 'コンプライアンス対応', support_foreign_staff: '外国人・多様な人材支援',
-  dx_promotion: '現場DX推進',
-}
-
-const BARRIER_LABELS: Record<string, string> = {
-  no_time_for_creation: 'マニュアル作成の時間が工面できない',
-  no_team_structure: '推進担当者・体制が整っていない',
-  low_it_literacy: '現場スタッフのITリテラシーが低い',
-  hard_to_involve: '経営層・現場の巻き込みが難しい',
-  migration_burden: '既存マニュアル（紙・Excel）の移行が膨大',
-  no_creation_knowhow: 'マニュアル作成のノウハウがない',
-  maintenance_concern: '継続的な更新・メンテナンスが続かない',
-  low_adoption_concern: '利用促進・定着が見込めない',
-}
-
-const KPI_LABELS: Record<string, string> = {
-  time_reduction: '工数削減', cost_reduction: 'コスト削減',
-  quality_improvement: '品質・合格率向上', turnover_reduction: '定着率向上・離職率低下',
-}
-
-const USAGE_STATUS_LABELS: Record<string, string> = {
-  none: 'まだ使っていない（ゼロから）', partial: '一部部門で試用中',
-  active: '特定の用途で本格稼働中', expanding: '複数部門で展開中',
-}
+// ラベルマップは src/data/labels.ts に集約（import済み）
 
 // ==================== コンテキスト構築 ====================
 

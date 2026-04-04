@@ -9,11 +9,21 @@ import { recommendDevicePlan, DevicePlan } from '@/src/lib/device-recommender'
 import { CaseStudy, GeneratedPlan, ACTIVITY_CATEGORIES, BarrierAction, Phase, UsageScenario } from '@/src/types/plan'
 import { TmbWizardAnswers } from '@/src/types/answers'
 import { Button } from '@/src/components/ui/Button'
+import {
+  INDUSTRY_LABELS, SUB_INDUSTRY_LABELS, COMPANY_SIZE_LABELS, CHALLENGE_LABELS,
+  GOAL_LABELS, KPI_LABELS, USAGE_STATUS_LABELS, BARRIER_LABELS,
+  USE_CASE_LABELS, MANUAL_TYPE_LABELS, MANUAL_QUALITY_LABELS,
+  ENV_CONDITION_LABELS, OPERATION_STYLE_LABELS,
+} from '@/src/data/labels'
 
 // ==================== 型ガード ====================
 
 function isBarrierAction(v: unknown): v is BarrierAction {
-  return typeof v === 'object' && v !== null && 'challenge' in v && 'counter' in v
+  return (
+    typeof v === 'object' && v !== null &&
+    'challenge' in v && typeof (v as Record<string, unknown>).challenge === 'string' &&
+    'counter' in v && typeof (v as Record<string, unknown>).counter === 'string'
+  )
 }
 
 function normalizeBarrierActions(raw: unknown[]): BarrierAction[] {
@@ -34,9 +44,12 @@ const PHASE_COLORS = [
 // ==================== カレンダー日付計算 ====================
 
 function addMonthsToDate(startYYYYMM: string, offsetMonths: number): string {
-  if (!startYYYYMM) return ''
+  if (!startYYYYMM || !/^\d{4}-\d{2}$/.test(startYYYYMM)) return ''
   const [yearStr, monthStr] = startYYYYMM.split('-')
-  const totalMonths = parseInt(yearStr, 10) * 12 + parseInt(monthStr, 10) - 1 + offsetMonths
+  const year = parseInt(yearStr, 10)
+  const month = parseInt(monthStr, 10)
+  if (month < 1 || month > 12) return ''
+  const totalMonths = year * 12 + month - 1 + offsetMonths
   const y = Math.floor(totalMonths / 12)
   const m = (totalMonths % 12) + 1
   return `${y}年${m}月`
@@ -122,81 +135,7 @@ const DEVICE_LABELS: Record<string, string> = {
   smartphone: 'スマートフォン', tablet: 'タブレット', pc: 'PC', large_monitor: '大型モニター',
 }
 
-// ==================== 前提情報ラベルマップ ====================
-
-const INDUSTRY_LABELS_MAP: Record<string, string> = {
-  agriculture: '農業・林業', fishing: '漁業', mining: '鉱業・採石業',
-  construction: '建設業', manufacturing: '製造業', utility: '電気・ガス・熱供給・水道業',
-  it: '情報通信業', logistics: '運輸業・郵便業', retail: '卸売業・小売業',
-  finance: '金融業・保険業', real_estate: '不動産業・物品賃貸業',
-  professional: '学術研究・専門・技術サービス業', food_service: '宿泊業・飲食サービス業',
-  beauty: '生活関連サービス業・娯楽業', education: '教育・学習支援業',
-  medical: '医療・福祉', other: 'サービス業（その他）・公務',
-}
-const SUB_INDUSTRY_LABELS_MAP: Record<string, string> = {
-  gms_supermarket: 'GMS・スーパー', convenience: 'コンビニ（FC）', apparel: 'アパレル',
-  electronics: '家電量販', auto_dealer: '自動車販売', home_center: 'ホームセンター',
-}
-const COMPANY_SIZE_LABELS_MAP: Record<string, string> = {
-  under50: '50名未満', under200: '50〜200名未満', under500: '200〜500名未満',
-  under1000: '500〜1000名未満', over1000: '1000名以上',
-}
-const CHALLENGE_LABELS_MAP: Record<string, string> = {
-  talent_development: '人材育成・研修の効率化', standardization: '品質・サービスの標準化',
-  knowledge_transfer: '技術・ノウハウの伝承', manual_creation: 'マニュアル作成・更新の負担',
-  foreign_staff: '外国人・多様な人材への教育', cost_reduction: 'コスト削減',
-  iso_compliance: 'ISO・法令対応', multi_store: '多店舗・多拠点への展開',
-  remote_management: '遠隔管理・モニタリング', security: 'セキュリティ強化',
-}
-const GOAL_LABELS_MAP: Record<string, string> = {
-  reduce_training_time: '研修・教育時間の削減', standardize_quality: '品質・サービスの標準化',
-  eliminate_dependency: '業務の属人化解消', reduce_cost: 'コスト削減',
-  improve_compliance: 'コンプライアンス対応', support_foreign_staff: '外国人・多様な人材支援',
-  dx_promotion: '現場DX推進',
-}
-const KPI_LABELS_MAP: Record<string, string> = {
-  time_reduction: '工数削減', cost_reduction: 'コスト削減',
-  quality_improvement: '品質・合格率向上', turnover_reduction: '定着率向上・離職率低下',
-}
-const USAGE_STATUS_LABELS_MAP: Record<string, string> = {
-  none: 'まだ使っていない（ゼロから）', partial: '一部部門で試用中',
-  active: '特定の用途で本格稼働中', expanding: '複数部門で展開中',
-}
-const BARRIER_LABELS_MAP: Record<string, string> = {
-  no_time_for_creation: 'マニュアル作成の時間が工面できない',
-  no_team_structure: '推進担当者・体制が整っていない',
-  low_it_literacy: '現場スタッフのITリテラシーが低い',
-  hard_to_involve: '経営層・現場の巻き込みが難しい',
-  migration_burden: '既存マニュアル（紙・Excel）の移行が膨大',
-  no_creation_knowhow: 'マニュアル作成のノウハウがない',
-  maintenance_concern: '継続的な更新・メンテナンスが続かない',
-  low_adoption_concern: '利用促進・定着が見込めない',
-}
-const USE_CASE_LABELS_MAP: Record<string, string> = {
-  manual_viewing: 'マニュアル閲覧', video_shooting: '動画撮影・作成',
-  pos_business_app: 'POS・業務アプリ連携', customer_display: '顧客向け案内表示',
-  team_communication: 'チームコミュニケーション', onboarding: '新人オンボーディング',
-  skill_assessment: 'スキルチェック・テスト',
-}
-const MANUAL_TYPE_LABELS_MAP: Record<string, string> = {
-  work_procedure: '業務手順書', customer_service: '接客・サービスマニュアル',
-  system_operation: 'システム操作マニュアル', safety_rules: '安全・衛生規則',
-  quality_check: '品質チェックリスト', other: 'その他',
-}
-const MANUAL_QUALITY_LABELS_MAP: Record<string, string> = {
-  casual: 'スピード重視（手軽に作成）', rich: '品質重視（リッチなコンテンツ）',
-}
-const ENV_CONDITION_LABELS_MAP: Record<string, string> = {
-  normal: '通常環境', water_humidity: '水・湿気への配慮が必要',
-  dust_dirt: '粉塵・汚れへの配慮が必要', hygiene: '衛生管理が必要',
-  food_factory: '食品工場規格への準拠', outdoor_sunlight: '屋外・直射日光下',
-  low_temperature: '低温環境',
-}
-const OPERATION_STYLE_LABELS_MAP: Record<string, string> = {
-  group_training: '集合研修タイプ（10人に1台）', group_shared: 'グループ共有タイプ（3人に1台）',
-  workplace_unit: '職場単位タイプ（拠点ごと2〜3台）', individual: '個人割り振りタイプ（1人1台）',
-  byod: 'BYODタイプ（個人端末活用）',
-}
+// ラベルマップは src/data/labels.ts から import（上部）
 
 // ==================== 前提情報コンポーネント ====================
 
@@ -234,8 +173,8 @@ function PremiseSection({ title, icon, children }: { title: string; icon: string
 }
 
 function PremiseInfo({ answers }: { answers: TmbWizardAnswers }) {
-  const industryLabel = answers.industry ? (INDUSTRY_LABELS_MAP[answers.industry] ?? answers.industry) : null
-  const subLabel = answers.subIndustry ? (SUB_INDUSTRY_LABELS_MAP[answers.subIndustry] ?? answers.subIndustry) : null
+  const industryLabel = answers.industry ? (INDUSTRY_LABELS[answers.industry] ?? answers.industry) : null
+  const subLabel = answers.subIndustry ? (SUB_INDUSTRY_LABELS[answers.subIndustry] ?? answers.subIndustry) : null
   const industryStr = [industryLabel, subLabel].filter(Boolean).join(' › ')
 
   return (
@@ -244,7 +183,7 @@ function PremiseInfo({ answers }: { answers: TmbWizardAnswers }) {
       <PremiseSection title="企業・組織情報" icon="🏢">
         <PremiseRow label="企業名" value={answers.companyName || '—'} />
         <PremiseRow label="業種" value={industryStr || '—'} />
-        <PremiseRow label="企業規模" value={answers.companySize ? COMPANY_SIZE_LABELS_MAP[answers.companySize] : '—'} />
+        <PremiseRow label="企業規模" value={answers.companySize ? COMPANY_SIZE_LABELS[answers.companySize] : '—'} />
         <PremiseRow label="拠点数" value={`${answers.locationCount}拠点`} />
         <PremiseRow label="FC・フランチャイズ" value={answers.isFranchise === true ? 'あり' : answers.isFranchise === false ? 'なし' : '—'} />
         {answers.departmentNote && <PremiseRow label="対象部門・事業部" value={answers.departmentNote} />}
@@ -254,38 +193,38 @@ function PremiseInfo({ answers }: { answers: TmbWizardAnswers }) {
       {/* 経営課題 */}
       <PremiseSection title="経営課題" icon="⚠️">
         <div className="py-2">
-          <TagList items={answers.challenges.map((c) => CHALLENGE_LABELS_MAP[c] ?? c)} />
+          <TagList items={answers.challenges.map((c) => CHALLENGE_LABELS[c] ?? c)} />
         </div>
       </PremiseSection>
 
       {/* 導入目的・期待効果 */}
       <PremiseSection title="導入目的・期待効果" icon="🎯">
-        <PremiseRow label="導入目的" value={<TagList items={answers.primaryGoals.map((g) => GOAL_LABELS_MAP[g] ?? g)} />} />
-        <PremiseRow label="優先KPI" value={answers.priorityKpi ? KPI_LABELS_MAP[answers.priorityKpi] : '—'} />
+        <PremiseRow label="導入目的" value={<TagList items={answers.primaryGoals.map((g) => GOAL_LABELS[g] ?? g)} />} />
+        <PremiseRow label="優先KPI" value={answers.priorityKpi ? KPI_LABELS[answers.priorityKpi] : '—'} />
         {answers.targetValue && <PremiseRow label="目標値" value={answers.targetValue} />}
-        <PremiseRow label="現在の利用状況" value={answers.usageStatus ? USAGE_STATUS_LABELS_MAP[answers.usageStatus] : '—'} />
+        <PremiseRow label="現在の利用状況" value={answers.usageStatus ? USAGE_STATUS_LABELS[answers.usageStatus] : '—'} />
         {answers.currentUseCases && <PremiseRow label="現在の用途" value={answers.currentUseCases} />}
       </PremiseSection>
 
       {/* 運用障壁 */}
       <PremiseSection title="推進上の障壁" icon="🚧">
         <div className="py-2">
-          <TagList items={answers.operationalBarriers.map((b) => BARRIER_LABELS_MAP[b] ?? b)} />
+          <TagList items={answers.operationalBarriers.map((b) => BARRIER_LABELS[b] ?? b)} />
         </div>
       </PremiseSection>
 
       {/* 活用シーン・マニュアル */}
       <PremiseSection title="活用シーン・マニュアル" icon="📋">
-        <PremiseRow label="活用シーン" value={<TagList items={answers.useCases.map((u) => USE_CASE_LABELS_MAP[u] ?? u)} />} />
-        <PremiseRow label="マニュアル種類" value={<TagList items={answers.manualTypes.map((m) => MANUAL_TYPE_LABELS_MAP[m] ?? m)} />} />
-        <PremiseRow label="作成方針" value={answers.manualQuality ? MANUAL_QUALITY_LABELS_MAP[answers.manualQuality] : '—'} />
+        <PremiseRow label="活用シーン" value={<TagList items={answers.useCases.map((u) => USE_CASE_LABELS[u] ?? u)} />} />
+        <PremiseRow label="マニュアル種類" value={<TagList items={answers.manualTypes.map((m) => MANUAL_TYPE_LABELS[m] ?? m)} />} />
+        <PremiseRow label="作成方針" value={answers.manualQuality ? MANUAL_QUALITY_LABELS[answers.manualQuality] : '—'} />
       </PremiseSection>
 
       {/* デバイス・運用スタイル */}
       <PremiseSection title="デバイス・運用スタイル" icon="📱">
         <PremiseRow label="使用デバイス" value={<TagList items={answers.deviceTypes.map((d) => DEVICE_LABELS[d] ?? d)} />} />
-        <PremiseRow label="利用環境" value={<TagList items={answers.environmentConditions.map((e) => ENV_CONDITION_LABELS_MAP[e] ?? e)} />} />
-        <PremiseRow label="運用スタイル" value={answers.operationStyle ? OPERATION_STYLE_LABELS_MAP[answers.operationStyle] : '—'} />
+        <PremiseRow label="利用環境" value={<TagList items={answers.environmentConditions.map((e) => ENV_CONDITION_LABELS[e] ?? e)} />} />
+        <PremiseRow label="運用スタイル" value={answers.operationStyle ? OPERATION_STYLE_LABELS[answers.operationStyle] : '—'} />
         <PremiseRow label="スタッフ数/拠点" value={`${answers.staffPerLocation}名`} />
       </PremiseSection>
     </div>
@@ -545,15 +484,20 @@ export default function ResultPage() {
     setPartialPlan({})
     setSectionReady({ phases: false, schedule: false, barrier: false })
 
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 120_000) // 120秒タイムアウト
+    let reader: ReadableStreamDefaultReader<Uint8Array> | null = null
+
     try {
       const res = await fetch('/api/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(answers),
+        signal: controller.signal,
       })
       if (!res.ok || !res.body) throw new Error()
 
-      const reader = res.body.getReader()
+      reader = res.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
 
@@ -600,9 +544,12 @@ export default function ResultPage() {
           } catch { /* skip malformed */ }
         }
       }
-    } catch {
-      setError('プランの生成に失敗しました。再試行してください。')
+    } catch (e) {
+      const isAbort = e instanceof DOMException && e.name === 'AbortError'
+      setError(isAbort ? 'タイムアウトしました。再試行してください。' : 'プランの生成に失敗しました。再試行してください。')
     } finally {
+      clearTimeout(timeoutId)
+      reader?.cancel().catch(() => {/* ignore */})
       setGenerating(false)
     }
   }
@@ -727,18 +674,20 @@ export default function ResultPage() {
                     </p>
                   </div>
                 </div>
-                {/* 推進上のポイント */}
-                <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="flex items-center gap-2 bg-amber-600 px-5 py-3">
-                    <span className="text-amber-100 text-base">💡</span>
-                    <h3 className="text-white font-bold text-sm">推進上のポイント</h3>
+                {/* 推進上のポイント：未着信の間はスケルトン表示 */}
+                {plan.promotionPoints ? (
+                  <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
+                    <div className="flex items-center gap-2 bg-amber-600 px-5 py-3">
+                      <span className="text-amber-100 text-base">💡</span>
+                      <h3 className="text-white font-bold text-sm">推進上のポイント</h3>
+                    </div>
+                    <div className="px-6 py-5">
+                      <p className="text-gray-800 text-sm leading-[1.9]">{plan.promotionPoints}</p>
+                    </div>
                   </div>
-                  <div className="px-6 py-5">
-                    <p className="text-gray-800 text-sm leading-[1.9]">
-                      {plan.promotionPoints ?? '推進上のポイントを生成中です…'}
-                    </p>
-                  </div>
-                </div>
+                ) : isGenerating ? (
+                  <SectionSkeleton rows={4} />
+                ) : null}
               </div>
             )
             : isGenerating && <SectionSkeleton rows={4} />
