@@ -789,7 +789,7 @@ export default function ResultPage() {
                                 {items.filter(Boolean).slice(0, 3).map((item, k) => (
                                   <li key={k} className="text-xs text-gray-700 flex gap-1.5">
                                     <span className="text-gray-400 shrink-0 mt-0.5">•</span>
-                                    <span className="line-clamp-1 leading-relaxed">{item}</span>
+                                    <span className="leading-snug">{item}</span>
                                   </li>
                                 ))}
                               </ul>
