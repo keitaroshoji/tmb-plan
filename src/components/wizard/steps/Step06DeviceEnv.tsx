@@ -35,7 +35,8 @@ export function Step06DeviceEnv() {
 
   const toggleEnv = (v: EnvironmentCondition) => {
     if (v === 'normal') {
-      updateAnswers({ environmentConditions: ['normal'] })
+      const isSelected = answers.environmentConditions.includes('normal')
+      updateAnswers({ environmentConditions: isSelected ? [] : ['normal'] })
       return
     }
     const current = answers.environmentConditions.filter((e) => e !== 'normal')
