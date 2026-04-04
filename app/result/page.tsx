@@ -866,7 +866,7 @@ export default function ResultPage() {
                     </div>
                     <div className="px-4 py-3 border-r border-gray-100 flex items-center">
                       <ul className="space-y-1">
-                        {m.actions.slice(0, 3).map((a, ai) => (
+                        {m.actions.slice(0, 2).map((a, ai) => (
                           <li key={ai} className="text-xs text-gray-600 flex gap-1.5">
                             <span className="text-gray-400 shrink-0">•</span>
                             <span className="leading-relaxed">{a}</span>

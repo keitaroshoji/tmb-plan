@@ -1,453 +1,570 @@
 import PptxGenJS from 'pptxgenjs'
 import { TmbWizardAnswers } from '@/src/types/answers'
-import { GeneratedPlan, CaseStudy } from '@/src/types/plan'
+import { GeneratedPlan, ACTIVITY_CATEGORIES, Phase } from '@/src/types/plan'
 import { DevicePlan } from './device-recommender'
+import {
+  INDUSTRY_LABELS, SUB_INDUSTRY_LABELS, COMPANY_SIZE_LABELS,
+  CHALLENGE_LABELS, GOAL_LABELS, KPI_LABELS, USAGE_STATUS_LABELS,
+  BARRIER_LABELS,
+} from '@/src/data/labels'
 
-const BLUE = '1E40AF'
-const LIGHT_BLUE = 'DBEAFE'
-const DARK = '1F2937'
-const GRAY = '6B7280'
-const WHITE = 'FFFFFF'
-const GREEN = '059669'
-const LIGHT_GREEN = 'D1FAE5'
+// ==================== カラー定数 ====================
 
-function addTitleSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
-  const slide = prs.addSlide()
-  slide.background = { color: BLUE }
+const BLUE         = '1E40AF'
+const BLUE_LIGHT   = 'DBEAFE'
+const BLUE_TEXT    = '1E3A8A'
+const GREEN        = '065F46'
+const GREEN_LIGHT  = 'D1FAE5'
+const GREEN_TEXT   = '064E3B'
+const AMBER        = '92400E'
+const AMBER_LIGHT  = 'FEF3C7'
+const AMBER_TEXT   = '78350F'
+const PURPLE       = '4C1D95'
+const PURPLE_LIGHT = 'EDE9FE'
+const PURPLE_TEXT  = '3B0764'
+const RED_DARK     = 'B91C1C'
+const DARK         = '1F2937'
+const GRAY         = '6B7280'
+const GRAY_LIGHT   = 'F3F4F6'
+const WHITE        = 'FFFFFF'
+const GRAY13       = '374151'  // 13ヶ月目以降カラー
+const GRAY13_LIGHT = 'F9FAFB'
 
-  // タイトル
-  slide.addText('Teachme Biz\n運用プランのご提案', {
-    x: 0.8, y: 1.2, w: 8.4, h: 1.8,
-    fontSize: 32, bold: true, color: WHITE,
-    align: 'left', valign: 'middle',
+const PHASE_COLORS = [
+  { bg: BLUE,   light: BLUE_LIGHT,   text: BLUE_TEXT   },
+  { bg: GREEN,  light: GREEN_LIGHT,  text: GREEN_TEXT  },
+  { bg: AMBER,  light: AMBER_LIGHT,  text: AMBER_TEXT  },
+  { bg: PURPLE, light: PURPLE_LIGHT, text: PURPLE_TEXT },
+]
+
+// スライドサイズ: LAYOUT_WIDE 16:9 = 13.33" × 7.5"
+const SW     = 13.33
+const SH     = 7.5
+const HDR_H  = 0.85
+const MG     = 0.3
+const CW     = SW - MG * 2   // 12.73"
+
+// ==================== 型エイリアス ====================
+
+type Sl = ReturnType<InstanceType<typeof PptxGenJS>['addSlide']>
+
+// ==================== ユーティリティ ====================
+
+function addHeader(sl: Sl, prs: PptxGenJS, title: string, sub?: string) {
+  sl.addShape(prs.ShapeType.rect, {
+    x: 0, y: 0, w: SW, h: HDR_H,
+    fill: { color: BLUE }, line: { color: BLUE, width: 0 },
   })
-
-  // 顧客名
-  slide.addText((answers.companyName || '顧客') + ' 様', {
-    x: 0.8, y: 3.2, w: 8.4, h: 0.6,
-    fontSize: 20, color: LIGHT_BLUE, align: 'left',
+  sl.addText(title, {
+    x: MG, y: 0, w: 8, h: HDR_H,
+    fontSize: 22, bold: true, color: WHITE, valign: 'middle',
   })
+  if (sub) {
+    sl.addText(sub, {
+      x: 8.2, y: 0, w: SW - 8.5, h: HDR_H,
+      fontSize: 10, color: BLUE_LIGHT, valign: 'middle', align: 'right',
+    })
+  }
+}
 
-  // 日付
-  const today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })
-  slide.addText(today, {
-    x: 0.8, y: 4.0, w: 8.4, h: 0.4,
-    fontSize: 12, color: LIGHT_BLUE, align: 'left',
+function secBar(sl: Sl, prs: PptxGenJS, x: number, y: number, w: number, text: string, color = BLUE) {
+  sl.addShape(prs.ShapeType.rect, {
+    x, y, w, h: 0.3,
+    fill: { color }, line: { color, width: 0 },
+  })
+  sl.addText(text, {
+    x: x + 0.1, y, w: w - 0.15, h: 0.3,
+    fontSize: 9, bold: true, color: WHITE, valign: 'middle',
   })
 }
 
-function addChallengeSummarySlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
-  const slide = prs.addSlide()
-  slide.background = { color: WHITE }
-
-  slide.addText('顧客課題の整理', {
-    x: 0.5, y: 0.3, w: 9, h: 0.6,
-    fontSize: 20, bold: true, color: BLUE,
-  })
-  slide.addShape(prs.ShapeType.line, { x: 0.5, y: 0.95, w: 9, h: 0, line: { color: BLUE, width: 2 } })
-
-  const CHALLENGE_LABELS: Record<string, string> = {
-    talent_development: '人材育成・研修の効率化',
-    standardization: '品質・サービスの標準化',
-    knowledge_transfer: '技術・ノウハウの伝承',
-    manual_creation: 'マニュアル作成・更新の負担',
-    foreign_staff: '外国人・多様な人材への教育',
-    cost_reduction: 'コスト削減',
-    iso_compliance: 'ISO・法令対応',
-    multi_store: '多店舗・多拠点への展開',
-    remote_management: '遠隔管理・モニタリング',
-    security: 'セキュリティ強化',
-  }
-
-  // 経営課題
-  slide.addText('■ 経営課題', { x: 0.5, y: 1.1, w: 4, h: 0.35, fontSize: 12, bold: true, color: BLUE })
-  answers.challenges.slice(0, 5).forEach((c, i) => {
-    slide.addText(`• ${CHALLENGE_LABELS[c] ?? c}`, {
-      x: 0.5, y: 1.5 + i * 0.38, w: 4.2, h: 0.35,
-      fontSize: 11, color: DARK,
-    })
-  })
-
-  // 導入目的
-  const GOAL_LABELS: Record<string, string> = {
-    reduce_training_time: '研修・教育時間の削減',
-    standardize_quality: '品質・サービスの標準化',
-    eliminate_dependency: '業務の属人化解消',
-    reduce_cost: 'コスト削減',
-    improve_compliance: 'コンプライアンス対応',
-    support_foreign_staff: '外国人・多様な人材支援',
-    dx_promotion: '現場DX推進',
-  }
-  const goalsText = (answers.primaryGoals ?? []).map((g) => GOAL_LABELS[g] ?? g).join('、')
-  slide.addText('■ 導入目的・KPI', { x: 5.0, y: 1.1, w: 4, h: 0.35, fontSize: 12, bold: true, color: BLUE })
-  slide.addText(`目的: ${goalsText || ''}`, { x: 5.0, y: 1.5, w: 4.2, h: 0.5, fontSize: 11, color: DARK })
-  if (answers.targetValue) {
-    slide.addText(`目標: ${answers.targetValue}`, { x: 5.0, y: 2.1, w: 4.2, h: 0.35, fontSize: 11, color: DARK })
-  }
-
-  // 企業概要バナー
-  slide.addShape(prs.ShapeType.rect, { x: 0.5, y: 4.5, w: 9, h: 0.8, fill: { color: LIGHT_BLUE } })
-  slide.addText(
-    `${answers.companyName}  ／  ${answers.locationCount}拠点  ／  ${answers.isFranchise ? 'FC事業者' : '独立事業'}  ／  プラン期間: 12ヶ月`,
-    { x: 0.5, y: 4.55, w: 9, h: 0.6, fontSize: 11, color: BLUE, bold: true, align: 'center' }
-  )
+function monthToCalLabel(startYYYYMM: string, offset: number): string {
+  if (!startYYYYMM || !/^\d{4}-\d{2}$/.test(startYYYYMM)) return ''
+  const [y, m] = startYYYYMM.split('-').map(Number)
+  if (m < 1 || m > 12) return ''
+  const total = y * 12 + m - 1 + offset
+  return `${Math.floor(total / 12)}/${(total % 12) + 1}`
 }
 
-function addOperationPlanSlide(prs: PptxGenJS, plan: GeneratedPlan) {
-  const slide = prs.addSlide()
-  slide.background = { color: WHITE }
+function getPhaseIdx(month: number, phases: Phase[]): number {
+  for (let i = 0; i < phases.length; i++) {
+    const ns = phases[i].period.match(/\d+/g)?.map(Number) ?? []
+    if (ns.length >= 2 && month >= ns[0] && month <= ns[1]) return i
+    if (ns.length === 1 && month === ns[0]) return i
+  }
+  return Math.min(Math.floor((month - 1) / 3), (phases.length || 4) - 1)
+}
 
-  slide.addText('推奨 運用プラン', {
-    x: 0.5, y: 0.3, w: 9, h: 0.6,
-    fontSize: 20, bold: true, color: BLUE,
-  })
-  slide.addShape(prs.ShapeType.line, { x: 0.5, y: 0.95, w: 9, h: 0, line: { color: BLUE, width: 2 } })
+// ==================== Slide 1: 前提情報 ====================
 
-  if (plan.summary) {
-    slide.addText(plan.summary, {
-      x: 0.5, y: 1.05, w: 9, h: 0.55,
-      fontSize: 10, color: GRAY, italic: true,
-    })
+function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
+  const sl = prs.addSlide()
+  sl.background = { color: WHITE }
+
+  const company    = answers.companyName || '顧客'
+  const industry   = INDUSTRY_LABELS[answers.industry ?? ''] ?? ''
+  const subInd     = answers.subIndustry ? (SUB_INDUSTRY_LABELS[answers.subIndustry] ?? '') : ''
+  const industryStr = [industry, subInd].filter(Boolean).join(' › ')
+  const size       = COMPANY_SIZE_LABELS[answers.companySize ?? ''] ?? ''
+
+  addHeader(sl, prs, '前提情報', `${company} 様`)
+
+  const Y0 = HDR_H + 0.12
+  const LX = MG, LW = 6.0
+  const RX = MG + LW + 0.23, RW = SW - MG * 2 - LW - 0.23
+
+  // ===== 左カラム: 企業情報 + 障壁 =====
+  let ly = Y0
+
+  secBar(sl, prs, LX, ly, LW, '企業・組織情報', BLUE)
+  ly += 0.33
+
+  const orgRows: [string, string][] = [
+    ['業種',   industryStr || '—'],
+    ['企業規模', size || '—'],
+    ['拠点数',  `${answers.locationCount} 拠点`],
+    ['FC',     answers.isFranchise ? 'あり（FC本部・加盟店）' : 'なし'],
+  ]
+  if (answers.departmentNote) orgRows.push(['対象部門', answers.departmentNote])
+  if (answers.projectStartDate) {
+    const [y, m] = answers.projectStartDate.split('-')
+    orgRows.push(['開始予定', `${y}年 ${parseInt(m, 10)}月`])
   }
 
-  const phases = plan.phases ?? []
-  const colW = 9 / Math.max(phases.length, 1)
-  phases.forEach((phase, i) => {
-    const x = 0.5 + i * colW
-    const y = 1.7
+  orgRows.forEach(([label, value], i) => {
+    const ry = ly + i * 0.37
+    sl.addShape(prs.ShapeType.rect, {
+      x: LX, y: ry, w: LW, h: 0.36,
+      fill: { color: i % 2 === 0 ? GRAY_LIGHT : WHITE },
+      line: { color: 'E5E7EB', width: 0.5 },
+    })
+    sl.addText(label, { x: LX + 0.1, y: ry + 0.04, w: 1.35, h: 0.28, fontSize: 8.5, color: GRAY, bold: true, valign: 'middle' })
+    sl.addText(value, { x: LX + 1.5, y: ry + 0.04, w: LW - 1.6, h: 0.28, fontSize: 9, color: DARK, valign: 'middle' })
+  })
+  ly += orgRows.length * 0.37 + 0.25
 
-    // フェーズヘッダー
-    slide.addShape(prs.ShapeType.rect, { x, y, w: colW - 0.1, h: 0.5, fill: { color: BLUE } })
-    slide.addText(phase.name, {
-      x, y, w: colW - 0.1, h: 0.5,
+  secBar(sl, prs, LX, ly, LW, '推進上の障壁', RED_DARK)
+  ly += 0.33
+  answers.operationalBarriers.map(b => BARRIER_LABELS[b] ?? b).slice(0, 5).forEach((b, i) => {
+    sl.addText(`• ${b}`, { x: LX + 0.12, y: ly + i * 0.31, w: LW - 0.22, h: 0.29, fontSize: 8.5, color: DARK })
+  })
+
+  // ===== 右カラム: 課題 + 目的KPI =====
+  let ry = Y0
+
+  secBar(sl, prs, RX, ry, RW, '経営課題', BLUE)
+  ry += 0.33
+  const challenges = answers.challenges.map(c => CHALLENGE_LABELS[c] ?? c)
+  challenges.slice(0, 5).forEach((c, i) => {
+    sl.addText(`• ${c}`, { x: RX + 0.12, y: ry + i * 0.31, w: RW - 0.22, h: 0.29, fontSize: 8.5, color: DARK })
+  })
+  ry += Math.min(challenges.length, 5) * 0.31 + 0.25
+
+  secBar(sl, prs, RX, ry, RW, '導入目的・KPI', BLUE)
+  ry += 0.33
+  const goals       = (answers.primaryGoals ?? []).map(g => GOAL_LABELS[g] ?? g).join('、')
+  const kpi         = KPI_LABELS[answers.priorityKpi ?? ''] ?? ''
+  const usageStatus = USAGE_STATUS_LABELS[answers.usageStatus ?? ''] ?? ''
+
+  const goalRows: [string, string][] = [['目的', goals], ['優先KPI', kpi]]
+  if (answers.targetValue) goalRows.push(['目標値', answers.targetValue])
+  if (usageStatus) goalRows.push(['利用状況', usageStatus])
+
+  goalRows.forEach(([label, value], i) => {
+    const rowY = ry + i * 0.37
+    sl.addShape(prs.ShapeType.rect, {
+      x: RX, y: rowY, w: RW, h: 0.36,
+      fill: { color: i % 2 === 0 ? GRAY_LIGHT : WHITE },
+      line: { color: 'E5E7EB', width: 0.5 },
+    })
+    sl.addText(label, { x: RX + 0.1, y: rowY + 0.04, w: 1.2, h: 0.28, fontSize: 8.5, color: GRAY, bold: true, valign: 'middle' })
+    sl.addText(value, { x: RX + 1.35, y: rowY + 0.04, w: RW - 1.45, h: 0.28, fontSize: 9, color: DARK, valign: 'middle' })
+  })
+}
+
+// ==================== Slide 2: プランサマリー＋マニュアル活用イメージ ====================
+
+function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
+  const sl = prs.addSlide()
+  sl.background = { color: WHITE }
+
+  addHeader(sl, prs, 'プランサマリー')
+
+  const Y0  = HDR_H + 0.12
+  const LX  = MG
+  const LW  = (CW - 0.2) / 2   // ≈ 6.265"
+  const RX  = LX + LW + 0.2
+  const RW  = LW
+
+  // --- プロジェクト概要 ---
+  sl.addShape(prs.ShapeType.rect, {
+    x: LX, y: Y0, w: LW, h: 0.3,
+    fill: { color: BLUE }, line: { color: BLUE, width: 0 },
+  })
+  sl.addText('プロジェクト概要', {
+    x: LX + 0.1, y: Y0, w: LW - 0.15, h: 0.3,
+    fontSize: 9, bold: true, color: WHITE, valign: 'middle',
+  })
+  sl.addShape(prs.ShapeType.rect, {
+    x: LX, y: Y0 + 0.3, w: LW, h: 2.0,
+    fill: { color: BLUE_LIGHT }, line: { color: 'BFDBFE', width: 0.5 },
+  })
+  sl.addText(plan.projectOverview ?? plan.summary ?? '', {
+    x: LX + 0.14, y: Y0 + 0.36, w: LW - 0.28, h: 1.88,
+    fontSize: 9, color: BLUE_TEXT, valign: 'top', align: 'left',
+  })
+
+  // --- 推進上のポイント ---
+  sl.addShape(prs.ShapeType.rect, {
+    x: RX, y: Y0, w: RW, h: 0.3,
+    fill: { color: AMBER }, line: { color: AMBER, width: 0 },
+  })
+  sl.addText('推進上のポイント', {
+    x: RX + 0.1, y: Y0, w: RW - 0.15, h: 0.3,
+    fontSize: 9, bold: true, color: WHITE, valign: 'middle',
+  })
+  sl.addShape(prs.ShapeType.rect, {
+    x: RX, y: Y0 + 0.3, w: RW, h: 2.0,
+    fill: { color: AMBER_LIGHT }, line: { color: 'FDE68A', width: 0.5 },
+  })
+  sl.addText(plan.promotionPoints ?? '', {
+    x: RX + 0.14, y: Y0 + 0.36, w: RW - 0.28, h: 1.88,
+    fontSize: 9, color: AMBER_TEXT, valign: 'top', align: 'left',
+  })
+
+  // --- マニュアル活用イメージ ---
+  const MY = Y0 + 2.45
+  sl.addShape(prs.ShapeType.rect, {
+    x: MG, y: MY, w: CW, h: 0.3,
+    fill: { color: BLUE }, line: { color: BLUE, width: 0 },
+  })
+  sl.addText('マニュアル活用イメージ', {
+    x: MG + 0.1, y: MY, w: CW - 0.2, h: 0.3,
+    fontSize: 9, bold: true, color: WHITE, valign: 'middle',
+  })
+
+  const scenarios = plan.usageScenarios ?? []
+  const cardW  = (CW - 0.15 * 3) / 4   // 4列
+  const cardY  = MY + 0.33
+  const cardH  = SH - cardY - 0.18
+
+  scenarios.slice(0, 4).forEach((s, i) => {
+    const cx = MG + i * (cardW + 0.15)
+
+    sl.addShape(prs.ShapeType.rect, {
+      x: cx, y: cardY, w: cardW, h: 0.3,
+      fill: { color: BLUE }, line: { color: BLUE, width: 0 },
+    })
+    sl.addText(s.manualTitle, {
+      x: cx + 0.07, y: cardY, w: cardW - 0.1, h: 0.3,
+      fontSize: 7.5, bold: true, color: WHITE, valign: 'middle',
+    })
+
+    sl.addShape(prs.ShapeType.rect, {
+      x: cx, y: cardY + 0.3, w: cardW, h: cardH - 0.3,
+      fill: { color: GRAY_LIGHT }, line: { color: 'E5E7EB', width: 0.5 },
+    })
+
+    const rowH = (cardH - 0.3) / 3
+    const labelRows: [string, string][] = [['誰が', s.user], ['場面', s.scene], ['効果', s.effect]]
+    labelRows.forEach(([label, text], ri) => {
+      const inY = cardY + 0.33 + ri * rowH
+      sl.addText(label, { x: cx + 0.08, y: inY, w: 0.48, h: 0.22, fontSize: 7.5, color: GRAY, bold: true })
+      sl.addText(text, { x: cx + 0.58, y: inY, w: cardW - 0.66, h: rowH - 0.06, fontSize: 7.5, color: DARK, valign: 'top' })
+    })
+  })
+}
+
+// ==================== Slide 3: 全体スケジュール案 ====================
+
+function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: TmbWizardAnswers) {
+  const sl = prs.addSlide()
+  sl.background = { color: WHITE }
+
+  addHeader(sl, prs, '全体スケジュール案', '4フェーズの活動計画')
+
+  const phases    = plan.phases ?? []
+  const Y0        = HDR_H + 0.1
+  const LABEL_W   = 1.4
+  const PHASE_W   = (CW - LABEL_W) / Math.max(phases.length, 1)   // ≈ 2.83"
+  const PHASE_HDR = 0.75
+  const CAT_H     = (SH - Y0 - PHASE_HDR - 0.05) / ACTIVITY_CATEGORIES.length  // ≈ 1.17"
+
+  // フェーズヘッダー
+  phases.forEach((phase, pi) => {
+    const px    = MG + LABEL_W + pi * PHASE_W
+    const color = PHASE_COLORS[pi % PHASE_COLORS.length]
+
+    sl.addShape(prs.ShapeType.rect, {
+      x: px, y: Y0, w: PHASE_W - 0.06, h: PHASE_HDR,
+      fill: { color: color.bg }, line: { color: color.bg, width: 0 },
+    })
+    sl.addText(phase.name, {
+      x: px, y: Y0 + 0.04, w: PHASE_W - 0.06, h: 0.3,
       fontSize: 10, bold: true, color: WHITE, align: 'center', valign: 'middle',
     })
-
-    // 期間
-    slide.addText(phase.period, {
-      x, y: y + 0.52, w: colW - 0.1, h: 0.3,
-      fontSize: 9, color: BLUE, align: 'center',
+    sl.addText(phase.period, {
+      x: px, y: Y0 + 0.36, w: PHASE_W - 0.06, h: 0.22,
+      fontSize: 8.5, color: 'BFDBFE', align: 'center',
     })
-
-    // ゴール
-    slide.addShape(prs.ShapeType.rect, { x, y: y + 0.84, w: colW - 0.1, h: 0.48, fill: { color: LIGHT_BLUE } })
-    slide.addText(phase.goal, {
-      x, y: y + 0.84, w: colW - 0.1, h: 0.48,
-      fontSize: 9, color: BLUE, align: 'center', valign: 'middle',
-    })
-
-    // アクション
-    phase.actions.slice(0, 3).forEach((action, j) => {
-      slide.addText(`▸ ${action.title}`, {
-        x: x + 0.05, y: y + 1.4 + j * 0.55, w: colW - 0.15, h: 0.25,
-        fontSize: 9, bold: true, color: DARK,
-      })
-      slide.addText(action.description, {
-        x: x + 0.1, y: y + 1.65 + j * 0.55, w: colW - 0.2, h: 0.25,
-        fontSize: 8, color: GRAY,
-      })
-    })
-  })
-}
-
-function addScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan) {
-  const slide = prs.addSlide()
-  slide.background = { color: WHITE }
-
-  slide.addText('年間スケジュール', {
-    x: 0.5, y: 0.3, w: 9, h: 0.6,
-    fontSize: 20, bold: true, color: BLUE,
-  })
-  slide.addShape(prs.ShapeType.line, { x: 0.5, y: 0.95, w: 9, h: 0, line: { color: BLUE, width: 2 } })
-
-  const months = (plan.schedule ?? []).slice(0, 12)
-  const cols = months.length <= 6 ? months.length : 6
-  const rows = Math.ceil(months.length / cols)
-  const cellW = 9 / cols
-  const cellH = (4.5) / rows
-
-  months.forEach((m, i) => {
-    const col = i % cols
-    const row = Math.floor(i / cols)
-    const x = 0.5 + col * cellW
-    const y = 1.1 + row * cellH
-
-    const bgColor = m.isReviewPoint ? LIGHT_GREEN : LIGHT_BLUE
-    const borderColor = m.isReviewPoint ? GREEN : BLUE
-
-    slide.addShape(prs.ShapeType.rect, { x, y, w: cellW - 0.08, h: cellH - 0.08, fill: { color: bgColor }, line: { color: borderColor, width: 1 } })
-    slide.addText(`${m.month}ヶ月目`, { x, y: y + 0.04, w: cellW - 0.08, h: 0.22, fontSize: 8, bold: true, color: borderColor, align: 'center' })
-    slide.addText(m.title, { x: x + 0.05, y: y + 0.26, w: cellW - 0.13, h: 0.22, fontSize: 8, bold: true, color: DARK, align: 'center' })
-
-    const actionsText = m.actions.slice(0, 2).map((a) => `• ${a}`).join('\n')
-    slide.addText(actionsText, {
-      x: x + 0.05, y: y + 0.5, w: cellW - 0.13, h: cellH - 0.65,
-      fontSize: 7, color: DARK, align: 'left',
-    })
-
-    if (m.isReviewPoint) {
-      slide.addText('📊 効果測定', {
-        x, y: y + cellH - 0.26, w: cellW - 0.08, h: 0.2,
-        fontSize: 7, bold: true, color: GREEN, align: 'center',
-      })
+    if (answers.projectStartDate) {
+      const ns = phase.period.match(/\d+/g)?.map(Number) ?? []
+      if (ns.length >= 2) {
+        const from = monthToCalLabel(answers.projectStartDate, ns[0] - 1)
+        const to   = monthToCalLabel(answers.projectStartDate, ns[1] - 1)
+        sl.addText(`${from}〜${to}`, {
+          x: px, y: Y0 + 0.56, w: PHASE_W - 0.06, h: 0.17,
+          fontSize: 7.5, color: 'BFDBFE', align: 'center',
+        })
+      }
     }
   })
-}
 
-function addCaseStudySlide(prs: PptxGenJS, cases: CaseStudy[], slideIndex: number) {
-  const cs = cases[slideIndex]
-  if (!cs) return
+  // カテゴリ行
+  const catY0 = Y0 + PHASE_HDR + 0.02
+  ACTIVITY_CATEGORIES.forEach((cat, ci) => {
+    const rowY  = catY0 + ci * CAT_H
+    const isEven = ci % 2 === 0
 
-  const slide = prs.addSlide()
-  slide.background = { color: WHITE }
-
-  slide.addText(`導入事例 ${slideIndex + 1}`, {
-    x: 0.5, y: 0.3, w: 9, h: 0.6,
-    fontSize: 20, bold: true, color: BLUE,
-  })
-  slide.addShape(prs.ShapeType.line, { x: 0.5, y: 0.95, w: 9, h: 0, line: { color: BLUE, width: 2 } })
-
-  // 企業情報
-  slide.addShape(prs.ShapeType.rect, { x: 0.5, y: 1.0, w: 9, h: 0.55, fill: { color: BLUE } })
-  slide.addText(`${cs.companyName}  ／  ${cs.industry}  ／  ${cs.companySize}`, {
-    x: 0.5, y: 1.0, w: 9, h: 0.55,
-    fontSize: 13, bold: true, color: WHITE, align: 'center', valign: 'middle',
-  })
-
-  // 課題・施策・効果の3列
-  const sections = [
-    { label: '課題', text: cs.challenge, color: '#FEE2E2', borderColor: '#EF4444' },
-    { label: '施策', text: cs.solution, color: '#EFF6FF', borderColor: BLUE },
-    { label: '効果', text: cs.effect, color: LIGHT_GREEN, borderColor: GREEN },
-  ]
-
-  sections.forEach((sec, i) => {
-    const x = 0.5 + i * 3.05
-    slide.addShape(prs.ShapeType.rect, { x, y: 1.7, w: 2.9, h: 0.4, fill: { color: sec.borderColor } })
-    slide.addText(sec.label, { x, y: 1.7, w: 2.9, h: 0.4, fontSize: 12, bold: true, color: WHITE, align: 'center', valign: 'middle' })
-    slide.addShape(prs.ShapeType.rect, { x, y: 2.15, w: 2.9, h: 2.5, fill: { color: sec.color }, line: { color: sec.borderColor, width: 1 } })
-    slide.addText(sec.text, { x: x + 0.1, y: 2.2, w: 2.7, h: 2.4, fontSize: 10, color: DARK, align: 'left', valign: 'top' })
-  })
-
-  // 定性効果
-  if (cs.qualitativeEffect) {
-    slide.addText(`💬 ${cs.qualitativeEffect}`, {
-      x: 0.5, y: 4.8, w: 9, h: 0.45,
-      fontSize: 10, color: GRAY, italic: true,
+    // カテゴリラベルセル
+    sl.addShape(prs.ShapeType.rect, {
+      x: MG, y: rowY, w: LABEL_W, h: CAT_H - 0.05,
+      fill: { color: isEven ? '1E3A8A' : BLUE }, line: { color: BLUE, width: 0 },
     })
-  }
-}
-
-function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
-  const slide = prs.addSlide()
-  slide.background = { color: WHITE }
-
-  slide.addText('デバイス推奨プラン', {
-    x: 0.5, y: 0.3, w: 9, h: 0.6,
-    fontSize: 20, bold: true, color: BLUE,
-  })
-  slide.addShape(prs.ShapeType.line, { x: 0.5, y: 0.95, w: 9, h: 0, line: { color: BLUE, width: 2 } })
-
-  // 運用スタイル
-  slide.addText(`運用スタイル: ${devicePlan.operationStyleLabel}`, {
-    x: 0.5, y: 1.05, w: 9, h: 0.35,
-    fontSize: 11, color: BLUE, bold: true,
-  })
-
-  // 台数サマリー
-  slide.addShape(prs.ShapeType.rect, { x: 0.5, y: 1.45, w: 2.6, h: 1.0, fill: { color: LIGHT_BLUE } })
-  slide.addText('理想台数', { x: 0.5, y: 1.5, w: 2.6, h: 0.3, fontSize: 9, color: BLUE, align: 'center' })
-  slide.addText(`${devicePlan.idealDeviceCount} 台`, { x: 0.5, y: 1.8, w: 2.6, h: 0.5, fontSize: 22, bold: true, color: BLUE, align: 'center' })
-
-  slide.addShape(prs.ShapeType.rect, { x: 3.3, y: 1.45, w: 2.6, h: 1.0, fill: { color: '#F3F4F6' } })
-  slide.addText('現在の台数', { x: 3.3, y: 1.5, w: 2.6, h: 0.3, fontSize: 9, color: GRAY, align: 'center' })
-  slide.addText(`${devicePlan.currentDeviceCount} 台`, { x: 3.3, y: 1.8, w: 2.6, h: 0.5, fontSize: 22, bold: true, color: GRAY, align: 'center' })
-
-  slide.addShape(prs.ShapeType.rect, { x: 6.1, y: 1.45, w: 2.9, h: 1.0, fill: { color: LIGHT_GREEN } })
-  slide.addText('不足台数', { x: 6.1, y: 1.5, w: 2.9, h: 0.3, fontSize: 9, color: GREEN, align: 'center' })
-  slide.addText(`${devicePlan.shortfallCount} 台`, { x: 6.1, y: 1.8, w: 2.9, h: 0.5, fontSize: 22, bold: true, color: GREEN, align: 'center' })
-
-  // 推奨製品
-  slide.addText('■ 推奨製品', { x: 0.5, y: 2.65, w: 9, h: 0.35, fontSize: 12, bold: true, color: DARK })
-  devicePlan.recommendedProducts.slice(0, 3).forEach((p, i) => {
-    slide.addShape(prs.ShapeType.rect, { x: 0.5, y: 3.05 + i * 0.55, w: 9, h: 0.48, fill: { color: i === 0 ? LIGHT_BLUE : '#F9FAFB' }, line: { color: '#E5E7EB', width: 1 } })
-    slide.addText(p.productName, { x: 0.7, y: 3.1 + i * 0.55, w: 4, h: 0.22, fontSize: 10, bold: true, color: DARK })
-    slide.addText(p.reason, { x: 0.7, y: 3.3 + i * 0.55, w: 5.5, h: 0.18, fontSize: 8, color: GRAY })
-    slide.addText(`¥${p.monthlyUnitPrice.toLocaleString()}/月・台`, { x: 6.8, y: 3.1 + i * 0.55, w: 2.5, h: 0.38, fontSize: 11, bold: true, color: BLUE, align: 'right', valign: 'middle' })
-  })
-}
-
-function addInvestmentSummarySlide(prs: PptxGenJS, devicePlan: DevicePlan) {
-  const slide = prs.addSlide()
-  slide.background = { color: WHITE }
-
-  slide.addText('投資サマリー', {
-    x: 0.5, y: 0.3, w: 9, h: 0.6,
-    fontSize: 20, bold: true, color: BLUE,
-  })
-  slide.addShape(prs.ShapeType.line, { x: 0.5, y: 0.95, w: 9, h: 0, line: { color: BLUE, width: 2 } })
-
-  const items = [
-    { label: '月額費用（税抜）', value: `¥${devicePlan.estimatedMonthlyCost.toLocaleString()}` },
-    { label: '初期費用（キッティング）', value: `¥${devicePlan.estimatedInitialCost.toLocaleString()}` },
-    { label: '年間総額（12ヶ月）', value: `¥${devicePlan.estimatedTotalCost12m.toLocaleString()}`, highlight: true },
-    { label: '税込年間総額（10%）', value: `¥${Math.ceil(devicePlan.estimatedTotalCost12m * 1.1).toLocaleString()}`, highlight: true },
-  ]
-
-  items.forEach((item, i) => {
-    const y = 1.2 + i * 0.85
-    const bgColor = item.highlight ? LIGHT_BLUE : '#F9FAFB'
-    const textColor = item.highlight ? BLUE : DARK
-    slide.addShape(prs.ShapeType.rect, { x: 1, y, w: 8, h: 0.7, fill: { color: bgColor }, line: { color: '#E5E7EB', width: 1 } })
-    slide.addText(item.label, { x: 1.2, y, w: 4, h: 0.7, fontSize: 12, color: GRAY, valign: 'middle' })
-    slide.addText(item.value, { x: 5, y, w: 3.8, h: 0.7, fontSize: 16, bold: item.highlight, color: textColor, align: 'right', valign: 'middle' })
-  })
-
-  slide.addText('※ デバイスレンタルサービス料金（Studist提供）の概算です。実際の見積は別途ご案内します。', {
-    x: 0.5, y: 4.8, w: 9, h: 0.35,
-    fontSize: 9, color: GRAY, italic: true,
-  })
-}
-
-function addUseCaseProposalsSlide(prs: PptxGenJS, plan: GeneratedPlan) {
-  if (!plan.useCaseProposals?.length) return
-  const slide = prs.addSlide()
-  slide.background = { color: WHITE }
-
-  slide.addText('用途提案', {
-    x: 0.5, y: 0.3, w: 9, h: 0.6,
-    fontSize: 20, bold: true, color: BLUE,
-  })
-  slide.addShape(prs.ShapeType.line, { x: 0.5, y: 0.95, w: 9, h: 0, line: { color: BLUE, width: 2 } })
-
-  const PRIORITY_COLORS: Record<string, string> = { high: 'FEE2E2', medium: 'FEF3C7', low: 'F3F4F6' }
-  const EFFORT_LABELS: Record<string, string> = { easy: '導入: 簡単', medium: '導入: 中程度', hard: '導入: 難しい' }
-
-  const proposals = plan.useCaseProposals.slice(0, 6)
-  const cols = Math.min(proposals.length, 3)
-  const colW = 9 / cols
-
-  proposals.forEach((p, i) => {
-    const col = i % cols
-    const row = Math.floor(i / cols)
-    const x = 0.5 + col * colW
-    const y = 1.1 + row * 1.8
-    const bgColor = PRIORITY_COLORS[p.priority] ?? PRIORITY_COLORS.medium
-
-    slide.addShape(prs.ShapeType.rect, {
-      x, y, w: colW - 0.15, h: 1.6,
-      fill: { color: bgColor }, line: { color: '#E5E7EB', width: 1 },
-    })
-    slide.addText(p.title, {
-      x: x + 0.1, y: y + 0.1, w: colW - 0.35, h: 0.35,
-      fontSize: 11, bold: true, color: DARK,
-    })
-    slide.addText(EFFORT_LABELS[p.effort] ?? '', {
-      x: x + 0.1, y: y + 0.45, w: colW - 0.35, h: 0.25,
-      fontSize: 9, color: GRAY,
-    })
-    slide.addText(p.description, {
-      x: x + 0.1, y: y + 0.7, w: colW - 0.35, h: 0.8,
-      fontSize: 9, color: DARK, align: 'left', valign: 'top',
-    })
-  })
-}
-
-function addRoadmapSlide(prs: PptxGenJS, plan: GeneratedPlan) {
-  if (!plan.roadmap?.length) return
-  const slide = prs.addSlide()
-  slide.background = { color: WHITE }
-
-  slide.addText('ロードマップ', {
-    x: 0.5, y: 0.3, w: 9, h: 0.6,
-    fontSize: 20, bold: true, color: BLUE,
-  })
-  slide.addShape(prs.ShapeType.line, { x: 0.5, y: 0.95, w: 9, h: 0, line: { color: BLUE, width: 2 } })
-
-  const phases = plan.roadmap.slice(0, 4)
-  const colW = 9 / phases.length
-
-  phases.forEach((phase, i) => {
-    const x = 0.5 + i * colW
-    const isFirst = i === 0
-
-    // フェーズヘッダー
-    slide.addShape(prs.ShapeType.rect, {
-      x, y: 1.05, w: colW - 0.1, h: 0.5,
-      fill: { color: isFirst ? BLUE : '4B5563' },
-    })
-    slide.addText(`${phase.phase}\n${phase.period}`, {
-      x: x + 0.05, y: 1.05, w: colW - 0.2, h: 0.5,
+    sl.addText(cat, {
+      x: MG, y: rowY, w: LABEL_W, h: CAT_H - 0.05,
       fontSize: 9, bold: true, color: WHITE, align: 'center', valign: 'middle',
     })
 
-    // テーマ
-    slide.addText(phase.theme, {
-      x: x + 0.05, y: 1.62, w: colW - 0.2, h: 0.3,
-      fontSize: 9, bold: true, color: DARK,
+    // フェーズごとの活動セル
+    phases.forEach((phase, pi) => {
+      const cx     = MG + LABEL_W + pi * PHASE_W
+      const color  = PHASE_COLORS[pi % PHASE_COLORS.length]
+      const items  = phase.categoryActivities?.[cat] ?? []
+
+      sl.addShape(prs.ShapeType.rect, {
+        x: cx, y: rowY, w: PHASE_W - 0.06, h: CAT_H - 0.05,
+        fill: { color: isEven ? color.light : WHITE },
+        line: { color: 'E5E7EB', width: 0.5 },
+      })
+      sl.addText(items.slice(0, 2).map(a => `• ${a}`).join('\n'), {
+        x: cx + 0.08, y: rowY + 0.06, w: PHASE_W - 0.2, h: CAT_H - 0.15,
+        fontSize: 8, color: DARK, align: 'left', valign: 'top',
+      })
     })
-
-    // 既存深化
-    if (phase.currentUsageExpansion) {
-      slide.addShape(prs.ShapeType.rect, { x: x + 0.05, y: 1.98, w: colW - 0.2, h: 0.25, fill: { color: LIGHT_BLUE } })
-      slide.addText('既存の深化', { x: x + 0.08, y: 1.98, w: colW - 0.26, h: 0.25, fontSize: 7.5, bold: true, color: BLUE })
-      slide.addText(phase.currentUsageExpansion, {
-        x: x + 0.05, y: 2.25, w: colW - 0.2, h: 0.7,
-        fontSize: 8, color: DARK, valign: 'top',
-      })
-    }
-
-    // 新規用途
-    if (phase.newUseCase) {
-      slide.addShape(prs.ShapeType.rect, { x: x + 0.05, y: 3.0, w: colW - 0.2, h: 0.25, fill: { color: LIGHT_GREEN } })
-      slide.addText('新規用途', { x: x + 0.08, y: 3.0, w: colW - 0.26, h: 0.25, fontSize: 7.5, bold: true, color: GREEN })
-      slide.addText(phase.newUseCase, {
-        x: x + 0.05, y: 3.27, w: colW - 0.2, h: 0.7,
-        fontSize: 8, color: DARK, valign: 'top',
-      })
-    }
-
-    // マイルストーン
-    slide.addShape(prs.ShapeType.rect, { x: x + 0.05, y: 4.05, w: colW - 0.2, h: 0.5, fill: { color: 'F9FAFB' }, line: { color: '#E5E7EB', width: 1 } })
-    slide.addText(phase.milestone, {
-      x: x + 0.1, y: 4.05, w: colW - 0.3, h: 0.5,
-      fontSize: 8, color: GRAY, valign: 'middle',
-    })
-
-    // 矢印
-    if (i < phases.length - 1) {
-      slide.addText('→', {
-        x: x + colW - 0.2, y: 2.5, w: 0.25, h: 0.3,
-        fontSize: 14, color: GRAY, align: 'center', bold: true,
-      })
-    }
   })
 }
+
+// ==================== Slide 4/5: 各月スケジュール（前半・後半） ====================
+
+function addMonthlySlide(
+  prs: PptxGenJS,
+  plan: GeneratedPlan,
+  answers: TmbWizardAnswers,
+  monthNums: number[],
+  title: string,
+) {
+  const sl = prs.addSlide()
+  sl.background = { color: WHITE }
+
+  addHeader(sl, prs, title)
+
+  const phases = plan.phases ?? []
+
+  const COL_MONTH  = 0.82
+  const COL_PHASE  = 1.55
+  const COL_TITLE  = 3.3
+  const COL_ACTION = CW - COL_MONTH - COL_PHASE - COL_TITLE   // ≈ 7.06"
+
+  const HDR_ROW_H  = 0.35
+  const DATA_ROW_H = (SH - HDR_H - HDR_ROW_H - 0.12) / monthNums.length
+
+  const tableY = HDR_H + 0.08
+  const tableX = MG
+
+  // テーブルヘッダー行
+  sl.addShape(prs.ShapeType.rect, {
+    x: tableX, y: tableY, w: CW, h: HDR_ROW_H,
+    fill: { color: DARK }, line: { color: DARK, width: 0 },
+  })
+  let hx = tableX
+  for (const { text, w } of [
+    { text: '月', w: COL_MONTH },
+    { text: 'フェーズ', w: COL_PHASE },
+    { text: 'テーマ', w: COL_TITLE },
+    { text: '主要アクション', w: COL_ACTION },
+  ]) {
+    sl.addText(text, {
+      x: hx + 0.08, y: tableY, w: w, h: HDR_ROW_H,
+      fontSize: 8.5, bold: true, color: WHITE, valign: 'middle',
+    })
+    hx += w
+  }
+
+  // データ行
+  const allSchedule = plan.schedule ?? []
+  monthNums.forEach((monthNum, ri) => {
+    const m = allSchedule.find(s => s.month === monthNum)
+    if (!m) return
+
+    const isAfter13 = m.month >= 13
+    const pi        = isAfter13 ? phases.length - 1 : getPhaseIdx(m.month, phases)
+    const phase     = phases[pi]
+    const color     = isAfter13
+      ? { bg: GRAY13, light: GRAY13_LIGHT, text: DARK }
+      : PHASE_COLORS[pi % PHASE_COLORS.length]
+    const rowY      = tableY + HDR_ROW_H + ri * DATA_ROW_H
+    const rowBg     = isAfter13 ? GRAY13_LIGHT : (ri % 2 === 0 ? WHITE : BLUE_LIGHT)
+
+    sl.addShape(prs.ShapeType.rect, {
+      x: tableX, y: rowY, w: CW, h: DATA_ROW_H,
+      fill: { color: rowBg }, line: { color: 'E5E7EB', width: 0.5 },
+    })
+
+    let cx = tableX
+
+    // 月 (円 + カレンダーラベル)
+    const circleSize = Math.min(DATA_ROW_H * 0.65, 0.52)
+    const circleX    = cx + (COL_MONTH - circleSize) / 2
+    const circleY    = rowY + (DATA_ROW_H - circleSize) / 2 - 0.08
+    sl.addShape(prs.ShapeType.ellipse, {
+      x: circleX, y: circleY, w: circleSize, h: circleSize,
+      fill: { color: color.bg }, line: { color: color.bg, width: 0 },
+    })
+    sl.addText(isAfter13 ? '…' : String(m.month), {
+      x: circleX, y: circleY, w: circleSize, h: circleSize,
+      fontSize: 9, bold: true, color: WHITE, align: 'center', valign: 'middle',
+    })
+    if (answers.projectStartDate) {
+      const calStr = isAfter13
+        ? monthToCalLabel(answers.projectStartDate, 12) + '〜'
+        : monthToCalLabel(answers.projectStartDate, m.month - 1)
+      sl.addText(calStr, {
+        x: cx + 0.02, y: circleY + circleSize + 0.02, w: COL_MONTH - 0.04, h: 0.18,
+        fontSize: 6.5, color: color.bg, align: 'center', bold: true,
+      })
+    }
+    cx += COL_MONTH
+
+    // フェーズタグ
+    const tagH = 0.26, tagW = COL_PHASE - 0.18
+    sl.addShape(prs.ShapeType.rect, {
+      x: cx + 0.09, y: rowY + (DATA_ROW_H - tagH) / 2, w: tagW, h: tagH,
+      fill: { color: isAfter13 ? 'E5E7EB' : color.light },
+      line: { color: 'E5E7EB', width: 0 },
+    })
+    sl.addText(isAfter13 ? '13ヶ月目以降' : (phase?.name ?? `P${pi + 1}`), {
+      x: cx + 0.09, y: rowY + (DATA_ROW_H - tagH) / 2, w: tagW, h: tagH,
+      fontSize: 7.5, color: isAfter13 ? GRAY : color.text, align: 'center', valign: 'middle', bold: true,
+    })
+    cx += COL_PHASE
+
+    // テーマ
+    sl.addText(m.title, {
+      x: cx + 0.08, y: rowY + 0.04, w: COL_TITLE - 0.14, h: DATA_ROW_H - 0.08,
+      fontSize: 9, bold: !isAfter13, color: isAfter13 ? GRAY : DARK, valign: 'middle',
+    })
+    cx += COL_TITLE
+
+    // アクション（2件）
+    const actText = m.actions.slice(0, 2).map(a => `• ${a}`).join('\n')
+    sl.addText(actText, {
+      x: cx + 0.08, y: rowY + 0.04, w: COL_ACTION - 0.14, h: DATA_ROW_H - 0.08,
+      fontSize: 7.5, color: DARK, valign: 'top', align: 'left',
+    })
+  })
+}
+
+// ==================== Slide 6: デバイス配置イメージ ====================
+
+function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
+  const sl = prs.addSlide()
+  sl.background = { color: WHITE }
+
+  addHeader(sl, prs, 'デバイス配置イメージ', `運用スタイル: ${devicePlan.operationStyleLabel}`)
+
+  const Y0 = HDR_H + 0.18
+
+  // --- 台数サマリー (3ボックス) ---
+  const BOX_W   = 3.5
+  const BOX_H   = 1.05
+  const boxGap  = (CW - BOX_W * 3) / 2
+  const boxes = [
+    { label: '理想台数',   value: `${devicePlan.idealDeviceCount}`,   bg: BLUE_LIGHT,  text: BLUE  },
+    { label: '現在の台数', value: `${devicePlan.currentDeviceCount}`, bg: GRAY_LIGHT,  text: GRAY  },
+    { label: '不足台数',   value: `${devicePlan.shortfallCount}`,     bg: GREEN_LIGHT, text: GREEN },
+  ]
+  boxes.forEach((box, i) => {
+    const bx = MG + i * (BOX_W + boxGap)
+    sl.addShape(prs.ShapeType.rect, {
+      x: bx, y: Y0, w: BOX_W, h: BOX_H,
+      fill: { color: box.bg }, line: { color: 'E5E7EB', width: 0.5 },
+    })
+    sl.addText(box.label, { x: bx, y: Y0 + 0.1, w: BOX_W, h: 0.26, fontSize: 9, color: box.text, align: 'center' })
+    sl.addText(box.value, { x: bx, y: Y0 + 0.32, w: BOX_W * 0.85, h: 0.52, fontSize: 30, bold: true, color: box.text, align: 'right' })
+    sl.addText('台', { x: bx + BOX_W * 0.85, y: Y0 + 0.58, w: BOX_W * 0.12, h: 0.26, fontSize: 11, color: box.text })
+  })
+
+  // --- 推奨製品 ---
+  const PROD_Y = Y0 + BOX_H + 0.25
+  secBar(sl, prs, MG, PROD_Y, CW, '推奨製品', BLUE)
+
+  const products = devicePlan.recommendedProducts.slice(0, 3)
+  products.forEach((p, i) => {
+    const py = PROD_Y + 0.33 + i * 0.62
+    sl.addShape(prs.ShapeType.rect, {
+      x: MG, y: py, w: CW, h: 0.58,
+      fill: { color: i === 0 ? BLUE_LIGHT : WHITE },
+      line: { color: 'E5E7EB', width: 0.5 },
+    })
+    sl.addText(p.productName, { x: MG + 0.12, y: py + 0.05, w: 5.5, h: 0.26, fontSize: 10, bold: true, color: DARK })
+    sl.addText(p.reason,      { x: MG + 0.12, y: py + 0.31, w: 8.0, h: 0.2,  fontSize: 8,  color: GRAY })
+    sl.addText(`¥${p.monthlyUnitPrice.toLocaleString()}/月・台`, {
+      x: MG + 8.5, y: py + 0.05, w: CW - 8.6, h: 0.5,
+      fontSize: 12, bold: true, color: BLUE, align: 'right', valign: 'middle',
+    })
+  })
+
+  // --- アクセサリーヒント（あれば最大1件） ---
+  if (devicePlan.accessoryHints?.length) {
+    const AHY = PROD_Y + 0.33 + products.length * 0.62 + 0.15
+    secBar(sl, prs, MG, AHY, CW, '特別環境向けアクセサリー推奨', AMBER)
+    devicePlan.accessoryHints.slice(0, 1).forEach((hint, i) => {
+      sl.addText(`【${hint.condition}】 ${hint.items.join('  /  ')}`, {
+        x: MG + 0.12, y: AHY + 0.33 + i * 0.28, w: CW - 0.2, h: 0.26, fontSize: 8.5, color: DARK,
+      })
+    })
+  }
+
+  // --- 注記 ---
+  sl.addText('※ デバイスレンタルサービス料金（Studist提供）の概算です。実際の見積は別途ご案内します。', {
+    x: MG, y: SH - 0.3, w: CW, h: 0.25,
+    fontSize: 7.5, color: GRAY, italic: true,
+  })
+}
+
+// ==================== エントリポイント ====================
 
 export async function generatePptBuffer(
   answers: TmbWizardAnswers,
   plan: GeneratedPlan,
-  cases: CaseStudy[],
-  devicePlan: DevicePlan
+  _cases: unknown[],
+  devicePlan: DevicePlan,
 ): Promise<Buffer> {
   const prs = new PptxGenJS()
-  prs.layout = 'LAYOUT_WIDE' // 16:9
-  prs.title = `${answers.companyName || '顧客'} 運用プランご提案`
+  prs.layout = 'LAYOUT_WIDE'
+  prs.title  = `${answers.companyName || '顧客'} 運用プランご提案`
 
-  addTitleSlide(prs, answers)
-  addChallengeSummarySlide(prs, answers)
-  addOperationPlanSlide(prs, plan)
-  addScheduleSlide(prs, plan)
+  const allMonths   = (plan.schedule ?? []).map(s => s.month)
+  const firstHalf   = allMonths.filter(m => m >= 1 && m <= 6)
+  const secondHalf  = allMonths.filter(m => m >= 7)
 
-  // v2: 用途提案・ロードマップ（あれば）
-  if (plan.useCaseProposals?.length) addUseCaseProposalsSlide(prs, plan)
-  if (plan.roadmap?.length) addRoadmapSlide(prs, plan)
-
-  // 事例スライド（最大2件）
-  cases.slice(0, 2).forEach((_, i) => addCaseStudySlide(prs, cases, i))
-
+  addPremiseSlide(prs, answers)
+  addSummarySlide(prs, plan)
+  addPhaseScheduleSlide(prs, plan, answers)
+  addMonthlySlide(prs, plan, answers, firstHalf,  '各月スケジュール（前半：1〜6ヶ月目）')
+  addMonthlySlide(prs, plan, answers, secondHalf, '各月スケジュール（後半：7〜12ヶ月目＋中長期）')
   addDeviceSlide(prs, devicePlan)
-  addInvestmentSummarySlide(prs, devicePlan)
 
   const buffer = await prs.write({ outputType: 'nodebuffer' }) as Buffer
   return buffer
