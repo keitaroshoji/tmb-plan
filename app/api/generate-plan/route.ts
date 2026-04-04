@@ -19,8 +19,8 @@ const SYSTEM_PLAN = 'あなたはTeachme Bizの運用支援専門家です。JSO
 
 // ==================== スキーマ（分割） ====================
 
-const SCHEMA_PHASES = `JSONのみ（4フェーズ必須。categoryActivitiesは全カテゴリ・全フェーズに必ず1〜3件記入）:
-{"theme":"テーマ1行","summary":"サマリー300字","phases":[{"name":"名","period":"1〜3ヶ月目","goal":"ゴール1文","kpi":"KPI","actions":[{"title":"名","description":"1文","owner":"担当"}],"categoryActivities":{"初期設定":["15字以内"],"マニュアル作成":["15字以内"],"マニュアル活用":["15字以内"],"効果測定":["15字以内"],"その他":["15字以内"]}}]}`
+const SCHEMA_PHASES = `JSONのみ（4フェーズ必須、3ヶ月×4=12ヶ月。categoryActivitiesは全カテゴリ・全フェーズに必ず1〜3件記入）:
+{"theme":"テーマ1行","summary":"サマリー300字","phases":[{"name":"フェーズ1名","period":"1〜3ヶ月目","goal":"ゴール1文","kpi":"KPI","actions":[{"title":"名","description":"1文","owner":"担当"}],"categoryActivities":{"初期設定":["15字以内"],"マニュアル作成":["15字以内"],"マニュアル活用":["15字以内"],"効果測定":["15字以内"],"その他":["15字以内"]}},{"name":"フェーズ2名","period":"4〜6ヶ月目",...},{"name":"フェーズ3名","period":"7〜9ヶ月目",...},{"name":"フェーズ4名","period":"10〜12ヶ月目",...}]}`
 
 const SCHEMA_SCHEDULE = `JSONのみ（month=1〜12の12ヶ月分＋month=13として13ヶ月目以降の中長期取り組みを1件追加、計13件）:
 {"schedule":[{"month":1,"title":"月テーマ","actions":["アクション1（40〜60字の丁寧な文章）","アクション2（40〜60字の丁寧な文章）"],"isReviewPoint":false},{"month":13,"title":"13ヶ月目以降の取り組みテーマ","actions":["中長期アクション1（40〜60字）","中長期アクション2（40〜60字）"],"isReviewPoint":true}]}`
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         model: MODEL,
         max_tokens: 8192,
         system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n4フェーズ生成。重要：1ヶ月目からマニュアル作成を開始し、2ヶ月目には現場での活用を始めること。全体として前倒しで、早期にマニュアル運用を軌道に乗せるスケジュールにすること。categoryActivitiesは全5カテゴリ×全4フェーズすべてに1〜3件記入すること。各活動は必ず15字以内のキーワード的な短文にすること（例：「初期テンプレ作成」「閲覧数を週次確認」「新人研修で試用」）。15字を超える活動は絶対に書かないこと。\n${SCHEMA_PHASES}` }] }],
+        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n4フェーズ生成。フェーズ分割は必ず「3ヶ月×4フェーズ」（1〜3ヶ月目/4〜6ヶ月目/7〜9ヶ月目/10〜12ヶ月目）で固定すること。重要：1ヶ月目からマニュアル作成を開始し、2ヶ月目には現場での活用を始めること。全体として前倒しで、早期にマニュアル運用を軌道に乗せるスケジュールにすること。categoryActivitiesは全5カテゴリ×全4フェーズすべてに1〜3件記入すること。各活動は必ず15字以内のキーワード的な短文にすること（例：「初期テンプレ作成」「閲覧数を週次確認」「新人研修で試用」）。15字を超える活動は絶対に書かないこと。\n${SCHEMA_PHASES}` }] }],
       }).then((r) => {
         try {
           const text = r.content[0].type === 'text' ? r.content[0].text : ''
