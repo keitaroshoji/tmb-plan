@@ -114,20 +114,20 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
       <div className="max-w-2xl w-full">
         {/* ヘッダー */}
         <div className="text-center mb-8">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 mb-4 shadow-lg">
-            <span className="text-white text-3xl font-bold">T</span>
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 mb-4">
+            <span className="text-white text-xl font-bold">T</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Teachme Biz</h1>
+          <h1 className="text-xl font-bold text-gray-900">Teachme Biz</h1>
           <p className="text-sm text-gray-500 mt-1">運用プランニング支援ツール</p>
         </div>
 
         {mode === 'select' && (
           <div className="space-y-4">
-            <div className="bg-white rounded-2xl shadow-xl p-6">
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-1">入力方法を選択</h2>
               <p className="text-sm text-gray-500 mb-5">3つの方法から顧客情報を入力できます</p>
 
@@ -178,7 +178,7 @@ export default function Home() {
         )}
 
         {mode === 'manual' && (
-          <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <button onClick={() => setMode('select')} className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1">
               ← 戻る
             </button>
@@ -214,7 +214,7 @@ export default function Home() {
         )}
 
         {mode === 'company' && (
-          <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <button onClick={() => setMode('select')} className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1">
               ← 戻る
             </button>
@@ -248,7 +248,7 @@ export default function Home() {
         )}
 
         {mode === 'memo' && (
-          <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
             <button onClick={() => setMode('select')} className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1">
               ← 戻る
             </button>

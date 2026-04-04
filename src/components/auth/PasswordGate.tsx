@@ -47,17 +47,17 @@ export function PasswordGate({ children }: { children: React.ReactNode }) {
 
   // パスワード入力画面
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="max-w-sm w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 mb-4 shadow-lg">
-            <span className="text-white text-3xl font-bold">T</span>
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 mb-4">
+            <span className="text-white text-xl font-bold">T</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Teachme Biz</h1>
+          <h1 className="text-xl font-bold text-gray-900">Teachme Biz</h1>
           <p className="text-sm text-gray-500 mt-1">運用プランニング支援ツール</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-8">
           <h2 className="text-base font-semibold text-gray-800 mb-1">アクセスコードを入力</h2>
           <p className="text-sm text-gray-500 mb-5">このツールはCS担当者専用です</p>
 

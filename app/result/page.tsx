@@ -35,10 +35,10 @@ function normalizeBarrierActions(raw: unknown[]): BarrierAction[] {
 // ==================== フェーズカラー ====================
 
 const PHASE_COLORS = [
-  { bg: '#1E40AF', light: '#DBEAFE', text: '#1E3A8A' },
-  { bg: '#065F46', light: '#D1FAE5', text: '#064E3B' },
-  { bg: '#92400E', light: '#FEF3C7', text: '#78350F' },
-  { bg: '#4C1D95', light: '#EDE9FE', text: '#3B0764' },
+  { bg: '#2563EB', light: '#EFF6FF', text: '#1D4ED8' },
+  { bg: '#059669', light: '#F0FDF4', text: '#047857' },
+  { bg: '#7C3AED', light: '#F5F3FF', text: '#6D28D9' },
+  { bg: '#D97706', light: '#FFFBEB', text: '#B45309' },
 ]
 
 // ==================== カレンダー日付計算 ====================
@@ -619,7 +619,7 @@ export default function ResultPage() {
             )}
             <Button variant="outline" size="sm" onClick={() => { resetWizard(); router.push('/') }}>最初から</Button>
             <Button size="sm" onClick={handleDownloadPpt} disabled={!generatedPlan || downloading} loading={downloading}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-bold shadow-md">
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">
               📊 PPTをダウンロード
             </Button>
           </div>
@@ -629,24 +629,23 @@ export default function ResultPage() {
       <main className="mx-auto max-w-[1760px] px-8 py-10 space-y-12">
 
         {/* ==================== 1. タイトル ==================== */}
-        <section className="rounded-2xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-10 py-10">
+        <section className="rounded-xl bg-white border border-gray-200 shadow-sm px-8 py-7">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-blue-200 text-sm font-medium mb-3 tracking-wide">Teachme Biz 12ヶ月 運用プランご提案</p>
-              <h1 className="text-5xl font-bold text-white leading-tight">
+              <p className="text-blue-600 text-xs font-semibold mb-2 tracking-widest uppercase">Teachme Biz 運用プランご提案</p>
+              <h1 className="text-3xl font-bold text-gray-900 leading-tight">
                 {answers.companyName} 様
               </h1>
-              <h2 className="text-3xl font-semibold text-blue-100 mt-2">運用プラン</h2>
+              <p className="text-base font-medium text-gray-500 mt-1">12ヶ月 運用プラン</p>
               {plan?.theme && (
-                <div className="mt-5 inline-block bg-white/15 rounded-xl px-5 py-3">
-                  <p className="text-white text-lg font-medium leading-relaxed">{plan.theme}</p>
+                <div className="mt-4 inline-block bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
+                  <p className="text-blue-800 text-sm font-medium leading-relaxed">{plan.theme}</p>
                 </div>
               )}
             </div>
-            <div className="text-right text-blue-200 text-sm space-y-1.5 shrink-0 ml-10 mt-2">
-              <p className="text-base font-medium text-white">12ヶ月プラン</p>
-              <p>{answers.locationCount}拠点 / 計{answers.locationCount * answers.staffPerLocation}名</p>
-              <p>作成日: {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <div className="text-right text-gray-400 text-sm space-y-1 shrink-0 ml-10 mt-1">
+              <p className="text-sm font-semibold text-gray-600">{answers.locationCount}拠点 / 計{answers.locationCount * answers.staffPerLocation}名</p>
+              <p className="text-xs">作成日: {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
           </div>
         </section>
@@ -665,12 +664,12 @@ export default function ResultPage() {
               <div className="grid grid-cols-2 gap-5">
                 {/* プロジェクト概要 */}
                 <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="flex items-center gap-2 bg-blue-700 px-5 py-3">
-                    <span className="text-blue-200 text-base">🎯</span>
-                    <h3 className="text-white font-bold text-sm">プロジェクト概要</h3>
+                  <div className="flex items-center gap-2 bg-gray-50 border-b border-gray-200 px-5 py-3">
+                    <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                    <h3 className="text-gray-700 font-bold text-sm">プロジェクト概要</h3>
                   </div>
                   <div className="px-6 py-5">
-                    <p className="text-gray-800 text-sm leading-[1.9]">
+                    <p className="text-gray-700 text-sm leading-[1.9]">
                       {plan.projectOverview ?? plan.summary}
                     </p>
                   </div>
@@ -678,12 +677,12 @@ export default function ResultPage() {
                 {/* 推進上のポイント：未着信の間はスケルトン表示 */}
                 {plan.promotionPoints ? (
                   <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
-                    <div className="flex items-center gap-2 bg-amber-600 px-5 py-3">
-                      <span className="text-amber-100 text-base">💡</span>
-                      <h3 className="text-white font-bold text-sm">推進上のポイント</h3>
+                    <div className="flex items-center gap-2 bg-gray-50 border-b border-gray-200 px-5 py-3">
+                      <div className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+                      <h3 className="text-gray-700 font-bold text-sm">推進上のポイント</h3>
                     </div>
                     <div className="px-6 py-5">
-                      <p className="text-gray-800 text-sm leading-[1.9]">{plan.promotionPoints}</p>
+                      <p className="text-gray-700 text-sm leading-[1.9]">{plan.promotionPoints}</p>
                     </div>
                   </div>
                 ) : isGenerating ? (
@@ -702,9 +701,9 @@ export default function ResultPage() {
             <div className="grid grid-cols-2 gap-5">
               {(plan!.usageScenarios as UsageScenario[]).map((s, i) => (
                 <div key={i} className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-blue-700 px-5 py-3 flex items-center gap-2">
-                    <span className="text-blue-200 text-sm">📄</span>
-                    <p className="text-white font-bold text-sm leading-snug">{s.manualTitle}</p>
+                  <div className="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center gap-2">
+                    <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                    <p className="text-gray-700 font-bold text-sm leading-snug">{s.manualTitle}</p>
                   </div>
                   <div className="p-5 space-y-2.5">
                     <div className="flex items-start gap-2.5">
@@ -823,7 +822,7 @@ export default function ResultPage() {
           <SectionHeading icon="📅" title="各月スケジュール" sub="12ヶ月の取り組みテーマ・ゴール一覧＋13ヶ月目以降の展望" />
           {(plan?.schedule?.length ?? 0) > 0 ? (
             <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
-              <div className="grid bg-gray-800 text-white text-xs font-semibold uppercase tracking-wide"
+              <div className="grid bg-gray-700 text-white text-xs font-semibold uppercase tracking-wide"
                 style={{ gridTemplateColumns: '80px 180px 1fr 2fr 88px' }}>
                 {['月', 'フェーズ', 'テーマ', '主要アクション', '効果測定'].map((h, i) => (
                   <div key={h} className={`px-4 py-3 ${i < 4 ? 'border-r border-gray-700' : ''}`}>{h}</div>
@@ -915,8 +914,8 @@ export default function ResultPage() {
             <div className="grid grid-cols-3 gap-6">
               {cases.map((cs, i) => (
                 <div key={i} className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm flex flex-col">
-                  <div className="bg-gray-800 px-5 py-4">
-                    <p className="text-white font-bold text-base">{cs.companyName}</p>
+                  <div className="bg-gray-50 border-b border-gray-200 px-5 py-4">
+                    <p className="text-gray-800 font-bold text-base">{cs.companyName}</p>
                     <p className="text-gray-400 text-xs mt-0.5">{cs.companySize}</p>
                   </div>
                   <div className="p-5 space-y-3.5 flex-1">
@@ -993,11 +992,11 @@ export default function ResultPage() {
         )}
 
         {/* ==================== PPTダウンロードCTA ==================== */}
-        <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-10 text-center">
-          <p className="text-white font-bold text-2xl mb-2">提案資料（PowerPoint）をダウンロード</p>
-          <p className="text-blue-100 text-sm mb-6">上記の内容がすべて含まれたPowerPointファイルを生成します</p>
+        <div className="rounded-xl bg-white border border-gray-200 shadow-sm p-8 text-center">
+          <p className="text-gray-900 font-bold text-xl mb-1.5">提案資料（PowerPoint）をダウンロード</p>
+          <p className="text-gray-500 text-sm mb-6">上記の内容がすべて含まれたPowerPointファイルを生成します</p>
           <Button size="lg" onClick={handleDownloadPpt} disabled={!plan || downloading} loading={downloading}
-            className="bg-orange-500 hover:bg-orange-400 text-white font-bold px-10 shadow-lg text-base">
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-10 shadow-sm text-base">
             📊 PPTをダウンロード
           </Button>
         </div>
