@@ -575,8 +575,6 @@ export default function ResultPage() {
             if (event.type === 'phases') {
               acc.theme = event.theme as string
               acc.summary = event.summary as string
-              acc.projectOverview = event.projectOverview as string | undefined
-              acc.promotionPoints = event.promotionPoints as string | undefined
               acc.phases = event.phases as GeneratedPlan['phases']
               setPartialPlan({ ...acc })
               setSectionReady(prev => ({ ...prev, phases: true }))
@@ -589,6 +587,10 @@ export default function ResultPage() {
               acc.kpiTargets = event.kpiTargets as GeneratedPlan['kpiTargets']
               setPartialPlan({ ...acc })
               setSectionReady(prev => ({ ...prev, barrier: true }))
+            } else if (event.type === 'summary_detail') {
+              acc.projectOverview = event.projectOverview as string | undefined
+              acc.promotionPoints = event.promotionPoints as string | undefined
+              setPartialPlan({ ...acc })
             } else if (event.type === 'usage') {
               acc.usageScenarios = event.usageScenarios as GeneratedPlan['usageScenarios']
               setPartialPlan({ ...acc })
