@@ -95,7 +95,7 @@ function monthToCalLabel(startYYYYMM: string, offset: number): string {
   const [y, m] = startYYYYMM.split('-').map(Number)
   if (m < 1 || m > 12) return ''
   const total = y * 12 + m - 1 + offset
-  return `${Math.floor(total / 12)}/${(total % 12) + 1}`
+  return `${Math.floor(total / 12)}年${(total % 12) + 1}月`
 }
 
 function getPhaseIdx(month: number, phases: Phase[]): number {
@@ -502,12 +502,17 @@ function addMonthlySlide(
       x: circleX, y: circleY, w: circleSize, h: circleSize,
       fontFace: FONT, fontSize: 7.5, bold: true, color: WHITE, align: 'center', valign: 'middle',
     })
+    // Xヶ月目ラベル
+    sl.addText(isAfter13 ? '13ヶ月〜' : `${m.month}ヶ月目`, {
+      x: cx + 0.02, y: circleY + circleSize + 0.01, w: COL_MONTH - 0.04, h: 0.12,
+      fontFace: FONT, fontSize: 5, color: GRAY, align: 'center',
+    })
     if (answers.projectStartDate) {
       const calStr = isAfter13
         ? monthToCalLabel(answers.projectStartDate, 12) + '〜'
         : monthToCalLabel(answers.projectStartDate, m.month - 1)
       sl.addText(calStr, {
-        x: cx + 0.02, y: circleY + circleSize + 0.02, w: COL_MONTH - 0.04, h: 0.14,
+        x: cx + 0.02, y: circleY + circleSize + 0.13, w: COL_MONTH - 0.04, h: 0.14,
         fontFace: FONT, fontSize: 5.5, color: color.bg, align: 'center', bold: true,
       })
     }

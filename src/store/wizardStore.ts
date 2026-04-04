@@ -51,6 +51,9 @@ interface WizardState {
   setExtractedProfile: (profile: ExtractedProfile | null) => void
   setRoadmapStartPoint: (point: RoadmapStartPoint) => void
 
+  // Plan management
+  clearPlan: () => void
+
   // Reset
   resetWizard: () => void
   startEdit: (step: number) => void
@@ -88,6 +91,8 @@ export const useWizardStore = create<WizardState>()(
 
       setExtractedProfile: (profile) => set({ extractedProfile: profile }),
       setRoadmapStartPoint: (point) => set({ roadmapStartPoint: point }),
+
+      clearPlan: () => set({ generatedPlan: null }),
 
       resetWizard: () =>
         set({

@@ -455,7 +455,7 @@ function getPhaseIndex(month: number, phases: Phase[]): number {
 
 export default function ResultPage() {
   const router = useRouter()
-  const { answers, isComplete, resetWizard, generatedPlan, setPlan, isGenerating, setGenerating } = useWizardStore()
+  const { answers, isComplete, resetWizard, generatedPlan, setPlan, clearPlan, isGenerating, setGenerating } = useWizardStore()
   const [cases, setCases] = useState<CaseStudy[]>([])
   const [caseHints, setCaseHints] = useState<CaseHint[]>([])
   const [insightHints, setInsightHints] = useState<{ label: string; url?: string }[]>([])
@@ -618,6 +618,11 @@ export default function ResultPage() {
               </div>
             )}
             <Button variant="outline" size="sm" onClick={() => { resetWizard(); router.push('/') }}>最初から</Button>
+            <Button variant="outline" size="sm"
+              onClick={() => { clearPlan(); setPartialPlan({}); generatePlan() }}
+              disabled={isGenerating}>
+              🔄 再生成
+            </Button>
             <Button size="sm" onClick={handleDownloadPpt} disabled={!generatedPlan || downloading} loading={downloading}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">
               📊 PPTをダウンロード
@@ -693,6 +698,31 @@ export default function ResultPage() {
             : isGenerating && <SectionSkeleton rows={4} />
           }
         </section>
+
+        {/* ==================== 2.5. KPI目標 ==================== */}
+        {(plan?.kpiTargets?.length ?? 0) > 0 ? (
+          <section>
+            <SectionHeading icon="🎯" title="KPI目標" sub="12ヶ月プランで達成を目指す数値目標" />
+            <div className="grid grid-cols-3 gap-5">
+              {(plan!.kpiTargets as { kpi: string; target: string; timing: string }[]).map((k, i) => (
+                <div key={i} className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="bg-blue-600 px-5 py-3">
+                    <p className="text-white font-bold text-sm leading-snug">{k.kpi}</p>
+                  </div>
+                  <div className="px-5 py-4">
+                    <p className="text-2xl font-bold text-blue-600 mb-1.5 leading-tight">{k.target}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">{k.timing}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : isGenerating && (
+          <section>
+            <SectionHeading icon="🎯" title="KPI目標" sub="12ヶ月プランで達成を目指す数値目標" />
+            <SectionSkeleton rows={2} />
+          </section>
+        )}
 
         {/* ==================== 3. マニュアル活用イメージ ==================== */}
         <section>
