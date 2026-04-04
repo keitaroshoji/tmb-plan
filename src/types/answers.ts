@@ -129,6 +129,7 @@ export interface TmbWizardAnswers {
   locationCount: number
   isFranchise: boolean | null
   departmentNote: string  // 大企業の場合の部門・事業部メモ
+  projectStartDate: string  // プロジェクト開始年月 "YYYY-MM"
 
   // Step 2: 経営課題
   challenges: Challenge[]
@@ -176,6 +177,7 @@ export const INITIAL_ANSWERS: TmbWizardAnswers = {
   locationCount: 1,
   isFranchise: null,
   departmentNote: '',
+  projectStartDate: '',
   challenges: [],
   primaryGoals: [],
   priorityKpi: null,

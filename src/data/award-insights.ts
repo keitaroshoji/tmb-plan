@@ -1,8 +1,11 @@
 // ==================== Teachme Biz Award 受賞企業の運用知見 ====================
-// 出典: Teachme Biz Award 2024 / 2023 受賞企業インタビュー資料
+// 出典: Teachme Biz Award 2024 / 2025 受賞企業インタビュー資料
 
 import { Industry, Challenge, OperationalBarrier } from '@/src/types/answers'
 import { InterviewInsight } from '@/src/data/interview-insights'
+
+const AWARD2024_URL = 'https://drive.google.com/drive/folders/1UQ_gCYXlhZ5XSd_fki_FMcLVwcK5vR1w'
+const AWARD2025_URL = 'https://drive.google.com/drive/folders/1_esIJR6Dtdxij8AOHxrkenJJjBSMPg6n'
 
 export const AWARD_INSIGHTS: InterviewInsight[] = [
   // ==================== Award 2024 ====================
@@ -14,7 +17,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['knowledge_transfer', 'talent_development', 'standardization'],
     barriers: ['maintenance_concern', 'low_adoption_concern'],
     tip: '「マニュアルを基準に業務しているか」を人事評価基準に組み込み、管理職がスタッフへの指導でもマニュアルを提示することを基本動作に義務化。評価制度と連動させることで形骸化しない徹底運用を実現し、約2.1万時間削減・黒字化を達成。',
-    source: 'Award2024年最優秀賞',
+    source: AWARD2024_URL,
   },
   {
     id: 'award24-challenged-japan-02',
@@ -23,7 +26,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['knowledge_transfer', 'standardization'],
     barriers: ['no_team_structure', 'maintenance_concern'],
     tip: 'ジョブリスト（業務分掌表）に主担当・副担当とマニュアルURLを一覧化し、質問への回答は必ずマニュアルを介して行うルールを徹底。マニュアルにない質問が来たら更新してから回答する仕組みにすることで、マニュアルが自動的に育っていく体制を構築。',
-    source: 'Award2024年最優秀賞',
+    source: AWARD2024_URL,
   },
   {
     id: 'award24-amatuhi-01',
@@ -32,7 +35,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['talent_development', 'standardization'],
     barriers: ['no_team_structure', 'maintenance_concern'],
     tip: '入社書類と同時にTeachme Bizアカウントを送付し、初日から研修が始まる体制を構築。月2回の「成長戦略会議」で毎月の研修テーマを設定して配信し、入社1・3・6ヶ月の「AMANEKUチャレンジ」テストで習熟確認を行う継続的な運用サイクルを確立。',
-    source: 'Award2024年優秀賞',
+    source: AWARD2024_URL,
   },
   {
     id: 'award24-impam-seal-01',
@@ -41,7 +44,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['standardization', 'knowledge_transfer'],
     barriers: ['no_creation_knowhow', 'maintenance_concern'],
     tip: 'ミスが発生するたびに「発覚経緯/事象/原因/対策」を動画・画像付きでTeachme Bizに即時まとめ、工場モニターにスライドショーで投影。1ヶ月後に抜き打ちインタビューで有効性を検証するサイクルにより、不良品発生金額を月150万円→50〜60万円に削減。',
-    source: 'Award2024年中小企業賞',
+    source: AWARD2024_URL,
   },
   {
     id: 'award24-fourseasons-01',
@@ -50,7 +53,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['talent_development', 'standardization'],
     barriers: ['no_team_structure', 'low_adoption_concern'],
     tip: '入社2ヶ月で4つのトレーニングコースを設定し、テスト合格を現場配属の必須条件に。週1の技能講習でフィードバックを収集→幹部ミーティングでマニュアル更新を継続する改善サイクルにより、新人配属を2ヶ月以内に短縮し現場エラーを半減、生産性10%向上を達成。',
-    source: 'Award2024年ベストルーキー賞',
+    source: AWARD2024_URL,
   },
   {
     id: 'award24-wakoukai-01',
@@ -59,7 +62,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['talent_development', 'multi_store'],
     barriers: ['hard_to_involve', 'low_it_literacy', 'low_adoption_concern'],
     tip: '理事長自らが旗振り役となり「理事長室」が全業務を先行マニュアル化。幹部のコスプレポスターを全86事業所に掲示し話題化。アンケートで「探せない」「不安」などの声を収集して改善を重ね、ログインキャンペーンで1,900名を巻き込み。教育時間160→40時間、年間8.4万時間削減。',
-    source: 'Award2024年社会貢献賞',
+    source: AWARD2024_URL,
   },
   {
     id: 'award24-aeon-vietnam-01',
@@ -68,7 +71,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['standardization', 'multi_store', 'cost_reduction'],
     barriers: ['low_it_literacy', 'low_adoption_concern'],
     tip: '週次更新の陳列指示書をTeachme Bizに置き換え、ワークスケジュールシステムから直接マニュアルにアクセスできる動線を構築。月2回のクイズゲームで成績上位者にインセンティブを提供し定着を促進。陳列指示プロセスを30時間→30分以下に短縮、労働生産性15%向上。',
-    source: 'Award2024年オペレーション改善賞',
+    source: AWARD2024_URL,
   },
   {
     id: 'award24-nissin-01',
@@ -77,7 +80,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['talent_development', 'knowledge_transfer'],
     barriers: ['no_team_structure', 'hard_to_involve'],
     tip: '10名の「Teachme Biz推進チーム」を発足し各課に推進メンバーを配置。月1回「Teachme Biz通信」をメール配信して認知度を維持。OJT期間を1週間→2日程度に短縮し、余剰時間をオペレーション改善活動に再投資するサイクルを構築。',
-    source: 'Award2024年特別賞',
+    source: AWARD2024_URL,
   },
   {
     id: 'award24-ichinoyu-01',
@@ -86,7 +89,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['standardization', 'multi_store'],
     barriers: ['low_adoption_concern', 'maintenance_concern'],
     tip: '出勤前日に翌日シフト（PDF）をTeachme Bizで確認するルーチンを定着させ、自然にマニュアルに触れる動線を設計。導入6年目で「マニュアルはあって当然」という文化が定着し、マニュアルを「作業割当ツール」として活用するなど用途を拡張。清掃の内製化で拘束時間3時間削減。',
-    source: 'Award2024年特別賞',
+    source: AWARD2024_URL,
   },
 
   // ==================== Award 2025 ====================
@@ -98,7 +101,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['talent_development', 'standardization'],
     barriers: ['low_adoption_concern', 'maintenance_concern'],
     tip: 'アルバイトの時給と学習・認定制度を連動させ「成長→評価→報酬→定着」の正の連鎖を構築。「チャーハン検定」など楽しみながら学べる実践的テストを導入し、削減したコスト（育成時間1,855時間/204万円相当）を時給アップの原資に還元。離職率38.5%→25.8%に改善。',
-    source: 'Award2025年最優秀賞',
+    source: AWARD2025_URL,
   },
   {
     id: 'award25-yamanami-02',
@@ -107,7 +110,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['standardization', 'knowledge_transfer'],
     barriers: ['no_team_structure', 'no_creation_knowhow'],
     tip: '「点の教育（マニュアルの内容を教える）」から「線の教育（キャリアパスとつながる）」へ転換。ポジション別・時間帯別にマニュアルを構造化し「上から順に教えれば良い状態」にすることで、育成の順番・ゴールを明確化して育成期間を大幅短縮。',
-    source: 'Award2025年最優秀賞',
+    source: AWARD2025_URL,
   },
   {
     id: 'award25-gfoot-01',
@@ -116,7 +119,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['standardization', 'multi_store'],
     barriers: ['migration_burden', 'maintenance_concern'],
     tip: '全国600店舗への展開で有効だったのは既存グループウェア・業務アプリとTeachme Bizを連携させる「導線設計」。検索ログで「どんなマニュアルが必要か」を分析してコンテンツを改善し、マニュアルのレイアウト・文体を社内ルール化。問い合わせ対応時間30%削減、年間印刷30万枚削減。',
-    source: 'Award2025年優秀賞',
+    source: AWARD2025_URL,
   },
   {
     id: 'award25-sumitomo-rubber-01',
@@ -125,7 +128,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['standardization', 'multi_store', 'knowledge_transfer'],
     barriers: ['hard_to_involve', 'no_creation_knowhow'],
     tip: '大企業の縦割りを突破するには、各工場に直接赴き作業動画撮影→その場でマニュアル化を「実演」するのが最も効果的。Teachme AIで「自分たちでも作れる」という意識変革を現場で起こし、DX・ペーパーレス関連プロジェクトに積極参加して接点を広げた結果、半年で1,000本以上を展開。',
-    source: 'Award2025年優秀賞',
+    source: AWARD2025_URL,
   },
   {
     id: 'award25-toa-dkk-01',
@@ -134,7 +137,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['standardization', 'knowledge_transfer'],
     barriers: ['no_creation_knowhow', 'no_time_for_creation'],
     tip: '「完成度70%でOK、運用しながら最適化」という方針で作成ハードルを下げ、導入5ヶ月でマニュアル250本・閲覧5,500回を達成。目的別に機能を使い分けることも重要（再現性重視→トレーニング機能、改善重視→コメント機能、スピード優先→AI）。作成・改訂工数50%削減。',
-    source: 'Award2025年ベストルーキー賞',
+    source: AWARD2025_URL,
   },
   {
     id: 'award25-florence-01',
@@ -143,7 +146,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['foreign_staff', 'standardization', 'talent_development'],
     barriers: ['no_team_structure'],
     tip: '障がいのあるスタッフへの業務付与には「業務ヒアリング→マニュアル作成→活用→改良」の4ステップが有効。マニュアル作成に当事者（実務者）が参画することで習熟度と自信が高まる。年間6,000時間のノンコア業務を障がい者雇用チームが担い、事業部門がコア業務に集中できる体制を実現。',
-    source: 'Award2025年ダイバーシティ賞',
+    source: AWARD2025_URL,
   },
   {
     id: 'award25-jnc-01',
@@ -152,7 +155,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['standardization', 'foreign_staff', 'knowledge_transfer'],
     barriers: ['low_adoption_concern', 'low_it_literacy'],
     tip: 'Excel工程管理シートにTeachme BizのURLを埋め込み「必ず開く場所」から自動でマニュアルにアクセスできる導線を設計。新人研修初日に必須化することで「会社の文化」として定着させた結果、独り立ちが3か月→最短1か月に短縮。外国籍3分の1の多様な組織の「共通言語」として機能。',
-    source: 'Award2025年ダイバーシティ賞',
+    source: AWARD2025_URL,
   },
   {
     id: 'award25-romu-service-01',
@@ -161,7 +164,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['knowledge_transfer', 'standardization'],
     barriers: ['no_team_structure', 'no_time_for_creation'],
     tip: '就業規則に「マニュアルの積極活用」を明記してルール化し、ベテラン職員を専任担当に据えて業務量を半減させ専用時間を確保。問い合わせ対応時間を1人あたり月6時間40分削減（49%削減）。「これも作ってほしい」という声が生まれ、継続的な改善サイクルが文化として定着。',
-    source: 'Award2025年社会貢献賞',
+    source: AWARD2025_URL,
   },
   {
     id: 'award25-bbc-01',
@@ -170,7 +173,7 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['knowledge_transfer', 'standardization'],
     barriers: ['low_adoption_concern', 'no_creation_knowhow'],
     tip: 'マニュアル作成コンテストを開催し経営幹部がコメント・採点、全社イベントで表彰する仕組みでマニュアル作成を文化化。作成スキルをランク付けする制度でモチベーションを持続。問い合わせ件数を49%削減（月78件→40件）し、余力を付加価値業務に再投資。',
-    source: 'Award2025年社会貢献賞',
+    source: AWARD2025_URL,
   },
   {
     id: 'award25-resort-trust-01',
@@ -179,6 +182,6 @@ export const AWARD_INSIGHTS: InterviewInsight[] = [
     challenges: ['talent_development', 'standardization'],
     barriers: ['low_adoption_concern', 'hard_to_involve'],
     tip: '大規模ホテル組織での定着秘訣は、自社人財育成システムとTeachme Bizを連携させて学習進捗を人事評価・昇格要件に直結させること。「やれば前に進める」インセンティブで自己学習時間が6倍に増加し、昇格期間1年4ヶ月短縮、「教育機会が少ない」退職理由が22%→9%に激減。',
-    source: 'Award2025年シナジークリエイション賞',
+    source: AWARD2025_URL,
   },
 ]

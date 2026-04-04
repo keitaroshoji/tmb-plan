@@ -31,19 +31,43 @@ const PHASE_COLORS = [
   { bg: '#4C1D95', light: '#EDE9FE', text: '#3B0764' },
 ]
 
+// ==================== カレンダー日付計算 ====================
+
+function addMonthsToDate(startYYYYMM: string, offsetMonths: number): string {
+  if (!startYYYYMM) return ''
+  const [yearStr, monthStr] = startYYYYMM.split('-')
+  const totalMonths = parseInt(yearStr, 10) * 12 + parseInt(monthStr, 10) - 1 + offsetMonths
+  const y = Math.floor(totalMonths / 12)
+  const m = (totalMonths % 12) + 1
+  return `${y}年${m}月`
+}
+
+function phaseCalendarRange(startYYYYMM: string, period: string): string {
+  if (!startYYYYMM) return ''
+  const nums = period.match(/\d+/g)?.map(Number) ?? []
+  if (nums.length >= 2) {
+    const from = addMonthsToDate(startYYYYMM, nums[0] - 1)
+    const to   = addMonthsToDate(startYYYYMM, nums[1] - 1)
+    return `${from}〜${to}`
+  }
+  if (nums.length === 1) return addMonthsToDate(startYYYYMM, nums[0] - 1)
+  return ''
+}
+
 // ==================== 矢羽型ヘッダー ====================
 
-function ChevronHeader({ label, period, index }: {
-  label: string; period: string; index: number; total: number
+function ChevronHeader({ label, period, calendarPeriod, index }: {
+  label: string; period: string; calendarPeriod?: string; index: number; total: number
 }) {
   const color = PHASE_COLORS[index % PHASE_COLORS.length]
   const A = 18
   const clipPath = `polygon(0 0, calc(100% - ${A}px) 0, 100% 50%, calc(100% - ${A}px) 100%, 0 100%)`
 
   return (
-    <div style={{ background: color.bg, clipPath }} className="flex flex-col items-center justify-center py-3 px-6 min-h-[62px]">
+    <div style={{ background: color.bg, clipPath }} className="flex flex-col items-center justify-center py-3 px-6 min-h-[68px]">
       <span className="text-white font-bold text-sm leading-tight text-center">{label}</span>
-      <span className="text-white/75 text-xs mt-0.5">{period}</span>
+      <span className="text-white/80 text-xs mt-0.5">{period}</span>
+      {calendarPeriod && <span className="text-white/60 text-xs mt-0.5">{calendarPeriod}</span>}
     </div>
   )
 }
@@ -224,6 +248,7 @@ function PremiseInfo({ answers }: { answers: TmbWizardAnswers }) {
         <PremiseRow label="拠点数" value={`${answers.locationCount}拠点`} />
         <PremiseRow label="FC・フランチャイズ" value={answers.isFranchise === true ? 'あり' : answers.isFranchise === false ? 'なし' : '—'} />
         {answers.departmentNote && <PremiseRow label="対象部門・事業部" value={answers.departmentNote} />}
+        {answers.projectStartDate && <PremiseRow label="プロジェクト開始" value={addMonthsToDate(answers.projectStartDate, 0)} />}
       </PremiseSection>
 
       {/* 経営課題 */}
@@ -747,7 +772,13 @@ export default function ResultPage() {
                     </th>
                     {plan!.phases!.map((phase, i) => (
                       <th key={i} className={`border-b border-gray-200 p-0 ${i < plan!.phases!.length - 1 ? 'border-r' : ''}`}>
-                        <ChevronHeader label={phase.name} period={phase.period} index={i} total={plan!.phases!.length} />
+                        <ChevronHeader
+                          label={phase.name}
+                          period={phase.period}
+                          calendarPeriod={phaseCalendarRange(answers.projectStartDate, phase.period)}
+                          index={i}
+                          total={plan!.phases!.length}
+                        />
                       </th>
                     ))}
                   </tr>
@@ -816,35 +847,50 @@ export default function ResultPage() {
 
         {/* ==================== 4. 各月スケジュール ==================== */}
         <section>
-          <SectionHeading icon="📅" title="各月スケジュール" sub="12ヶ月の取り組みテーマ・ゴール一覧" />
+          <SectionHeading icon="📅" title="各月スケジュール" sub="12ヶ月の取り組みテーマ・ゴール一覧＋13ヶ月目以降の展望" />
           {(plan?.schedule?.length ?? 0) > 0 ? (
             <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
               <div className="grid bg-gray-800 text-white text-xs font-semibold uppercase tracking-wide"
-                style={{ gridTemplateColumns: '64px 140px 1fr 2fr 88px' }}>
+                style={{ gridTemplateColumns: '80px 180px 1fr 2fr 88px' }}>
                 {['月', 'フェーズ', 'テーマ', '主要アクション', '効果測定'].map((h, i) => (
                   <div key={h} className={`px-4 py-3 ${i < 4 ? 'border-r border-gray-700' : ''}`}>{h}</div>
                 ))}
               </div>
               {plan!.schedule!.map((m) => {
-                const phaseIdx = getPhaseIndex(m.month, plan!.phases ?? [])
+                const isAfter13 = m.month >= 13
+                const phaseIdx = isAfter13 ? (plan!.phases ?? []).length - 1 : getPhaseIndex(m.month, plan!.phases ?? [])
                 const phase = (plan!.phases ?? [])[phaseIdx]
-                const color = PHASE_COLORS[phaseIdx % PHASE_COLORS.length]
+                const color = isAfter13 ? { bg: '#374151', light: '#F3F4F6', text: '#111827' } : PHASE_COLORS[phaseIdx % PHASE_COLORS.length]
+                const calendarLabel = answers.projectStartDate
+                  ? isAfter13
+                    ? addMonthsToDate(answers.projectStartDate, 12) + '〜'
+                    : addMonthsToDate(answers.projectStartDate, m.month - 1)
+                  : null
                 return (
                   <div key={m.month}
-                    className="grid border-b border-gray-100 last:border-b-0 hover:bg-blue-50/20 transition-colors"
-                    style={{ gridTemplateColumns: '64px 140px 1fr 2fr 88px' }}>
-                    <div className="px-4 py-3 border-r border-gray-100 flex items-center">
+                    className={`grid border-b border-gray-100 last:border-b-0 transition-colors ${isAfter13 ? 'bg-gray-50 hover:bg-gray-100/60' : 'hover:bg-blue-50/20'}`}
+                    style={{ gridTemplateColumns: '80px 180px 1fr 2fr 88px' }}>
+                    <div className="px-3 py-3 border-r border-gray-100 flex flex-col items-center justify-center gap-0.5">
                       <span className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
-                        style={{ background: color.bg }}>{m.month}</span>
+                        style={{ background: color.bg }}>
+                        {isAfter13 ? '…' : m.month}
+                      </span>
+                      {calendarLabel && (
+                        <span className="text-center text-gray-400 leading-tight" style={{ fontSize: '10px' }}>{calendarLabel}</span>
+                      )}
                     </div>
                     <div className="px-3 py-3 border-r border-gray-100 flex items-center">
-                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                        style={{ background: color.light, color: color.text }}>
-                        {phase?.name ?? `P${phaseIdx + 1}`}
-                      </span>
+                      {isAfter13 ? (
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-200 text-gray-700">13ヶ月目以降</span>
+                      ) : (
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                          style={{ background: color.light, color: color.text }}>
+                          {phase?.name ?? `P${phaseIdx + 1}`}
+                        </span>
+                      )}
                     </div>
                     <div className="px-4 py-3 border-r border-gray-100 flex items-center">
-                      <p className="text-sm font-semibold text-gray-800 leading-snug">{m.title}</p>
+                      <p className={`text-sm leading-snug ${isAfter13 ? 'font-medium text-gray-600 italic' : 'font-semibold text-gray-800'}`}>{m.title}</p>
                     </div>
                     <div className="px-4 py-3 border-r border-gray-100 flex items-center">
                       <ul className="space-y-1">

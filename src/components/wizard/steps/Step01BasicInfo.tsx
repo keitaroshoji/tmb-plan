@@ -202,6 +202,44 @@ export function Step01BasicInfo() {
         </div>
       </div>
 
+      {/* プロジェクト開始年月 */}
+      <div className="space-y-2">
+        <label className="text-sm font-semibold text-gray-700">
+          プロジェクト開始年月
+          <span className="ml-2 text-xs font-normal text-gray-400">（任意・スケジュールのカレンダー表記に使用）</span>
+        </label>
+        <div className="flex items-center gap-2">
+          <select
+            value={answers.projectStartDate ? answers.projectStartDate.split('-')[0] : ''}
+            onChange={(e) => {
+              const year = e.target.value
+              const month = answers.projectStartDate ? answers.projectStartDate.split('-')[1] : '01'
+              updateAnswers({ projectStartDate: year ? `${year}-${month}` : '' })
+            }}
+            className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="">年を選択</option>
+            {[2025, 2026, 2027, 2028, 2029, 2030].map((y) => (
+              <option key={y} value={String(y)}>{y}年</option>
+            ))}
+          </select>
+          <select
+            value={answers.projectStartDate ? answers.projectStartDate.split('-')[1] : ''}
+            onChange={(e) => {
+              const month = e.target.value
+              const year = answers.projectStartDate ? answers.projectStartDate.split('-')[0] : String(new Date().getFullYear())
+              updateAnswers({ projectStartDate: month && year ? `${year}-${month.padStart(2, '0')}` : '' })
+            }}
+            className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="">月を選択</option>
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+              <option key={m} value={String(m).padStart(2, '0')}>{m}月</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* FC */}
       <div className="space-y-3">
         <label className="text-sm font-semibold text-gray-700">FC（フランチャイズ）事業者ですか？ <span className="text-red-500">*</span></label>
