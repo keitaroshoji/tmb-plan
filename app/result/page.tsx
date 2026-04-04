@@ -598,7 +598,7 @@ export default function ResultPage() {
 
       {/* ==================== ヘッダー ==================== */}
       <header className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-        <div className="mx-auto max-w-[1760px] px-8 py-3 flex items-center justify-between">
+        <div className="mx-auto max-w-[1600px] px-16 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-7 w-7 rounded bg-blue-600 flex items-center justify-center">
               <span className="text-white text-xs font-bold">T</span>
@@ -626,7 +626,7 @@ export default function ResultPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1760px] px-8 py-10 space-y-12">
+      <main className="mx-auto max-w-[1600px] px-16 py-10 space-y-12">
 
         {/* ==================== 1. タイトル ==================== */}
         <section className="rounded-xl bg-white border border-gray-200 shadow-sm px-8 py-7">
