@@ -733,10 +733,12 @@ export default function ResultPage() {
           <SectionHeading icon="🗓️" title="全体スケジュール案" sub="3ヶ月ごとのフェーズ / 主要活動カテゴリ別" />
           {(plan?.phases?.length ?? 0) > 0 ? (
             <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
-              <table className="w-full border-collapse">
+              <table className="w-full border-collapse table-fixed">
                 <colgroup>
-                  <col style={{ width: '180px' }} />
-                  {plan!.phases!.map((_, i) => <col key={i} />)}
+                  <col style={{ width: '180px', minWidth: '180px' }} />
+                  {plan!.phases!.map((_, i) => (
+                    <col key={i} style={{ width: `${(100 / plan!.phases!.length).toFixed(2)}%` }} />
+                  ))}
                 </colgroup>
                 <thead>
                   <tr>
