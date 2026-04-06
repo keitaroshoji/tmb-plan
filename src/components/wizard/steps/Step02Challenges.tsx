@@ -18,6 +18,7 @@ const CHALLENGES: { value: Challenge; label: string; icon: string; desc: string 
   { value: 'multi_store', label: '多店舗・多拠点への展開', icon: '🏢', desc: '全拠点への均一な情報共有' },
   { value: 'remote_management', label: '遠隔管理・モニタリング', icon: '📡', desc: '現場の状況を本部からリアルタイム把握' },
   { value: 'security', label: 'セキュリティ強化', icon: '🔒', desc: '情報漏洩防止、端末管理' },
+  { value: 'env_not_ready', label: '利用環境（端末や通信等）が十分整備されていない', icon: '📶', desc: '端末不足・Wi-Fi未整備・通信環境の課題' },
 ]
 
 export function Step02Challenges() {

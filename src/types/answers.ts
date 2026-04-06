@@ -39,6 +39,7 @@ export type Challenge =
   | 'multi_store'
   | 'remote_management'
   | 'security'
+  | 'env_not_ready'
 
 // ==================== 導入目的 ====================
 export type PrimaryGoal =
