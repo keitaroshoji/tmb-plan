@@ -615,8 +615,69 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
     sl.addText('台', { x: bx + BOX_W * 0.85, y: Y0 + 0.44, w: BOX_W * 0.12, h: 0.20, fontFace: FONT, fontSize: 9, color: box.text })
   })
 
+  // --- 運用環境整備アセスメント ---
+  const ASSESS_Y = Y0 + BOX_H + 0.07
+  const ASSESS_H = 0.58
+  const { idealDeviceCount: ideal, currentDeviceCount: current, shortfallCount: shortfall, operationStyleLabel } = devicePlan
+  const styleShort = operationStyleLabel.replace(/（.*?）/, '').trim()
+
+  let assessColor: string
+  let assessIcon: string
+  let assessStatus: string
+  let assessBody: string
+  let assessAction: string
+
+  if (ideal === 0) {
+    assessColor = GREEN; assessIcon = '✅'; assessStatus = '運用環境：問題なし'
+    assessBody = `BYODタイプのため追加端末不要。スタッフへのアプリ配布・ログイン付与を1ヶ月目に組み込んでください。`
+    assessAction = ''
+  } else if (current === 0 && shortfall > 0) {
+    assessColor = GRAY; assessIcon = '❓'; assessStatus = '端末情報未入力 — 評価不可'
+    assessBody = `現在の端末保有数が未入力のため充足状況を評価できません。実際の保有台数を確認してください。`
+    assessAction = ''
+  } else if (shortfall === 0) {
+    assessColor = GREEN; assessIcon = '✅'; assessStatus = '運用環境：充足'
+    assessBody = `現在${current}台で「${styleShort}」の計画通りの運用を開始できます。追加調達不要です。`
+    assessAction = '端末初期設定・アプリ配布を1ヶ月目のアクションに組み込んでください。'
+  } else {
+    const ratio = Math.round((shortfall / ideal) * 100)
+    if (shortfall <= Math.ceil(ideal * 0.3)) {
+      assessColor = ORANGE_DK; assessIcon = '⚠️'; assessStatus = `軽微な不足あり（${shortfall}台・理想比${ratio}%）`
+      assessBody = `現状${current}台で優先拠点から先行導入が可能。不足分は段階調達で対応できます。`
+      assessAction = '不足分の調達・納期確認を1〜2ヶ月目のアクションに設定してください。'
+    } else if (shortfall <= Math.ceil(ideal * 0.6)) {
+      assessColor = RED; assessIcon = '⚠️'; assessStatus = `要対応 — 端末不足が運用に影響（${shortfall}台不足・${ratio}%未充足）`
+      assessBody = `現状${current}台では「${styleShort}」の全面展開が困難。調達完了まではパイロット運用に絞ることを推奨します。`
+      assessAction = '端末調達計画を1ヶ月目の最優先タスクとして経営層に提案してください。'
+    } else {
+      assessColor = RED; assessIcon = '❌'; assessStatus = `要対応 — 計画した運用の開始が困難（${shortfall}台不足・現状は理想の${100 - ratio}%）`
+      assessBody = `このままでは「${styleShort}」での本格運用は開始できず、事業課題の解決が大幅に遅延するリスクがあります。`
+      assessAction = '端末調達予算・スケジュールを最優先で確定し、初月のアクションに設定してください。'
+    }
+  }
+
+  sl.addShape(prs.ShapeType.rect, {
+    x: MG, y: ASSESS_Y, w: CW, h: ASSESS_H,
+    fill: { color: assessColor === GREEN ? GREEN_LT : assessColor === ORANGE_DK ? ORANGE_LT : assessColor === GRAY ? GRAY_LT : 'FEE2E2' },
+    line: { color: assessColor, width: 1 },
+  })
+  sl.addText(`${assessIcon} ${assessStatus}`, {
+    x: MG + 0.10, y: ASSESS_Y + 0.05, w: CW - 0.20, h: 0.18,
+    fontFace: FONT, fontSize: 7.5, bold: true, color: assessColor === GRAY ? DARK : assessColor, valign: 'middle',
+  })
+  sl.addText(assessBody, {
+    x: MG + 0.10, y: ASSESS_Y + 0.23, w: CW - 0.20, h: 0.16,
+    fontFace: FONT, fontSize: 6.5, color: DARK, valign: 'middle',
+  })
+  if (assessAction) {
+    sl.addText(`推奨アクション: ${assessAction}`, {
+      x: MG + 0.10, y: ASSESS_Y + 0.39, w: CW - 0.20, h: 0.15,
+      fontFace: FONT, fontSize: 6.5, bold: true, color: assessColor === GRAY ? GRAY : assessColor, valign: 'middle',
+    })
+  }
+
   // --- 推奨製品 ---
-  const PROD_Y = Y0 + BOX_H + 0.19
+  const PROD_Y = ASSESS_Y + ASSESS_H + 0.07
   secBar(sl, prs, MG, PROD_Y, CW, '推奨製品', PRIMARY)
 
   const products = devicePlan.recommendedProducts.slice(0, 3)

@@ -264,6 +264,89 @@ function DeviceIconGrid({ type, count, textColor }: { type: string; count: numbe
   )
 }
 
+// ==================== デバイス整備状況アセスメント ====================
+
+type ReadinessLevel = 'ok' | 'byod' | 'minor' | 'moderate' | 'critical' | 'unknown'
+
+interface ReadinessInfo {
+  level: ReadinessLevel
+  icon: string
+  status: string
+  title: string
+  body: string
+  action: string
+  bg: string
+  border: string
+  txt: string
+  badgeBg: string
+  badgeTxt: string
+}
+
+function getDeviceReadiness(devicePlan: DevicePlan): ReadinessInfo {
+  const { idealDeviceCount: ideal, currentDeviceCount: current, shortfallCount: shortfall, operationStyleLabel } = devicePlan
+  const styleShort = operationStyleLabel.replace(/（.*?）/, '').trim()
+
+  if (ideal === 0) {
+    return {
+      level: 'byod', icon: '✅', status: '運用環境：問題なし',
+      title: 'BYODタイプ — 追加端末不要',
+      body: '個人端末（スマートフォン等）を活用する運用スタイルのため、デバイス調達コストは発生しません。',
+      action: 'スタッフへのアプリインストール案内・ログイン付与を1ヶ月目の初期アクションに組み込んでください。',
+      bg: 'bg-green-50', border: 'border-green-200', txt: 'text-green-800',
+      badgeBg: 'bg-green-100', badgeTxt: 'text-green-700',
+    }
+  }
+  if (current === 0 && shortfall > 0) {
+    return {
+      level: 'unknown', icon: '❓', status: '端末情報未入力 — 評価不可',
+      title: '現在の保有台数が未確認です',
+      body: '端末保有数が入力されていないため、運用環境の充足状況を評価できません。実際の保有数を確認してください。',
+      action: '保有台数を確認した上でウィザードの「運用スタイル・現状確認」から再入力すると正確な評価が行えます。',
+      bg: 'bg-gray-50', border: 'border-gray-200', txt: 'text-gray-700',
+      badgeBg: 'bg-gray-200', badgeTxt: 'text-gray-600',
+    }
+  }
+  if (shortfall === 0) {
+    return {
+      level: 'ok', icon: '✅', status: '運用環境：充足',
+      title: `端末は十分に揃っています（${current}台）`,
+      body: `現在の台数で「${styleShort}」の計画通りの運用を開始できます。追加調達なしで全拠点への展開が可能です。`,
+      action: '端末の初期設定・アプリ配布・ログイン付与を1ヶ月目のアクションに確実に組み込んでください。',
+      bg: 'bg-green-50', border: 'border-green-200', txt: 'text-green-800',
+      badgeBg: 'bg-green-100', badgeTxt: 'text-green-700',
+    }
+  }
+  const ratio = Math.round((shortfall / ideal) * 100)
+  if (shortfall <= Math.ceil(ideal * 0.3)) {
+    return {
+      level: 'minor', icon: '⚠️', status: '軽微な不足あり',
+      title: `${shortfall}台不足 — 優先拠点から先行導入が可能`,
+      body: `不足は理想台数の${ratio}%程度です。現状の${current}台を使って主要拠点・部門から先行導入し、残りを段階調達するアプローチが現実的です。`,
+      action: '保有端末で優先拠点から先行スタートし、不足分の調達・納期を1〜2ヶ月目のアクションに入れることを推奨します。',
+      bg: 'bg-amber-50', border: 'border-amber-200', txt: 'text-amber-800',
+      badgeBg: 'bg-amber-100', badgeTxt: 'text-amber-700',
+    }
+  }
+  if (shortfall <= Math.ceil(ideal * 0.6)) {
+    return {
+      level: 'moderate', icon: '⚠️', status: '要対応 — 端末不足が運用に影響',
+      title: `${shortfall}台不足（理想の${ratio}%が未充足）`,
+      body: `現状の${current}台では「${styleShort}」の全面展開が困難です。運用目標の達成には端末調達が前提条件となり、調達が遅れると事業課題の解決も遅延するリスクがあります。`,
+      action: '端末調達計画を1ヶ月目の最優先タスクに設定し、調達完了までは保有端末でのパイロット運用に絞ることを推奨します。',
+      bg: 'bg-orange-50', border: 'border-orange-200', txt: 'text-orange-800',
+      badgeBg: 'bg-orange-100', badgeTxt: 'text-orange-700',
+    }
+  }
+  return {
+    level: 'critical', icon: '❌', status: '要対応 — 計画した運用の開始が困難',
+    title: `${shortfall}台不足（現状は理想の${100 - ratio}%にとどまる）`,
+    body: `現状${current}台は理想${ideal}台の${100 - ratio}%にすぎません。このままでは「${styleShort}」での本格運用は開始できず、現場でのマニュアル活用が進まないリスクが高く、事業課題の解決が大幅に遅延します。`,
+    action: '端末調達を最優先課題として経営層に提案し、調達予算・スケジュールを初月のアクションに確定させることを強く推奨します。',
+    bg: 'bg-red-50', border: 'border-red-200', txt: 'text-red-800',
+    badgeBg: 'bg-red-100', badgeTxt: 'text-red-700',
+  }
+}
+
 function DeviceVisual({ answers, devicePlan }: {
   answers: TmbWizardAnswers
   devicePlan: DevicePlan
@@ -294,6 +377,25 @@ function DeviceVisual({ answers, devicePlan }: {
           </div>
         ))}
       </div>
+
+      {/* 運用環境整備アセスメント */}
+      {(() => {
+        const r = getDeviceReadiness(devicePlan)
+        return (
+          <div className={`rounded-xl border-2 ${r.border} ${r.bg} p-5`}>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-xl">{r.icon}</span>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${r.badgeBg} ${r.badgeTxt}`}>{r.status}</span>
+            </div>
+            <p className={`text-sm font-bold ${r.txt} mb-1.5 leading-snug`}>{r.title}</p>
+            <p className={`text-sm ${r.txt} leading-relaxed mb-3`}>{r.body}</p>
+            <div className={`flex items-start gap-2 rounded-lg bg-white/60 px-3.5 py-2.5 border ${r.border}`}>
+              <span className={`text-xs font-bold ${r.badgeTxt} shrink-0 mt-0.5`}>推奨アクション</span>
+              <p className={`text-xs ${r.txt} leading-relaxed`}>{r.action}</p>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* 本社→店舗 階層ダイアグラム */}
       <div>
