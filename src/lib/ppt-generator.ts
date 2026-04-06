@@ -533,18 +533,25 @@ function addMonthlySlide(
       x: circleX, y: circleY, w: circleSize, h: circleSize,
       fontFace: FONT, fontSize: 7.5, bold: true, color: WHITE, align: 'center', valign: 'middle',
     })
-    // Xヶ月目ラベル
-    sl.addText(isAfter13 ? '13ヶ月〜' : `${m.month}ヶ月目`, {
-      x: cx + 0.02, y: circleY + circleSize + 0.01, w: COL_MONTH - 0.04, h: 0.12,
-      fontFace: FONT, fontSize: 5, color: GRAY, align: 'center',
-    })
+    // 月ラベル（カレンダー日付がある場合はそちらを優先、なければXヶ月目を表示）
     if (answers.projectStartDate) {
       const calStr = isAfter13
         ? monthToCalLabel(answers.projectStartDate, 12) + '〜'
         : monthToCalLabel(answers.projectStartDate, m.month - 1)
+      // 1行目: Xヶ月目
+      sl.addText(isAfter13 ? '13ヶ月〜' : `${m.month}ヶ月目`, {
+        x: cx + 0.02, y: circleY + circleSize + 0.01, w: COL_MONTH - 0.04, h: 0.11,
+        fontFace: FONT, fontSize: 5, color: GRAY, align: 'center',
+      })
+      // 2行目: YYYY年M月
       sl.addText(calStr, {
-        x: cx + 0.02, y: circleY + circleSize + 0.13, w: COL_MONTH - 0.04, h: 0.14,
+        x: cx + 0.02, y: circleY + circleSize + 0.12, w: COL_MONTH - 0.04, h: 0.12,
         fontFace: FONT, fontSize: 5.5, color: color.bg, align: 'center', bold: true,
+      })
+    } else {
+      sl.addText(isAfter13 ? '13ヶ月〜' : `${m.month}ヶ月目`, {
+        x: cx + 0.02, y: circleY + circleSize + 0.01, w: COL_MONTH - 0.04, h: 0.14,
+        fontFace: FONT, fontSize: 6, color: GRAY, align: 'center',
       })
     }
     cx += COL_MONTH
