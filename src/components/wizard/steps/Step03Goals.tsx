@@ -60,6 +60,7 @@ export function Step03Goals() {
               icon={item.icon}
               selected={answers.primaryGoals.includes(item.value)}
               onClick={() => toggleGoal(item.value)}
+              variant="checkbox"
             />
           ))}
         </div>

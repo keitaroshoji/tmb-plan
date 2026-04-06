@@ -9,6 +9,8 @@ interface ChoiceCardProps {
   selected: boolean
   onClick: () => void
   disabled?: boolean
+  /** 'radio' = 単一選択（◯）, 'checkbox' = 複数選択（□） */
+  variant?: 'radio' | 'checkbox'
 }
 
 export function ChoiceCard({
@@ -18,6 +20,7 @@ export function ChoiceCard({
   selected,
   onClick,
   disabled = false,
+  variant = 'radio',
 }: ChoiceCardProps) {
   return (
     <button
@@ -45,18 +48,36 @@ export function ChoiceCard({
             <div className="mt-0.5 text-xs text-gray-500 leading-relaxed">{description}</div>
           )}
         </div>
-        <div
-          className={`
-            mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border-2 transition-colors
-            ${selected ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}
-          `}
-        >
-          {selected && (
-            <svg className="h-full w-full text-white" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M6.5 11.5L3 8l1-1 2.5 2.5 5-5 1 1z" />
-            </svg>
-          )}
-        </div>
+
+        {/* ラジオ（◯）インジケーター */}
+        {variant === 'radio' && (
+          <div
+            className={`
+              mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border-2 transition-colors flex items-center justify-center
+              ${selected ? 'border-blue-500 bg-white' : 'border-gray-300 bg-white'}
+            `}
+          >
+            {selected && (
+              <div className="h-2 w-2 rounded-full bg-blue-500" />
+            )}
+          </div>
+        )}
+
+        {/* チェックボックス（□）インジケーター */}
+        {variant === 'checkbox' && (
+          <div
+            className={`
+              mt-0.5 h-4 w-4 flex-shrink-0 rounded border-2 transition-colors flex items-center justify-center
+              ${selected ? 'border-blue-500 bg-blue-500' : 'border-gray-300 bg-white'}
+            `}
+          >
+            {selected && (
+              <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M2 6l3 3 5-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </div>
+        )}
       </div>
     </button>
   )

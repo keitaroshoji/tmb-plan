@@ -47,6 +47,7 @@ export function Step04Barriers() {
             icon={item.icon}
             selected={answers.operationalBarriers.includes(item.value)}
             onClick={() => toggle(item.value)}
+            variant="checkbox"
           />
         ))}
       </div>

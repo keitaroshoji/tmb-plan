@@ -68,6 +68,7 @@ export function Step06DeviceEnv() {
               icon={item.icon}
               selected={answers.deviceTypes.includes(item.value)}
               onClick={() => toggleDevice(item.value)}
+              variant="checkbox"
             />
           ))}
         </div>
@@ -96,6 +97,7 @@ export function Step06DeviceEnv() {
                 selected={answers.environmentConditions.includes(item.value)}
                 onClick={() => toggleEnv(item.value)}
                 disabled={disabled}
+                variant="checkbox"
               />
             )
           })}

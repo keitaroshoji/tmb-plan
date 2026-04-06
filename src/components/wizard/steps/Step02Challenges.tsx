@@ -50,6 +50,7 @@ export function Step02Challenges() {
             icon={item.icon}
             selected={answers.challenges.includes(item.value)}
             onClick={() => toggle(item.value)}
+            variant="checkbox"
           />
         ))}
       </div>

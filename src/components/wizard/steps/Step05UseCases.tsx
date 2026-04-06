@@ -61,6 +61,7 @@ export function Step05UseCases() {
               icon={item.icon}
               selected={answers.useCases.includes(item.value)}
               onClick={() => toggleUseCase(item.value)}
+              variant="checkbox"
             />
           ))}
         </div>
@@ -77,6 +78,7 @@ export function Step05UseCases() {
               icon={item.icon}
               selected={answers.manualTypes.includes(item.value)}
               onClick={() => toggleManualType(item.value)}
+              variant="checkbox"
             />
           ))}
         </div>
