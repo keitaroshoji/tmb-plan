@@ -16,6 +16,7 @@ const BARRIERS: { value: OperationalBarrier; label: string; icon: string; desc: 
   { value: 'no_creation_knowhow', label: 'マニュアル作成のノウハウがない', icon: '🔧', desc: '何をどう書けばいいか分からない' },
   { value: 'maintenance_concern', label: '継続的な更新・メンテナンスが続かない', icon: '🔄', desc: '作っても更新されず陳腐化してしまう懸念' },
   { value: 'low_adoption_concern', label: '利用促進・定着が見込めない', icon: '📉', desc: '作っても現場で使われないかもしれない' },
+  { value: 'device_shortage', label: '端末・通信環境が十分に整備されていない', icon: '📶', desc: '端末不足・Wi-Fi未整備など、利用環境の課題がある' },
 ]
 
 export function Step04Barriers() {

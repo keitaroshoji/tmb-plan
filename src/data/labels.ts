@@ -56,6 +56,7 @@ export const BARRIER_LABELS: Record<string, string> = {
   no_creation_knowhow: 'マニュアル作成のノウハウがない',
   maintenance_concern: '継続的な更新・メンテナンスが続かない',
   low_adoption_concern: '利用促進・定着が見込めない',
+  device_shortage: '端末・通信環境が十分に整備されていない',
 }
 
 export const USE_CASE_LABELS: Record<string, string> = {

@@ -67,6 +67,7 @@ export type OperationalBarrier =
   | 'no_creation_knowhow'
   | 'maintenance_concern'
   | 'low_adoption_concern'
+  | 'device_shortage'
 
 // ==================== 活用シーン ====================
 export type UseCase =
