@@ -258,13 +258,18 @@ export default function Home() {
               AIが企業情報・課題・ボトルネックを自動で抽出します。
             </p>
 
-            <textarea
-              value={memoText}
-              onChange={(e) => setMemoText(e.target.value)}
-              placeholder="例）&#13;&#10;・株式会社〇〇様 / 小売業 / 全国50店舗&#13;&#10;・現在は紙マニュアルで運用。新人教育に時間がかかっている&#13;&#10;・IT慣れしていないスタッフが多く、導入が心配&#13;&#10;・まずは5店舗でテストしたい"
-              rows={8}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-            />
+            <div className="relative">
+              <textarea
+                value={memoText}
+                onChange={(e) => setMemoText(e.target.value.slice(0, 3000))}
+                placeholder="例）&#13;&#10;・株式会社〇〇様 / 小売業 / 全国50店舗&#13;&#10;・現在は紙マニュアルで運用。新人教育に時間がかかっている&#13;&#10;・IT慣れしていないスタッフが多く、導入が心配&#13;&#10;・まずは5店舗でテストしたい"
+                rows={8}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+              />
+              <span className={`absolute bottom-2 right-3 text-xs ${memoText.length >= 2700 ? 'text-amber-500 font-semibold' : 'text-gray-400'}`}>
+                {memoText.length.toLocaleString()} / 3,000
+              </span>
+            </div>
 
             {error && <p className="text-sm text-red-500 mt-2">{error}</p>}
 
