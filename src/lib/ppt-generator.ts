@@ -381,7 +381,7 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
   const sl = prs.addSlide()
   sl.background = { color: WHITE }
 
-  addHeader(sl, prs, '全体スケジュール案', '4フェーズの活動計画')
+  addHeader(sl, prs, '年間スケジュール（四半期）', '4フェーズの活動計画')
 
   const phases   = plan.phases ?? []
   const Y0       = HDR_H + 0.08
@@ -674,8 +674,8 @@ export async function generatePptBuffer(
   addPremiseSlide(prs, answers)
   addSummarySlide(prs, plan)
   addPhaseScheduleSlide(prs, plan, answers)
-  addMonthlySlide(prs, plan, answers, firstHalf,  '各月スケジュール（前半：1〜6ヶ月目）')
-  addMonthlySlide(prs, plan, answers, secondHalf, '各月スケジュール（後半：7〜12ヶ月目＋中長期）')
+  addMonthlySlide(prs, plan, answers, firstHalf,  '月次スケジュール（前半：1〜6ヶ月目）')
+  addMonthlySlide(prs, plan, answers, secondHalf, '月次スケジュール（後半：7〜12ヶ月目＋中長期）')
   addDeviceSlide(prs, devicePlan)
 
   const buffer = await prs.write({ outputType: 'nodebuffer' }) as Buffer

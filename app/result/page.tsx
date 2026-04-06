@@ -765,9 +765,9 @@ export default function ResultPage() {
           ) : isGenerating && <SectionSkeleton rows={4} />}
         </section>
 
-        {/* ==================== 4. 全体スケジュール（矢羽型） ==================== */}
+        {/* ==================== 4. 年間スケジュール（四半期） ==================== */}
         <section>
-          <SectionHeading icon="🗓️" title="全体スケジュール案" sub="3ヶ月ごとのフェーズ / 主要活動カテゴリ別" />
+          <SectionHeading icon="🗓️" title="年間スケジュール（四半期）" sub="3ヶ月ごとのフェーズ / 主要活動カテゴリ別" />
           {(plan?.phases?.length ?? 0) > 0 ? (
             <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
               <table className="w-full border-collapse table-fixed">
@@ -857,9 +857,9 @@ export default function ResultPage() {
           ) : isGenerating ? <SectionSkeleton rows={6} /> : <SectionFailed />}
         </section>
 
-        {/* ==================== 4. 各月スケジュール ==================== */}
+        {/* ==================== 4. 月次スケジュール ==================== */}
         <section>
-          <SectionHeading icon="📅" title="各月スケジュール" sub="12ヶ月の取り組みテーマ・ゴール一覧＋13ヶ月目以降の展望" />
+          <SectionHeading icon="📅" title="月次スケジュール" sub="12ヶ月の取り組みテーマ・ゴール一覧＋13ヶ月目以降の展望" />
           {(plan?.schedule?.length ?? 0) > 0 ? (
             <div className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
               <div className="grid bg-gray-700 text-white text-xs font-semibold uppercase tracking-wide"
