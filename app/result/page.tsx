@@ -242,24 +242,44 @@ function PremiseInfo({ answers }: { answers: TmbWizardAnswers }) {
   )
 }
 
-function DeviceIconGrid({ type, count, textColor }: { type: string; count: number; textColor: string }) {
+// 保有デバイスアイコン群（青）
+function OwnedDeviceIcons({ type, count }: { type: string; count: number }) {
   const icon = DEVICE_ICONS[type] ?? '📦'
   const label = DEVICE_LABELS[type] ?? type
-  const MAX = 10
+  const MAX = 8
   const shown = Math.min(count, MAX)
   const overflow = count > MAX ? count - MAX : 0
   return (
-    <div className="flex items-center gap-2 bg-white/70 rounded-lg px-3 py-2">
-      <div className="flex flex-wrap gap-0.5 min-w-0">
-        {Array.from({ length: shown }).map((_, i) => (
-          <span key={i} className="text-lg leading-none">{icon}</span>
-        ))}
-        {overflow > 0 && <span className={`text-xs font-bold ${textColor} self-end ml-0.5`}>+{overflow}</span>}
-      </div>
-      <div className="ml-auto shrink-0 text-right">
-        <p className={`text-xs font-medium ${textColor}`}>{label}</p>
-        <p className={`text-lg font-bold ${textColor}`}>{count}<span className="text-xs font-normal ml-0.5">台</span></p>
-      </div>
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {Array.from({ length: shown }).map((_, i) => (
+        <span key={i} title={label}
+          className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-base shadow-sm">
+          {icon}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span className="text-xs font-bold text-blue-600 self-end">+{overflow}</span>
+      )}
+    </div>
+  )
+}
+
+// 不足デバイスアイコン群（赤破線）
+function ShortageDeviceIcons({ count, icon }: { count: number; icon: string }) {
+  const MAX = 8
+  const shown = Math.min(count, MAX)
+  const overflow = count > MAX ? count - MAX : 0
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {Array.from({ length: shown }).map((_, i) => (
+        <span key={i}
+          className="w-8 h-8 rounded-lg border-2 border-dashed border-red-400 bg-red-50 flex items-center justify-center text-base opacity-60">
+          {icon}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span className="text-xs font-bold text-red-500 self-end">+{overflow}</span>
+      )}
     </div>
   )
 }
@@ -357,6 +377,9 @@ function DeviceVisual({ answers, devicePlan }: {
   const storeTotal = Object.values(storeDevices).reduce<number>((s, v) => s + (v ?? 0), 0)
   const locationCount = answers.locationCount ?? 1
   const staffPerLocation = answers.staffPerLocation ?? 0
+  const idealPerLocation = Math.ceil(devicePlan.idealDeviceCount / locationCount)
+  const shortagePerLocation = Math.max(0, idealPerLocation - storeTotal)
+  const primaryDeviceType = answers.deviceTypes?.[0] ?? 'smartphone'
 
   // 表示する店舗カード数（最大4枚、残りは省略）
   const shownStores = Math.min(locationCount, 4)
@@ -418,7 +441,7 @@ function DeviceVisual({ answers, devicePlan }: {
                 {(Object.entries(hqDevices) as [string, number | undefined][])
                   .filter(([, v]) => (v ?? 0) > 0)
                   .map(([type, count]) => (
-                    <DeviceIconGrid key={type} type={type} count={count ?? 0} textColor="text-blue-800" />
+                    <OwnedDeviceIcons key={type} type={type} count={count ?? 0} />
                   ))}
               </div>
             ) : (
@@ -450,11 +473,24 @@ function DeviceVisual({ answers, devicePlan }: {
           </div>
         </div>
 
+        {/* 凡例 */}
+        <div className="flex items-center gap-4 mb-3 px-1">
+          <div className="flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded bg-blue-500 inline-block" />
+            <span className="text-xs font-medium text-gray-600">保有端末</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded border-2 border-dashed border-red-400 bg-red-50 inline-block opacity-70" />
+            <span className="text-xs font-medium text-gray-600">不足端末（追加調達が必要）</span>
+          </div>
+        </div>
+
         {/* 店舗カード群 */}
         <div className={`grid gap-4 mt-1 ${shownStores === 1 ? 'grid-cols-1 max-w-lg mx-auto' : shownStores === 2 ? 'grid-cols-2' : shownStores === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
           {Array.from({ length: shownStores }).map((_, idx) => (
             <div key={idx} className="rounded-xl border-2 border-green-300 bg-green-50 p-4">
-              <div className="flex items-center justify-between mb-3">
+              {/* ヘッダー */}
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xl">🏪</span>
                   <span className="font-bold text-green-900 text-sm">
@@ -465,16 +501,31 @@ function DeviceVisual({ answers, devicePlan }: {
                   {staffPerLocation}名
                 </span>
               </div>
+              {/* 台数バッジ行 */}
+              <div className="flex gap-1.5 mb-3 flex-wrap">
+                <span className="text-[11px] font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">理想 {idealPerLocation}台</span>
+                <span className="text-[11px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">保有 {storeTotal}台</span>
+                {shortagePerLocation > 0 && (
+                  <span className="text-[11px] font-semibold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">不足 {shortagePerLocation}台</span>
+                )}
+              </div>
+              {/* 保有端末（青）*/}
               {storeTotal > 0 ? (
                 <div className="space-y-1.5">
                   {(Object.entries(storeDevices) as [string, number | undefined][])
                     .filter(([, v]) => (v ?? 0) > 0)
                     .map(([type, count]) => (
-                      <DeviceIconGrid key={type} type={type} count={count ?? 0} textColor="text-green-800" />
+                      <OwnedDeviceIcons key={type} type={type} count={count ?? 0} />
                     ))}
                 </div>
               ) : (
                 <p className="text-xs text-green-400 italic">端末情報なし</p>
+              )}
+              {/* 不足端末（赤破線）*/}
+              {shortagePerLocation > 0 && (
+                <div className="mt-2 pt-2 border-t border-dashed border-red-200">
+                  <ShortageDeviceIcons count={shortagePerLocation} icon={DEVICE_ICONS[primaryDeviceType] ?? '📦'} />
+                </div>
               )}
             </div>
           ))}
