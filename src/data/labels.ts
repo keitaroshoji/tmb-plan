@@ -27,7 +27,6 @@ export const CHALLENGE_LABELS: Record<string, string> = {
   foreign_staff: '外国人・多様な人材への教育', cost_reduction: 'コスト削減',
   iso_compliance: 'ISO・法令対応', multi_store: '多店舗・多拠点への展開',
   remote_management: '遠隔管理・モニタリング', security: 'セキュリティ強化',
-  env_not_ready: '利用環境（端末や通信等）が十分整備されていない',
 }
 
 export const GOAL_LABELS: Record<string, string> = {
