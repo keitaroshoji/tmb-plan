@@ -107,6 +107,16 @@ function SectionHeading({ icon, title, sub }: { icon: string; title: string; sub
   )
 }
 
+// ==================== セクション生成失敗 ====================
+
+function SectionFailed() {
+  return (
+    <div className="rounded-xl bg-gray-50 border border-dashed border-gray-300 px-6 py-5 text-center">
+      <p className="text-sm text-gray-400">このセクションの生成に失敗しました。ヘッダーの「🔄 再生成」ボタンをお試しください。</p>
+    </div>
+  )
+}
+
 // ==================== セクションスケルトン ====================
 
 function SectionSkeleton({ rows = 3 }: { rows?: number }) {
@@ -844,7 +854,7 @@ export default function ResultPage() {
                 </tbody>
               </table>
             </div>
-          ) : isGenerating && <SectionSkeleton rows={6} />}
+          ) : isGenerating ? <SectionSkeleton rows={6} /> : <SectionFailed />}
         </section>
 
         {/* ==================== 4. 各月スケジュール ==================== */}
@@ -920,7 +930,7 @@ export default function ResultPage() {
                 )
               })}
             </div>
-          ) : isGenerating && <SectionSkeleton rows={8} />}
+          ) : isGenerating ? <SectionSkeleton rows={8} /> : <SectionFailed />}
         </section>
 
         {/* ==================== 5. 運用課題への対処策 ==================== */}
@@ -941,7 +951,7 @@ export default function ResultPage() {
                 </div>
               ))}
             </div>
-          ) : isGenerating && <SectionSkeleton rows={4} />}
+          ) : isGenerating ? <SectionSkeleton rows={4} /> : <SectionFailed />}
         </section>
 
         {/* ==================== 6. 類似他社事例 ==================== */}
