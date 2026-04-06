@@ -74,6 +74,19 @@ function buildContext(answers: TmbWizardAnswers): string {
   return lines.filter(Boolean).join('\n')
 }
 
+function buildUsageHint(answers: TmbWizardAnswers): string {
+  switch (answers.usageStatus) {
+    case 'active':
+      return '重要：この企業はすでにTeachme Bizを積極活用中。1ヶ月目から「活用範囲の拡大」「効果測定の高度化」「拠点展開」を主軸に据えること。初期設定・マニュアル作成の基礎ステップは最小化し、ROI可視化と全社定着を早期に実現するフェーズ設計にすること。'
+    case 'expanding':
+      return '重要：この企業はTeachme Bizを一部拠点・部門で活用し、全社展開を目指している段階。1ヶ月目から残拠点・部門への横展開計画を始動し、2ヶ月目には次の拠点でのキックオフを組み込むこと。展開先ごとのオンボーディングと活用支援が中心になること。'
+    case 'partial':
+      return '重要：この企業はTeachme Bizを部分的に利用中。1〜2ヶ月目で既存コンテンツの整備・標準化を進め、3ヶ月目から未活用部門・拠点への展開を本格化すること。'
+    default:
+      return '重要：1ヶ月目からマニュアル作成を開始し、2ヶ月目には現場での活用を始めること。全体として前倒しで、早期にマニュアル運用を軌道に乗せるスケジュールにすること。'
+  }
+}
+
 function parseJson(text: string): Record<string, unknown> {
   const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/)
   const jsonStr = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text
@@ -97,11 +110,13 @@ export async function POST(req: NextRequest) {
       // Prompt Caching: contextブロックにcache_controlを付与して再利用を促進
       const ctxBlock = { type: 'text' as const, text: context, cache_control: { type: 'ephemeral' as const } }
 
+      const usageHint = buildUsageHint(answers)
+
       const callA = client.messages.create({
         model: MODEL,
         max_tokens: 8192,
         system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n4フェーズ生成。フェーズ分割は必ず「3ヶ月×4フェーズ」（1〜3ヶ月目/4〜6ヶ月目/7〜9ヶ月目/10〜12ヶ月目）で固定すること。重要：1ヶ月目からマニュアル作成を開始し、2ヶ月目には現場での活用を始めること。全体として前倒しで、早期にマニュアル運用を軌道に乗せるスケジュールにすること。categoryActivitiesは全5カテゴリ×全4フェーズすべてに1〜3件記入すること。各活動は必ず15字以内のキーワード的な短文にすること（例：「初期テンプレ作成」「閲覧数を週次確認」「新人研修で試用」）。15字を超える活動は絶対に書かないこと。\n${SCHEMA_PHASES}` }] }],
+        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n4フェーズ生成。フェーズ分割は必ず「3ヶ月×4フェーズ」（1〜3ヶ月目/4〜6ヶ月目/7〜9ヶ月目/10〜12ヶ月目）で固定すること。${usageHint}categoryActivitiesは全5カテゴリ×全4フェーズすべてに1〜3件記入すること。各活動は必ず15字以内のキーワード的な短文にすること（例：「初期テンプレ作成」「閲覧数を週次確認」「新人研修で試用」）。15字を超える活動は絶対に書かないこと。\n${SCHEMA_PHASES}` }] }],
       }).then((r) => {
         try {
           const text = r.content[0].type === 'text' ? r.content[0].text : ''
@@ -114,7 +129,7 @@ export async function POST(req: NextRequest) {
         model: MODEL,
         max_tokens: 4096,
         system: [{ type: 'text', text: SYSTEM_PLAN, cache_control: { type: 'ephemeral' } }],
-        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n12ヶ月スケジュール生成（各月actionsは必ず2件）＋month=13として13ヶ月目以降の中長期取り組みを1件追加すること。重要：1ヶ月目からマニュアル作成に着手し、2ヶ月目には現場活用を開始する前倒しスケジュールにすること。各アクションは40〜60字程度の丁寧な文章で、1項目が2行を超えないよう簡潔にまとめること。「〜することで〜を実現する」など具体的で行動ベースの書き方にすること。月ごとのテーマも「〜を始める」「〜を定着させる」など語感を統一すること。\n${SCHEMA_SCHEDULE}` }] }],
+        messages: [{ role: 'user', content: [ctxBlock, { type: 'text', text: `\n\n12ヶ月スケジュール生成（各月actionsは必ず2件）＋month=13として13ヶ月目以降の中長期取り組みを1件追加すること。${usageHint}各アクションは40〜60字程度の丁寧な文章で、1項目が2行を超えないよう簡潔にまとめること。「〜することで〜を実現する」など具体的で行動ベースの書き方にすること。月ごとのテーマも「〜を始める」「〜を定着させる」など語感を統一すること。\n${SCHEMA_SCHEDULE}` }] }],
       }).then((r) => {
         try {
           const text = r.content[0].type === 'text' ? r.content[0].text : ''
