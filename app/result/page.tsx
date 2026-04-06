@@ -868,9 +868,13 @@ export default function ResultPage() {
                     ? addMonthsToDate(answers.projectStartDate, 12) + '〜'
                     : addMonthsToDate(answers.projectStartDate, m.month - 1)
                   : null
+                const isReview = m.isReviewPoint && !isAfter13
                 return (
                   <div key={m.month}
-                    className={`grid border-b border-gray-100 last:border-b-0 transition-colors ${isAfter13 ? 'bg-gray-50 hover:bg-gray-100/60' : 'hover:bg-blue-50/20'}`}
+                    className={`grid border-b last:border-b-0 transition-colors
+                      ${isAfter13 ? 'bg-gray-50 border-gray-100 hover:bg-gray-100/60' :
+                        isReview ? 'bg-green-50 border-green-200 hover:bg-green-50' :
+                        'border-gray-100 hover:bg-blue-50/20'}`}
                     style={{ gridTemplateColumns: '100px 180px 1fr 2fr 88px' }}>
                     <div className="px-3 py-3 border-r border-gray-100 flex flex-col items-center justify-center gap-0.5">
                       <span className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
