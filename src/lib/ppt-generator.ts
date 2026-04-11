@@ -545,19 +545,18 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
       {
         text: cat,
         options: {
-          bold: false, color: WHITE,
-          fill: { color: isEven ? PRIMARY_DK : PRIMARY },
+          bold: false, color: DARK,
+          fill: { color: isEven ? GRAY_LT : 'E9EAEC' },
           align: 'center' as const, valign: 'middle' as const, fontSize: 8,
         },
       },
-      ...phases.map((phase, pi) => {
-        const color = PHASE_COLORS[pi % PHASE_COLORS.length]
+      ...phases.map((phase) => {
         const items = phase.categoryActivities?.[cat] ?? []
         return {
           text: items.slice(0, 2).map(a => `• ${a}`).join('\n'),
           options: {
             color: DARK,
-            fill: { color: isEven ? color.light : WHITE },
+            fill: { color: WHITE },
             align: 'left' as const, valign: 'top' as const, fontSize: 8,
           },
         }
@@ -620,7 +619,9 @@ function addMonthlySlide(
     const color = isAfter13
       ? { bg: GRAY13, light: GRAY13_LT, text: DARK }
       : PHASE_COLORS[pi % PHASE_COLORS.length]
-    const rowBg = isAfter13 ? GRAY13_LT : (ri % 2 === 0 ? WHITE : PRIMARY_LT)
+    // フェーズ列のみ年間スケジュールと同じ青系色、他列は白
+    const phaseBg   = isAfter13 ? GRAY13 : color.bg
+    const phaseText = isAfter13 ? DARK   : WHITE
 
     // 月ラベル
     let monthLabel = m ? (isAfter13 ? '13ヶ月〜' : `${m.month}ヶ月目`) : ''
@@ -634,19 +635,19 @@ function addMonthlySlide(
     return [
       {
         text: monthLabel,
-        options: { bold: false, color: color.bg, fill: { color: rowBg }, align: 'center' as const, valign: 'middle' as const, fontSize: 8 },
+        options: { bold: false, color: DARK, fill: { color: WHITE }, align: 'center' as const, valign: 'middle' as const, fontSize: 8 },
       },
       {
         text: isAfter13 ? '13ヶ月目以降' : (phase?.name ?? `P${pi + 1}`),
-        options: { bold: false, color: isAfter13 ? GRAY : DARK, fill: { color: rowBg }, align: 'center' as const, valign: 'middle' as const, fontSize: 8 },
+        options: { bold: false, color: phaseText, fill: { color: phaseBg }, align: 'center' as const, valign: 'middle' as const, fontSize: 8 },
       },
       {
         text: m?.title ?? '',
-        options: { bold: !isAfter13, color: isAfter13 ? GRAY : DARK, fill: { color: rowBg }, align: 'left' as const, valign: 'middle' as const, fontSize: 8 },
+        options: { bold: false, color: isAfter13 ? GRAY : DARK, fill: { color: WHITE }, align: 'left' as const, valign: 'middle' as const, fontSize: 8 },
       },
       {
         text: m ? m.actions.slice(0, 2).map(a => `• ${a}`).join('\n') : '',
-        options: { color: DARK, fill: { color: rowBg }, align: 'left' as const, valign: 'top' as const, fontSize: 8 },
+        options: { color: DARK, fill: { color: WHITE }, align: 'left' as const, valign: 'top' as const, fontSize: 8 },
       },
     ]
   })
