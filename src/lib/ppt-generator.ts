@@ -146,6 +146,16 @@ function secBar(sl: Sl, prs: PptxGenJS, x: number, y: number, w: number, text: s
   })
 }
 
+/**
+ * \n 区切りのテキストを pptxgenjs テキスト配列（段落間スペース付き）に変換
+ * paraSpaceAfter を使って各段落の後ろに余白を追加する
+ */
+function toParagraphs(text: string, spacePt = 5): { text: string; options?: { paraSpaceAfter?: number } }[] {
+  const lines = text.split('\n').filter(l => l.trim().length > 0)
+  if (lines.length <= 1) return [{ text: text.trim() }]
+  return lines.map((line) => ({ text: line.trim(), options: { paraSpaceAfter: spacePt } }))
+}
+
 function monthToCalLabel(startYYYYMM: string, offset: number): string {
   if (!startYYYYMM || !/^\d{4}-\d{2}$/.test(startYYYYMM)) return ''
   const [y, m] = startYYYYMM.split('-').map(Number)
@@ -367,7 +377,7 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
     x: MG, y: Y0 + 0.22, w: LW, h: TEXT_H,
     fill: { color: GRAY_LT }, line: { color: 'E5E7EB', width: 0.5 },
   })
-  sl.addText(plan.projectOverview ?? plan.summary ?? '', {
+  sl.addText(toParagraphs(plan.projectOverview ?? plan.summary ?? ''), {
     x: MG + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: TEXT_H - 0.10,
     fontFace: FONT, fontSize: 8, color: DARK, valign: 'top', align: 'left',
   })
@@ -385,7 +395,7 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
     x: RX, y: Y0 + 0.22, w: LW, h: TEXT_H,
     fill: { color: GRAY_LT }, line: { color: 'E5E7EB', width: 0.5 },
   })
-  sl.addText(plan.promotionPoints ?? '', {
+  sl.addText(toParagraphs(plan.promotionPoints ?? ''), {
     x: RX + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: TEXT_H - 0.10,
     fontFace: FONT, fontSize: 8, color: DARK, valign: 'top', align: 'left',
   })
@@ -902,7 +912,7 @@ export async function generatePptBuffer(
 
   const allMonths  = (plan.schedule ?? []).map(s => s.month)
   const firstHalf  = allMonths.filter(m => m >= 1 && m <= 6)
-  const secondHalf = allMonths.filter(m => m >= 7)
+  const secondHalf = allMonths.filter(m => m >= 7 && m <= 12)
 
   addCoverSlide(prs, answers)
   addPremiseSlide(prs, answers)
@@ -910,7 +920,7 @@ export async function generatePptBuffer(
   addUsageScenariosSlide(prs, plan)
   addPhaseScheduleSlide(prs, plan, answers)
   addMonthlySlide(prs, plan, answers, firstHalf,  '月次スケジュール（前半：1〜6ヶ月目）',  '月ごとのテーマとアクションで、定着の土台をつくる')
-  addMonthlySlide(prs, plan, answers, secondHalf, '月次スケジュール（後半：7〜12ヶ月目＋中長期）', '活用の深化・横展開・効果測定で成果をつないでいく')
+  addMonthlySlide(prs, plan, answers, secondHalf, '月次スケジュール（後半：7〜12ヶ月目）', '活用の深化・横展開・効果測定で成果をつないでいく')
   addDeviceSlide(prs, devicePlan)
   addCaseStudiesSlide(prs, cases)
 
