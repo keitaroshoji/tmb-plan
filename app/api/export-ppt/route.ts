@@ -46,7 +46,9 @@ async function simplifyPlanForPpt(plan: GeneratedPlan): Promise<GeneratedPlan> {
   const RULES_OVERVIEW = `・語尾を体言止めにする（「〜します」→省略、「〜が重要です」→「〜が重要」）
 ・文字数を元の70〜80%程度に削減（20〜30%削減）
 ・内容・意味は変えない
-・\\n（改行）はそのまま維持する`
+・既存の\\n（改行）はそのまま維持する
+・projectOverview と promotionPoints のみ: 話題・テーマが切り替わる箇所に\\nを追加してスライド上で読みやすく整形する（1テキスト内に3〜5個の\\nが目安）
+・1行あたりの文字数は概ね20〜30文字を目安にする`
 
   const RULES_ACTIONS = `・語尾を体言止めにする（「〜します」→「〜の実施」、「〜を行います」→「〜を実施」）
 ・各アクション文字数を元の60〜75%程度に削減
