@@ -845,7 +845,7 @@ function addCaseStudiesSlide(prs: PptxGenJS, cases: CaseStudy[]) {
   // データセル: 白背景・黒文字
   const cell = (text: string): TC => ({
     text,
-    options: { fontFace: FONT, fontSize: 8, color: DARK, fill: { color: WHITE }, valign: 'top' as const, align: 'left' as const },
+    options: { fontFace: FONT, fontSize: 8, color: DARK, fill: { color: WHITE }, valign: 'middle' as const, align: 'left' as const },
   })
 
   // ヘッダー行: [空ラベル, 会社名×N]
