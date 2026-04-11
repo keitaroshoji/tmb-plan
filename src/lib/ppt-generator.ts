@@ -101,7 +101,7 @@ function addHeader(sl: Sl, prs: PptxGenJS, title: string, sub?: string) {
   if (sub) {
     sl.addText(sub, {
       x: MG, y: HEADLINE_LINE_Y + 0.06, w: CW, h: CONTENT_Y - HEADLINE_LINE_Y - 0.08,
-      fontFace: FONT, fontSize: 16, bold: true, color: DARK, valign: 'middle', align: 'center',
+      fontFace: FONT, fontSize: 16, bold: false, color: DARK, valign: 'middle', align: 'center',
     })
   }
 }
@@ -187,7 +187,7 @@ function addCoverSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
   const TITLE_H = 0.45
   sl.addText(`${company} 様　Teachme Biz 運用プランご提案`, {
     x: MG, y: CY - TITLE_H / 2, w: CW, h: TITLE_H,
-    fontFace: FONT, fontSize: 24, bold: true, color: DARK, valign: 'middle',
+    fontFace: FONT, fontSize: 24, bold: false, color: DARK, valign: 'middle',
   })
 
   // 提案日（センターから下3.7cm・Noto Sans JP 8pt・黒文字）
