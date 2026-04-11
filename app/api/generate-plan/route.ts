@@ -38,7 +38,7 @@ const SCHEMA_MANUAL_USAGE_PAIRS = `JSONのみ（4件）:
 
 // callC: 障壁・KPI・プロジェクト概要・推進ポイントを1コールで生成（統合）
 const SCHEMA_BARRIER_AND_SUMMARY = `JSONのみ:
-{"barrierActions":[{"challenge":"課題","counter":"対処策1文"}],"kpiTargets":[{"kpi":"名","target":"値","timing":"時期"}],"projectOverview":"プロジェクトの目的・背景・期待効果を300字程度","promotionPoints":"推進の重要ポイント・注意点・成功の鍵を300字程度"}`
+{"barrierActions":[{"challenge":"課題","counter":"対処策1文"}],"kpiTargets":[{"kpi":"名","target":"値","timing":"時期"}],"projectOverview":"プロジェクトの目的・背景・期待効果を3〜4段落で記述。段落の区切りには必ず\\nを挿入すること。合計200〜280字","promotionPoints":"推進の重要ポイント・注意点・成功の鍵を3〜4項目に分けて記述。各項目の区切りには必ず\\nを挿入すること。合計200〜280字"}`
 
 // ラベルマップは src/data/labels.ts に集約（import済み）
 

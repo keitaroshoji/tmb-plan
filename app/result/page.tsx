@@ -904,10 +904,10 @@ export default function ResultPage() {
                     <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
                     <h3 className="text-gray-700 font-bold text-sm">プロジェクト概要</h3>
                   </div>
-                  <div className="px-6 py-5">
-                    <p className="text-gray-700 text-sm leading-[1.9]">
-                      {plan.projectOverview ?? plan.summary}
-                    </p>
+                  <div className="px-6 py-5 space-y-2">
+                    {(plan.projectOverview ?? plan.summary ?? '').split('\n').filter(Boolean).map((line, i) => (
+                      <p key={i} className="text-gray-700 text-sm leading-[1.9]">{line}</p>
+                    ))}
                   </div>
                 </div>
                 {/* 推進上のポイント：未着信の間はスケルトン表示 */}
@@ -917,8 +917,10 @@ export default function ResultPage() {
                       <div className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
                       <h3 className="text-gray-700 font-bold text-sm">推進上のポイント</h3>
                     </div>
-                    <div className="px-6 py-5">
-                      <p className="text-gray-700 text-sm leading-[1.9]">{plan.promotionPoints}</p>
+                    <div className="px-6 py-5 space-y-2">
+                      {(plan.promotionPoints ?? '').split('\n').filter(Boolean).map((line, i) => (
+                        <p key={i} className="text-gray-700 text-sm leading-[1.9]">{line}</p>
+                      ))}
                     </div>
                   </div>
                 ) : isGenerating ? (
