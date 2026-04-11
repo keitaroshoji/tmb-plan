@@ -46,16 +46,18 @@ const PHASE_COLORS = [
 
 // ==================== スライドサイズ（LAYOUT_16x9 = 10" × 5.625"） ====================
 
-const SW           = 10
-const SH           = 5.625
-const CX           = SW / 2        // スライド中央X = 5"
-const CY           = SH / 2        // スライド中央Y = 2.8125"
-const BAR_H        = 0.38          // ヘッドラインバー高さ（12pt用）
-const HDR_H        = 1.23          // 総ヘッダー高さ（バー + メインメッセージライン）
-const MG           = CX - 11.5 / 2.54   // 左右余白: センターから11.5cm ≈ 0.472"
-const CW           = SW - MG * 2         // コンテンツ幅: 11.5cm×2 = 23cm ≈ 9.055"
-const CONTENT_Y    = CY - 3.9 / 2.54    // コンテンツ上端: センターから上3.9cm ≈ 1.277"
-const CONTENT_END  = CY + 5.9 / 2.54    // コンテンツ下端: センターから下5.9cm ≈ 5.135"
+const SW              = 10
+const SH              = 5.625
+const CX              = SW / 2               // スライド中央X = 5"
+const CY              = SH / 2               // スライド中央Y = 2.8125"
+const MG              = CX - 11.5 / 2.54    // 左右余白: センターから11.5cm ≈ 0.472"
+const CW              = SW - MG * 2          // コンテンツ幅: 23cm ≈ 9.055"
+const CONTENT_Y       = CY - 3.9 / 2.54     // コンテンツ上端: センターから上3.9cm ≈ 1.277"
+const CONTENT_END     = CY + 5.9 / 2.54     // コンテンツ下端: センターから下5.9cm ≈ 5.135"
+const HEADLINE_LINE_Y = CY - 6.0 / 2.54     // ヘッドラインライン: センターから上6.0cm ≈ 0.450"
+const FOOTER_Y        = CY + 6.2 / 2.54     // フッター上端: センターから下6.2cm ≈ 5.253"
+const FOOTER_H_VAL    = SH - FOOTER_Y        // フッター高さ ≈ 0.372"
+const BRAND_COLOR     = '1A40B1'             // ヘッドラインライン・フッター色
 
 // ==================== フォント ====================
 
@@ -63,8 +65,9 @@ const FONT = 'Noto Sans JP'
 
 // ==================== 画像パス ====================
 
-const COVER_BG_PATH    = path.join(process.cwd(), 'public', 'ppt-cover-bg.png')
+const COVER_BG_PATH     = path.join(process.cwd(), 'public', 'ppt-cover-bg.png')
 const STUDIST_LOGO_PATH = path.join(process.cwd(), 'public', 'ppt-studist-logo.png')
+const FOOTER_LOGO_PATH  = path.join(process.cwd(), 'public', 'ppt-footer-logo.png')
 
 // ==================== 型エイリアス ====================
 
@@ -73,40 +76,48 @@ type Sl = ReturnType<InstanceType<typeof PptxGenJS>['addSlide']>
 // ==================== ユーティリティ ====================
 
 function addHeader(sl: Sl, prs: PptxGenJS, title: string, sub?: string) {
-  // ヘッドライン（12pt・黒文字）
+  // ヘッドラインテキスト（12pt・黒・ラインの上）
+  // テキスト開始X: センターから左11.5cm = MG（余白ゼロ）
   sl.addText(title, {
-    x: MG, y: 0.09, w: CW, h: 0.23,
+    x: MG, y: HEADLINE_LINE_Y - 0.27, w: CW, h: 0.24,
     fontFace: FONT, fontSize: 12, color: DARK, valign: 'middle',
   })
-  // ヘッドライン下の青アクセントライン（全幅）
+  // ヘッドラインライン（全幅・BRAND_COLOR）
   sl.addShape(prs.ShapeType.rect, {
-    x: 0, y: 0.35, w: SW, h: 0.03,
-    fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },
+    x: 0, y: HEADLINE_LINE_Y, w: SW, h: 0.03,
+    fill: { color: BRAND_COLOR }, line: { color: BRAND_COLOR, width: 0 },
   })
   // メインメッセージライン（16pt・太字・中央揃え）
   if (sub) {
     sl.addText(sub, {
-      x: MG, y: 0.43, w: CW, h: HDR_H - 0.45,
+      x: MG, y: HEADLINE_LINE_Y + 0.06, w: CW, h: CONTENT_Y - HEADLINE_LINE_Y - 0.08,
       fontFace: FONT, fontSize: 16, bold: true, color: DARK, valign: 'middle', align: 'center',
     })
   }
 }
 
 function addFooter(sl: Sl, prs: PptxGenJS) {
-  const fy = CONTENT_END
-  const fh = SH - CONTENT_END
-  // フッターバー（青）
+  const fy = FOOTER_Y
+  const fh = FOOTER_H_VAL
+  // フッターバー（BRAND_COLOR）
   sl.addShape(prs.ShapeType.rect, {
     x: 0, y: fy, w: SW, h: fh,
-    fill: { color: PRIMARY_DK }, line: { color: PRIMARY_DK, width: 0 },
+    fill: { color: BRAND_COLOR }, line: { color: BRAND_COLOR, width: 0 },
   })
-  // Studistロゴ
+  // フッターロゴ
   try {
-    const lh = fh * 0.58
+    const lh = fh * 0.60
     const lw = lh / 0.282 * 1.240
-    sl.addImage({ path: STUDIST_LOGO_PATH, x: MG, y: fy + (fh - lh) / 2, w: lw, h: lh })
+    sl.addImage({ path: FOOTER_LOGO_PATH, x: MG, y: fy + (fh - lh) / 2, w: lw, h: lh })
   } catch {
-    sl.addText('studist', { x: MG, y: fy, w: 1.2, h: fh, fontFace: FONT, fontSize: 7, color: WHITE, valign: 'middle' })
+    // フォールバック: 既存ロゴ
+    try {
+      const lh = fh * 0.60
+      const lw = lh / 0.282 * 1.240
+      sl.addImage({ path: STUDIST_LOGO_PATH, x: MG, y: fy + (fh - lh) / 2, w: lw, h: lh })
+    } catch {
+      sl.addText('studist', { x: MG, y: fy, w: 1.2, h: fh, fontFace: FONT, fontSize: 7, color: WHITE, valign: 'middle' })
+    }
   }
   // Copyright
   sl.addText('Copyright (C) Studist Corporation. All Rights Reserved', {
@@ -162,41 +173,25 @@ function addCoverSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
     // ロゴ画像が見つからない場合はスキップ
   }
 
-  // タイトル背景バー（テンプレートの暗いバー）
-  sl.addShape(prs.ShapeType.rect, {
-    x: 0.756, y: 2.398, w: 8.362, h: 0.404,
-    fill: { color: COVER_BAR }, line: { color: COVER_BAR, width: 0 },
-  })
-
-  // タイトルテキスト
+  // タイトルテキスト（黒文字・背景なし）
   const company = answers.companyName || '顧客'
   sl.addText(`${company} 様　Teachme Biz 運用プランご提案`, {
     x: 0.832, y: 2.398, w: 8.210, h: 0.404,
-    fontFace: FONT, fontSize: 16, bold: true, color: WHITE, valign: 'middle',
+    fontFace: FONT, fontSize: 16, bold: true, color: DARK, valign: 'middle',
   })
 
-  // 日付行の背景
-  sl.addShape(prs.ShapeType.rect, {
-    x: 0.732, y: 4.127, w: 8.362, h: 0.22,
-    fill: { color: COVER_BAR }, line: { color: COVER_BAR, width: 0 },
-  })
-
-  // 提案日
+  // 提案日（黒文字・背景なし）
   const today = new Date()
   const dateStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`
   sl.addText(dateStr, {
     x: 0.832, y: 4.127, w: 4, h: 0.22,
-    fontFace: FONT, fontSize: 8, color: WHITE, valign: 'middle',
+    fontFace: FONT, fontSize: 8, color: DARK, valign: 'middle',
   })
 
-  // 企業名（下段）
-  sl.addShape(prs.ShapeType.rect, {
-    x: 0.732, y: 4.357, w: 8.362, h: 0.22,
-    fill: { color: COVER_BAR }, line: { color: COVER_BAR, width: 0 },
-  })
+  // 企業名（下段・黒文字・背景なし）
   sl.addText(company, {
     x: 0.832, y: 4.357, w: 6, h: 0.22,
-    fontFace: FONT, fontSize: 9, bold: true, color: WHITE, valign: 'middle',
+    fontFace: FONT, fontSize: 9, bold: true, color: DARK, valign: 'middle',
   })
 }
 
