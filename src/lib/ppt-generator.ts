@@ -68,22 +68,46 @@ type Sl = ReturnType<InstanceType<typeof PptxGenJS>['addSlide']>
 // ==================== ユーティリティ ====================
 
 function addHeader(sl: Sl, prs: PptxGenJS, title: string, sub?: string) {
-  // ヘッドラインバー（12pt）
+  // ヘッドライン（12pt・黒文字）
+  sl.addText(title, {
+    x: MG, y: 0.09, w: CW, h: 0.23,
+    fontFace: FONT, fontSize: 12, color: DARK, valign: 'middle',
+  })
+  // ヘッドライン下の青アクセントライン（全幅）
   sl.addShape(prs.ShapeType.rect, {
-    x: 0, y: 0, w: SW, h: BAR_H,
+    x: 0, y: 0.35, w: SW, h: 0.03,
     fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },
   })
-  sl.addText(title, {
-    x: MG, y: 0, w: SW - MG, h: BAR_H,
-    fontFace: FONT, fontSize: 12, bold: true, color: WHITE, valign: 'middle',
-  })
-  // メインメッセージライン（16pt）
+  // メインメッセージライン（16pt・太字・中央揃え）
   if (sub) {
     sl.addText(sub, {
-      x: MG, y: BAR_H + 0.05, w: CW, h: HDR_H - BAR_H - 0.05,
-      fontFace: FONT, fontSize: 16, bold: true, color: DARK, valign: 'middle',
+      x: MG, y: 0.43, w: CW, h: HDR_H - 0.45,
+      fontFace: FONT, fontSize: 16, bold: true, color: DARK, valign: 'middle', align: 'center',
     })
   }
+}
+
+function addFooter(sl: Sl, prs: PptxGenJS) {
+  const fy = CONTENT_END
+  const fh = SH - CONTENT_END
+  // フッターバー（青）
+  sl.addShape(prs.ShapeType.rect, {
+    x: 0, y: fy, w: SW, h: fh,
+    fill: { color: PRIMARY_DK }, line: { color: PRIMARY_DK, width: 0 },
+  })
+  // Studistロゴ
+  try {
+    const lh = fh * 0.58
+    const lw = lh / 0.282 * 1.240
+    sl.addImage({ path: STUDIST_LOGO_PATH, x: MG, y: fy + (fh - lh) / 2, w: lw, h: lh })
+  } catch {
+    sl.addText('studist', { x: MG, y: fy, w: 1.2, h: fh, fontFace: FONT, fontSize: 7, color: WHITE, valign: 'middle' })
+  }
+  // Copyright
+  sl.addText('Copyright (C) Studist Corporation. All Rights Reserved', {
+    x: MG, y: fy, w: CW, h: fh,
+    fontFace: FONT, fontSize: 6, color: WHITE, valign: 'middle', align: 'right',
+  })
 }
 
 function secBar(sl: Sl, prs: PptxGenJS, x: number, y: number, w: number, text: string, color = PRIMARY) {
@@ -258,6 +282,8 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
     sl.addText(label, { x: RX + 0.07, y: rowY + 0.03, w: 1.0, h: 0.21, fontFace: FONT, fontSize: 7, color: GRAY, bold: true, valign: 'middle' })
     sl.addText(value, { x: RX + 1.1,  y: rowY + 0.03, w: RW - 1.2, h: 0.21, fontFace: FONT, fontSize: 7.5, color: DARK, valign: 'middle' })
   })
+
+  addFooter(sl, prs)
 }
 
 // ==================== Slide 2: プランサマリー＋マニュアル活用イメージ ====================
@@ -380,6 +406,8 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
       sl.addText(text,  { x: cx + 0.44, y: inY, w: cardW - 0.50, h: rowH - 0.05, fontFace: FONT, fontSize: 6.5, color: DARK, valign: 'top' })
     })
   })
+
+  addFooter(sl, prs)
 }
 
 // ==================== Slide 3: 全体スケジュール案 ====================
@@ -458,6 +486,8 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
       })
     })
   })
+
+  addFooter(sl, prs)
 }
 
 // ==================== Slide 4/5: 各月スケジュール（前半・後半） ====================
@@ -590,6 +620,8 @@ function addMonthlySlide(
       fontFace: FONT, fontSize: 6.5, color: DARK, valign: 'top', align: 'left',
     })
   })
+
+  addFooter(sl, prs)
 }
 
 // ==================== Slide 6: デバイス配置イメージ ====================
@@ -720,6 +752,8 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
     x: MG, y: CONTENT_END - 0.19, w: CW, h: 0.19,
     fontFace: FONT, fontSize: 6, color: GRAY, italic: true,
   })
+
+  addFooter(sl, prs)
 }
 
 // ==================== エントリポイント ====================
