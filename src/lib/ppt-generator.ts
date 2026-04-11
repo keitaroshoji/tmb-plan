@@ -36,12 +36,22 @@ const WHITE        = 'FFFFFF'
 const GRAY13       = SLATE
 const GRAY13_LT    = GRAY_XLT
 
-// フェーズカラー：Main / Sub / Accent の3系統から4色
+// フェーズカラー：青の濃淡4段階（オレンジなし）
+// Phase 1 → 薄い青、Phase 4 → 濃い青 でフェーズの進行を表現
+const PHASE_BLUE_1  = '5FA8F5'   // 淡青
+const PHASE_BLUE_1L = 'DAEEFF'   // 淡青（ライト）
+const PHASE_BLUE_2  = PRIMARY     // '3B88ED' 中青
+const PHASE_BLUE_2L = PRIMARY_LT  // 'D6E8FB'
+const PHASE_BLUE_3  = PRIMARY_MDK // '1A56B8' 中濃青
+const PHASE_BLUE_3L = PRIMARY_MLT // 'C7D7F5'
+const PHASE_BLUE_4  = '0D3490'   // 濃紺
+const PHASE_BLUE_4L = 'B8C8E8'   // 濃紺（ライト）
+
 const PHASE_COLORS = [
-  { bg: PRIMARY,     light: PRIMARY_LT,  text: PRIMARY_DK  },  // Phase 1: ブルー
-  { bg: COVER_BAR,   light: GRAY_LT,     text: DARK        },  // Phase 2: チャコール
-  { bg: ORANGE,      light: ORANGE_LT,   text: ORANGE_DK   },  // Phase 3: オレンジ
-  { bg: PRIMARY_MDK, light: PRIMARY_MLT, text: PRIMARY_DK  },  // Phase 4: ダークブルー
+  { bg: PHASE_BLUE_1, light: PHASE_BLUE_1L, text: PRIMARY_DK  },  // Phase 1: 淡青
+  { bg: PHASE_BLUE_2, light: PHASE_BLUE_2L, text: PRIMARY_DK  },  // Phase 2: 中青
+  { bg: PHASE_BLUE_3, light: PHASE_BLUE_3L, text: WHITE        },  // Phase 3: 中濃青
+  { bg: PHASE_BLUE_4, light: PHASE_BLUE_4L, text: WHITE        },  // Phase 4: 濃紺
 ]
 
 // ==================== スライドサイズ（LAYOUT_16x9 = 10" × 5.625"） ====================
@@ -804,7 +814,7 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
 function addCaseStudiesSlide(prs: PptxGenJS, cases: CaseStudy[]) {
   const sl = prs.addSlide()
   sl.background = { color: WHITE }
-  addHeader(sl, prs, '他社事例', '導入企業の成果事例')
+  addHeader(sl, prs, '他社事例', '同業・同規模企業の導入成果')
 
   if (!cases || cases.length === 0) {
     sl.addText('事例データがありません', {
@@ -815,67 +825,69 @@ function addCaseStudiesSlide(prs: PptxGenJS, cases: CaseStudy[]) {
     return
   }
 
-  const cols = Math.min(cases.length, 3)
-  const rows = Math.ceil(cases.length / cols)
-  const GAP_H = 0.12
-  const GAP_V = 0.10
-  const cardW = (CW - GAP_H * (cols - 1)) / cols
-  const cardH = (CONTENT_END - CONTENT_Y - GAP_V * (rows - 1)) / rows
-  const HDR_CARD = 0.30
+  // 最大3件を横並び表形式で表示
+  const caseList = cases.slice(0, 3)
+  const NUM_COLS = caseList.length
 
-  cases.slice(0, cols * rows).forEach((c, idx) => {
-    const col = idx % cols
-    const row = Math.floor(idx / cols)
-    const cx = MG + col * (cardW + GAP_H)
-    const cy = CONTENT_Y + row * (cardH + GAP_V)
+  // カラム幅（会社名ラベル列 + 事例列）
+  const LABEL_W  = 0.70
+  const CASE_W   = (CW - LABEL_W) / NUM_COLS
 
-    // カードヘッダー（会社名）
-    sl.addShape(prs.ShapeType.rect, {
-      x: cx, y: cy, w: cardW, h: HDR_CARD,
-      fill: { color: COVER_BAR }, line: { color: COVER_BAR, width: 0 },
-    })
-    sl.addText(c.companyName, {
-      x: cx + 0.08, y: cy, w: cardW - 0.70, h: HDR_CARD,
-      fontFace: FONT, fontSize: 8.5, bold: false, color: WHITE, valign: 'middle',
-    })
-    const meta = [c.industry, c.companySize].filter(Boolean).join(' / ')
-    sl.addText(meta, {
-      x: cx + cardW - 0.65, y: cy, w: 0.60, h: HDR_CARD,
-      fontFace: FONT, fontSize: 6, color: GRAY_LT, valign: 'middle', align: 'right',
-    })
+  // 行定義: ヘッダー行 + 課題・解決策・効果・定量効果
+  const HDR_H   = 0.35
+  const ROW_H   = (CONTENT_END - CONTENT_Y - HDR_H) / 4
 
-    // カード本体
-    const bodyY = cy + HDR_CARD
-    const bodyH = cardH - HDR_CARD
-    sl.addShape(prs.ShapeType.rect, {
-      x: cx, y: bodyY, w: cardW, h: bodyH,
-      fill: { color: WHITE }, line: { color: 'E5E7EB', width: 0.5 },
-    })
+  type TC = { text: string; options: Record<string, unknown> }
 
-    // 課題 / 解決策 / 効果 の3セクション
-    const SEC_H = bodyH / 3
-    const sections: { label: string; text: string; color: string }[] = [
-      { label: '課題', text: c.challenge, color: SLATE },
-      { label: '解決策', text: c.solution, color: PRIMARY },
-      { label: '効果', text: c.effect, color: ORANGE_DK },
-    ]
-    sections.forEach(({ label, text, color }, si) => {
-      const sy = bodyY + si * SEC_H
-      if (si > 0) {
-        sl.addShape(prs.ShapeType.rect, {
-          x: cx, y: sy, w: cardW, h: 0.006,
-          fill: { color: 'E5E7EB' }, line: { color: 'E5E7EB', width: 0 },
-        })
-      }
-      sl.addText(label, {
-        x: cx + 0.08, y: sy + 0.04, w: 0.45, h: 0.18,
-        fontFace: FONT, fontSize: 7, bold: false, color, valign: 'middle',
-      })
-      sl.addText(text, {
-        x: cx + 0.08, y: sy + 0.22, w: cardW - 0.14, h: SEC_H - 0.26,
-        fontFace: FONT, fontSize: 6.5, color: DARK, valign: 'top', align: 'left',
-      })
-    })
+  const cell = (text: string, fill: string, color: string, fontSize = 8, valign: 'top' | 'middle' = 'top'): TC => ({
+    text,
+    options: { fontFace: FONT, fontSize, color, fill: { color: fill }, valign, align: 'left' },
+  })
+  const hdr = (text: string): TC => ({
+    text,
+    options: { fontFace: FONT, fontSize: 8, color: WHITE, fill: { color: DARK }, valign: 'middle' as const, align: 'center' as const },
+  })
+  const lbl = (text: string, fill: string): TC => ({
+    text,
+    options: { fontFace: FONT, fontSize: 7, color: WHITE, fill: { color: fill }, valign: 'middle' as const, align: 'center' as const },
+  })
+
+  // ヘッダー行: [空ラベル, 会社名×N]
+  const headerRow: TC[] = [
+    { text: '', options: { fill: { color: DARK } } },
+    ...caseList.map(c => {
+      const meta = [c.industry, c.companySize].filter(Boolean).join(' / ')
+      return hdr(`${c.companyName}\n${meta}`)
+    }),
+  ]
+
+  // ラベルの色
+  const LABEL_COLORS = [SLATE, PRIMARY, PRIMARY_MDK, DARK]
+
+  // データ行: [行ラベル, 各事例セル]
+  const rowDefs: { label: string; key: keyof CaseStudy; lcolor: string; vfill: string; vcolor: string }[] = [
+    { label: '課題',   key: 'challenge', lcolor: SLATE,       vfill: GRAY_LT,   vcolor: DARK   },
+    { label: '解決策', key: 'solution',  lcolor: PRIMARY,     vfill: PRIMARY_LT, vcolor: PRIMARY_DK },
+    { label: '効果',   key: 'effect',    lcolor: PRIMARY_MDK, vfill: PHASE_BLUE_3L, vcolor: PRIMARY_DK },
+    { label: '定性効果', key: 'qualitativeEffect', lcolor: DARK, vfill: WHITE, vcolor: DARK },
+  ]
+
+  const dataRows = rowDefs.map(({ label, key, lcolor, vfill, vcolor }) => [
+    lbl(label, lcolor),
+    ...caseList.map((c, ci) => cell(
+      String(c[key] ?? '—'),
+      ci % 2 === 0 ? vfill : WHITE,
+      vcolor,
+      7,
+    )),
+  ])
+
+  sl.addTable([headerRow, ...dataRows], {
+    x: MG, y: CONTENT_Y, w: CW,
+    colW: [LABEL_W, ...caseList.map(() => CASE_W)],
+    rowH: [HDR_H, ...rowDefs.map(() => ROW_H)],
+    border: { type: 'solid', pt: 0.5, color: 'E5E7EB' },
+    fontFace: FONT,
   })
 
   addFooter(sl, prs)
