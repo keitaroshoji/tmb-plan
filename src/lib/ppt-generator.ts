@@ -442,79 +442,61 @@ function addUsageScenariosSlide(prs: PptxGenJS, plan: GeneratedPlan) {
   // manualUsagePairs を優先、なければ usageScenarios にフォールバック
   const pairs = plan.manualUsagePairs ?? []
   const scenarios = plan.usageScenarios ?? []
-  const items = pairs.length > 0 ? pairs : scenarios.map(s => ({
+  const items = (pairs.length > 0 ? pairs : scenarios.map(s => ({
     targetUser: s.user,
     manualTitle: s.manualTitle,
     content: s.scene,
     feature: '',
     scene: s.scene,
     effect: s.effect,
-  }))
+  }))).slice(0, 3)
 
-  const GAP = 0.14
-  const cardW = (CW - GAP * 2) / 3
-  const cardY = CONTENT_Y + 0.26
-  const cardH = CONTENT_END - cardY - 0.05
-  const TITLE_H = 0.28
-  const TAG_H   = 0.22
+  // 列幅（合計 CW ≈ 9.055"）
+  const COL_USER    = 1.30
+  const COL_MANUAL  = 2.00
+  const COL_SCENE   = 2.10
+  const COL_FEATURE = 1.40
+  const COL_EFFECT  = CW - COL_USER - COL_MANUAL - COL_SCENE - COL_FEATURE
 
-  secBar(sl, prs, MG, CONTENT_Y, CW, 'マニュアル活用イメージ', PRIMARY)
+  const HDR_H  = 0.30
+  const DATA_H = (CONTENT_END - CONTENT_Y - HDR_H) / Math.max(items.length, 1)
 
-  items.slice(0, 3).forEach((s, i) => {
-    const cx = MG + i * (cardW + GAP)
+  type TC = { text: string; options: Record<string, unknown> }
 
-    // 対象者タグ
-    sl.addShape(prs.ShapeType.rect, {
-      x: cx, y: cardY, w: cardW, h: TAG_H,
-      fill: { color: PRIMARY_LT }, line: { color: PRIMARY_LT, width: 0 },
-    })
-    sl.addText(`対象: ${'targetUser' in s ? s.targetUser : ''}`, {
-      x: cx + 0.06, y: cardY, w: cardW - 0.08, h: TAG_H,
-      fontFace: FONT, fontSize: 8, color: PRIMARY_DK, valign: 'middle',
-    })
+  const hdr = (text: string): TC => ({
+    text,
+    options: { fontFace: FONT, fontSize: 8, color: WHITE, fill: { color: DARK }, valign: 'middle', align: 'center' },
+  })
+  const cell = (text: string, fill = WHITE): TC => ({
+    text,
+    options: { fontFace: FONT, fontSize: 8, color: DARK, fill: { color: fill }, valign: 'top', align: 'left' },
+  })
 
-    // カードタイトル（マニュアル名）
-    sl.addShape(prs.ShapeType.rect, {
-      x: cx, y: cardY + TAG_H, w: cardW, h: TITLE_H,
-      fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },
-    })
-    sl.addText(s.manualTitle, {
-      x: cx + 0.06, y: cardY + TAG_H, w: cardW - 0.08, h: TITLE_H,
-      fontFace: FONT, fontSize: 8, bold: false, color: WHITE, valign: 'middle',
-    })
+  const headerRow: TC[] = [
+    hdr('対象者'),
+    hdr('マニュアルタイトル'),
+    hdr('使うシーン'),
+    hdr('活用機能'),
+    hdr('期待効果'),
+  ]
 
-    // カード本体
-    const bodyY = cardY + TAG_H + TITLE_H
-    const bodyH = cardH - TAG_H - TITLE_H
-    sl.addShape(prs.ShapeType.rect, {
-      x: cx, y: bodyY, w: cardW, h: bodyH,
-      fill: { color: GRAY_LT }, line: { color: 'E5E7EB', width: 0.5 },
-    })
-
-    // 3行（場面・機能・効果）
-    const ROW_H = bodyH / 3
-    const rowData: [string, string][] = [
-      ['場面', 'scene' in s ? s.scene : ''],
-      ['機能', 'feature' in s ? s.feature : ''],
-      ['効果', s.effect],
+  const dataRows = items.map((s, i) => {
+    const fill = i % 2 === 0 ? GRAY_LT : WHITE
+    return [
+      cell('targetUser' in s ? s.targetUser : '', fill),
+      cell(s.manualTitle, fill),
+      cell('scene' in s ? s.scene : '', fill),
+      cell('feature' in s ? s.feature : '', fill),
+      cell(s.effect, fill),
     ]
-    rowData.forEach(([label, text], ri) => {
-      const ry = bodyY + ri * ROW_H
-      if (ri > 0) {
-        sl.addShape(prs.ShapeType.rect, {
-          x: cx, y: ry, w: cardW, h: 0.007,
-          fill: { color: 'E5E7EB' }, line: { color: 'E5E7EB', width: 0 },
-        })
-      }
-      sl.addText(label, {
-        x: cx + 0.08, y: ry + 0.05, w: 0.48, h: 0.18,
-        fontFace: FONT, fontSize: 8, bold: false, color: PRIMARY, valign: 'middle',
-      })
-      sl.addText(text, {
-        x: cx + 0.08, y: ry + 0.24, w: cardW - 0.14, h: ROW_H - 0.26,
-        fontFace: FONT, fontSize: 8, color: DARK, valign: 'top', align: 'left',
-      })
-    })
+  })
+
+  sl.addTable([headerRow, ...dataRows], {
+    x: MG, y: CONTENT_Y, w: CW,
+    colW: [COL_USER, COL_MANUAL, COL_SCENE, COL_FEATURE, COL_EFFECT],
+    rowH: [HDR_H, ...items.map(() => DATA_H)],
+    border: { type: 'solid', pt: 0.5, color: 'E5E7EB' },
+    fontFace: FONT,
   })
 
   addFooter(sl, prs)
