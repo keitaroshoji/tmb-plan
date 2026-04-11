@@ -121,7 +121,7 @@ export function StepCurrentUsage() {
         <div>
           <label className="text-sm font-semibold text-gray-700">
             現在の契約プラン
-            <span className="ml-1 text-xs font-normal text-red-500">*必須</span>
+            <span className="ml-1 text-xs font-normal text-orange-500">*必須</span>
           </label>
           <p className="mt-0.5 text-xs text-gray-400">
             まだ契約していない場合は「未契約」を選択してください。新規営業中の場合は、契約を想定しているプランを選択してください。わからない場合は最も近いプランを選択してください。
@@ -186,7 +186,7 @@ export function StepCurrentUsage() {
                 {ALL_OPT_FEATURES.filter((f) => selectedPlan.features[f] === 'std').map((f) => (
                   <span
                     key={f}
-                    className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs text-green-700 font-medium"
+                    className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs text-blue-700 font-medium"
                   >
                     {FEATURE_LABELS[f]}
                   </span>
@@ -202,7 +202,7 @@ export function StepCurrentUsage() {
                   {naFeatures.map((f) => (
                     <span
                       key={f}
-                      className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs text-red-600 font-medium"
+                      className="rounded-full bg-orange-100 px-2.5 py-0.5 text-xs text-orange-700 font-medium"
                     >
                       {FEATURE_LABELS[f]}
                     </span>

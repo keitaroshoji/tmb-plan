@@ -78,9 +78,9 @@ export function RoadmapSection({ roadmap, startPoint, onStartPointChange }: Prop
                   </div>
                 )}
                 {phase.newUseCase && (
-                  <div className="rounded-md bg-green-50 px-2.5 py-2">
-                    <p className="text-xs text-green-600 font-medium mb-0.5">新規用途の追加</p>
-                    <p className="text-xs text-green-800">{phase.newUseCase}</p>
+                  <div className="rounded-md bg-blue-50 px-2.5 py-2">
+                    <p className="text-xs text-blue-600 font-medium mb-0.5">新規用途の追加</p>
+                    <p className="text-xs text-blue-800">{phase.newUseCase}</p>
                   </div>
                 )}
                 <div>

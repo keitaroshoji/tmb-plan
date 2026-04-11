@@ -102,7 +102,7 @@ export function Step01BasicInfo() {
 
       {/* 企業名 */}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-gray-700">企業名 <span className="text-red-500">*</span></label>
+        <label className="text-sm font-semibold text-gray-700">企業名 <span className="text-orange-500">*</span></label>
         <input
           type="text"
           value={answers.companyName}
@@ -114,7 +114,7 @@ export function Step01BasicInfo() {
 
       {/* 業種 */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">業種 <span className="text-red-500">*</span></label>
+        <label className="text-sm font-semibold text-gray-700">業種 <span className="text-orange-500">*</span></label>
         <div className="grid grid-cols-2 gap-2">
           {INDUSTRIES.map((item) => (
             <ChoiceCard
@@ -132,7 +132,7 @@ export function Step01BasicInfo() {
       {requiresSubIndustry && (
         <div className="space-y-3">
           <label className="text-sm font-semibold text-gray-700">
-            業態・セグメント <span className="text-red-500">*</span>
+            業態・セグメント <span className="text-orange-500">*</span>
             <span className="ml-2 text-xs font-normal text-gray-400">（より精度の高いプランを生成します）</span>
           </label>
           <div className="grid grid-cols-1 gap-2">
@@ -248,7 +248,7 @@ export function Step01BasicInfo() {
       <div className="grid grid-cols-2 gap-5 items-start">
         {/* 企業規模 */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-gray-700">従業員規模 <span className="text-red-500">*</span></label>
+          <label className="text-sm font-semibold text-gray-700">従業員規模 <span className="text-orange-500">*</span></label>
           <div className="flex flex-col gap-1.5">
             {SIZES.map((item) => (
               <button
@@ -300,7 +300,7 @@ export function Step01BasicInfo() {
 
           {/* FC */}
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-gray-700">FC事業者？ <span className="text-red-500">*</span></label>
+            <label className="text-sm font-semibold text-gray-700">FC事業者？ <span className="text-orange-500">*</span></label>
             <div className="flex gap-2">
               <button
                 type="button"

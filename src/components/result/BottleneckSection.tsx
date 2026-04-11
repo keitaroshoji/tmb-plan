@@ -4,7 +4,7 @@ import React from 'react'
 import { BottleneckHint } from '@/src/types/plan'
 
 const SEVERITY_STYLES = {
-  '要確認': { bg: 'bg-red-50', border: 'border-red-300', badge: 'bg-red-100 text-red-700', icon: '🔴' },
+  '要確認': { bg: 'bg-orange-50', border: 'border-orange-300', badge: 'bg-orange-100 text-orange-700', icon: '🔴' },
   '注意': { bg: 'bg-amber-50', border: 'border-amber-300', badge: 'bg-amber-100 text-amber-700', icon: '🟡' },
   '参考': { bg: 'bg-blue-50', border: 'border-blue-200', badge: 'bg-blue-100 text-blue-600', icon: '🔵' },
 }

@@ -43,8 +43,8 @@ function normalizeBarrierActions(raw: unknown[]): BarrierAction[] {
 
 const PHASE_COLORS = [
   { bg: '#2563EB', light: '#EFF6FF', text: '#1D4ED8' },
-  { bg: '#059669', light: '#F0FDF4', text: '#047857' },
-  { bg: '#7C3AED', light: '#F5F3FF', text: '#6D28D9' },
+  { bg: '#0284C7', light: '#F0F9FF', text: '#0369A1' },
+  { bg: '#1D4ED8', light: '#DBEAFE', text: '#1E40AF' },
   { bg: '#D97706', light: '#FFFBEB', text: '#B45309' },
 ]
 
@@ -255,12 +255,12 @@ function ShortageDeviceIcons({ count, icon }: { count: number; icon: string }) {
     <div className="flex items-center gap-1.5 flex-wrap">
       {Array.from({ length: shown }).map((_, i) => (
         <span key={i}
-          className="w-8 h-8 rounded-lg border-2 border-dashed border-red-400 bg-red-50 flex items-center justify-center text-base opacity-60">
+          className="w-8 h-8 rounded-lg border-2 border-dashed border-orange-400 bg-orange-50 flex items-center justify-center text-base opacity-60">
           {icon}
         </span>
       ))}
       {overflow > 0 && (
-        <span className="text-xs font-bold text-red-500 self-end">+{overflow}</span>
+        <span className="text-xs font-bold text-orange-600 self-end">+{overflow}</span>
       )}
     </div>
   )
@@ -294,8 +294,8 @@ function getDeviceReadiness(devicePlan: DevicePlan): ReadinessInfo {
       title: 'BYODタイプ — 追加端末不要',
       body: '個人端末（スマートフォン等）を活用する運用スタイルのため、デバイス調達コストは発生しません。',
       action: 'スタッフへのアプリインストール案内・ログイン付与を1ヶ月目の初期アクションに組み込んでください。',
-      bg: 'bg-green-50', border: 'border-green-200', txt: 'text-green-800',
-      badgeBg: 'bg-green-100', badgeTxt: 'text-green-700',
+      bg: 'bg-blue-50', border: 'border-blue-200', txt: 'text-blue-800',
+      badgeBg: 'bg-blue-100', badgeTxt: 'text-blue-700',
     }
   }
   if (current === 0 && shortfall > 0) {
@@ -314,8 +314,8 @@ function getDeviceReadiness(devicePlan: DevicePlan): ReadinessInfo {
       title: `端末は十分に揃っています（${current}台）`,
       body: `現在の台数で「${styleShort}」の計画通りの運用を開始できます。追加調達なしで全拠点への展開が可能です。`,
       action: '端末の初期設定・アプリ配布・ログイン付与を1ヶ月目のアクションに確実に組み込んでください。',
-      bg: 'bg-green-50', border: 'border-green-200', txt: 'text-green-800',
-      badgeBg: 'bg-green-100', badgeTxt: 'text-green-700',
+      bg: 'bg-blue-50', border: 'border-blue-200', txt: 'text-blue-800',
+      badgeBg: 'bg-blue-100', badgeTxt: 'text-blue-700',
     }
   }
   const ratio = Math.round((shortfall / ideal) * 100)
@@ -344,8 +344,8 @@ function getDeviceReadiness(devicePlan: DevicePlan): ReadinessInfo {
     title: `${shortfall}台不足（現状は理想の${100 - ratio}%にとどまる）`,
     body: `現状${current}台は理想${ideal}台の${100 - ratio}%にすぎません。このままでは「${styleShort}」での本格運用は開始できず、現場でのマニュアル活用が進まないリスクが高く、事業課題の解決が大幅に遅延します。`,
     action: '端末調達を最優先課題として経営層に提案し、調達予算・スケジュールを初月のアクションに確定させることを強く推奨します。',
-    bg: 'bg-red-50', border: 'border-red-200', txt: 'text-red-800',
-    badgeBg: 'bg-red-100', badgeTxt: 'text-red-700',
+    bg: 'bg-orange-50', border: 'border-orange-200', txt: 'text-orange-800',
+    badgeBg: 'bg-orange-100', badgeTxt: 'text-orange-700',
   }
 }
 
@@ -462,7 +462,7 @@ function DeviceVisual({ answers, devicePlan }: {
             <span className="text-xs font-medium text-gray-600">保有端末</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-5 h-5 rounded border-2 border-dashed border-red-400 bg-red-50 inline-block opacity-70" />
+            <span className="w-5 h-5 rounded border-2 border-dashed border-orange-400 bg-orange-50 inline-block opacity-70" />
             <span className="text-xs font-medium text-gray-600">不足端末（追加調達が必要）</span>
           </div>
         </div>
@@ -470,16 +470,16 @@ function DeviceVisual({ answers, devicePlan }: {
         {/* 店舗カード群 */}
         <div className={`grid gap-4 mt-1 ${shownStores === 1 ? 'grid-cols-1 max-w-lg mx-auto' : shownStores === 2 ? 'grid-cols-2' : shownStores === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
           {Array.from({ length: shownStores }).map((_, idx) => (
-            <div key={idx} className="rounded-xl border-2 border-green-300 bg-green-50 p-4">
+            <div key={idx} className="rounded-xl border-2 border-blue-300 bg-blue-50 p-4">
               {/* ヘッダー */}
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <span className="text-xl">🏪</span>
-                  <span className="font-bold text-green-900 text-sm">
+                  <span className="font-bold text-blue-900 text-sm">
                     {locationCount === 1 ? '現場' : `拠点 ${idx + 1}`}
                   </span>
                 </div>
-                <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full font-medium">
+                <span className="text-xs bg-blue-200 text-blue-800 px-2 py-0.5 rounded-full font-medium">
                   {staffPerLocation}名
                 </span>
               </div>
@@ -488,7 +488,7 @@ function DeviceVisual({ answers, devicePlan }: {
                 <span className="text-[11px] font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">理想 {idealPerLocation}台</span>
                 <span className="text-[11px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">保有 {storeTotal}台</span>
                 {shortagePerLocation > 0 && (
-                  <span className="text-[11px] font-semibold bg-red-100 text-red-600 px-2 py-0.5 rounded-full">不足 {shortagePerLocation}台</span>
+                  <span className="text-[11px] font-semibold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">不足 {shortagePerLocation}台</span>
                 )}
               </div>
               {/* 保有端末（青）*/}
@@ -501,20 +501,20 @@ function DeviceVisual({ answers, devicePlan }: {
                     ))}
                 </div>
               ) : (
-                <p className="text-xs text-green-400 italic">端末情報なし</p>
+                <p className="text-xs text-blue-400 italic">端末情報なし</p>
               )}
               {/* 不足端末（赤破線）*/}
               {shortagePerLocation > 0 && (
-                <div className="mt-2 pt-2 border-t border-dashed border-red-200">
+                <div className="mt-2 pt-2 border-t border-dashed border-orange-200">
                   <ShortageDeviceIcons count={shortagePerLocation} icon={DEVICE_ICONS[primaryDeviceType] ?? '📦'} />
                 </div>
               )}
             </div>
           ))}
           {hiddenStores > 0 && (
-            <div className="rounded-xl border-2 border-dashed border-green-200 bg-green-50/40 p-4 flex flex-col items-center justify-center min-h-[100px]">
-              <span className="text-2xl text-green-400">+{hiddenStores}</span>
-              <span className="text-xs text-green-500 mt-1">拠点（同構成）</span>
+            <div className="rounded-xl border-2 border-dashed border-blue-200 bg-blue-50/40 p-4 flex flex-col items-center justify-center min-h-[100px]">
+              <span className="text-2xl text-blue-400">+{hiddenStores}</span>
+              <span className="text-xs text-blue-500 mt-1">拠点（同構成）</span>
             </div>
           )}
         </div>
@@ -758,7 +758,7 @@ export default function ResultPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center space-y-4">
-          <p className="text-red-500">{error}</p>
+          <p className="text-orange-600">{error}</p>
           <Button onClick={generatePlan}>再試行</Button>
         </div>
       </div>
@@ -989,8 +989,8 @@ export default function ResultPage() {
                             <span className="inline-block bg-blue-600 text-white text-[11px] font-semibold rounded-full px-2.5 py-0.5 leading-tight">{pair.feature}</span>
                           </div>
                           <p className="text-sm text-gray-700 leading-relaxed mb-2">{pair.scene}</p>
-                          <div className="rounded-lg bg-green-50 border border-green-200 px-3 py-2">
-                            <p className="text-sm text-green-800 font-medium leading-relaxed">{pair.effect}</p>
+                          <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
+                            <p className="text-sm text-blue-800 font-medium leading-relaxed">{pair.effect}</p>
                           </div>
                         </div>
                       </div>
@@ -1139,7 +1139,7 @@ export default function ResultPage() {
                   <div key={m.month}
                     className={`grid border-b last:border-b-0 transition-colors
                       ${isAfter13 ? 'bg-gray-50 border-gray-100 hover:bg-gray-100/60' :
-                        isReview ? 'bg-green-50 border-green-200 hover:bg-green-50' :
+                        isReview ? 'bg-blue-50 border-blue-200 hover:bg-blue-50' :
                         'border-gray-100 hover:bg-blue-50/20'}`}
                     style={{ gridTemplateColumns: '100px 180px 1fr 2fr 88px' }}>
                     <div className="px-3 py-3 border-r border-gray-100 flex flex-col items-center justify-center gap-0.5">
@@ -1179,7 +1179,7 @@ export default function ResultPage() {
                     </div>
                     <div className="px-3 py-3 flex items-center justify-center">
                       {m.isReviewPoint && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">✓ 測定</span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">✓ 測定</span>
                       )}
                     </div>
                   </div>
@@ -1196,12 +1196,12 @@ export default function ResultPage() {
             <div className="grid grid-cols-2 gap-5">
               {barrierActions.map((item, i) => (
                 <div key={i} className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-red-50 border-b border-red-100 px-5 py-3.5 flex items-start gap-2.5">
-                    <span className="text-red-500 font-bold shrink-0 mt-0.5">⚠</span>
-                    <p className="text-sm font-semibold text-red-800 leading-snug">{item.challenge}</p>
+                  <div className="bg-orange-50 border-b border-orange-100 px-5 py-3.5 flex items-start gap-2.5">
+                    <span className="text-orange-500 font-bold shrink-0 mt-0.5">⚠</span>
+                    <p className="text-sm font-semibold text-orange-800 leading-snug">{item.challenge}</p>
                   </div>
                   <div className="px-5 py-4 flex items-start gap-2.5">
-                    <span className="text-green-500 font-bold shrink-0 mt-0.5">✓</span>
+                    <span className="text-blue-500 font-bold shrink-0 mt-0.5">✓</span>
                     <p className="text-sm text-gray-700 leading-relaxed">{item.counter}</p>
                   </div>
                 </div>
@@ -1249,16 +1249,16 @@ export default function ResultPage() {
                   </div>
                   <div className="p-5 space-y-3.5 flex-1">
                     <div>
-                      <p className="text-xs font-bold text-red-600 mb-1">課題</p>
+                      <p className="text-xs font-bold text-orange-600 mb-1">課題</p>
                       <p className="text-sm text-gray-600 leading-relaxed">{cs.challenge}</p>
                     </div>
                     <div>
                       <p className="text-xs font-bold text-blue-600 mb-1">施策</p>
                       <p className="text-sm text-gray-600 leading-relaxed">{cs.solution}</p>
                     </div>
-                    <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3">
-                      <p className="text-xs font-bold text-green-700 mb-0.5">効果</p>
-                      <p className="text-sm text-green-800 font-semibold">{cs.effect}</p>
+                    <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
+                      <p className="text-xs font-bold text-blue-700 mb-0.5">効果</p>
+                      <p className="text-sm text-blue-800 font-semibold">{cs.effect}</p>
                     </div>
                   </div>
                   {cs.url && (

@@ -50,7 +50,7 @@ export function Step07Operations() {
 
       {/* 運用スタイル */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">運用スタイル <span className="text-red-500">*</span></label>
+        <label className="text-sm font-semibold text-gray-700">運用スタイル <span className="text-orange-500">*</span></label>
         <div className="grid grid-cols-1 gap-2">
           {OPERATION_STYLES.map((item) => (
             <ChoiceCard
@@ -67,7 +67,7 @@ export function Step07Operations() {
 
       {/* スタッフ数 */}
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-gray-700">拠点あたりのスタッフ数 <span className="text-red-500">*</span></label>
+        <label className="text-sm font-semibold text-gray-700">拠点あたりのスタッフ数 <span className="text-orange-500">*</span></label>
         <div className="flex items-center gap-3">
           <input
             type="text"
@@ -152,7 +152,7 @@ export function Step07Operations() {
         <Button variant="outline" onClick={() => { prevStep(); router.push('/wizard?step=5') }}>
           ← 戻る
         </Button>
-        <Button onClick={handleSubmit} disabled={!canProceed} size="lg" className="bg-green-600 hover:bg-green-700">
+        <Button onClick={handleSubmit} disabled={!canProceed} size="lg" className="bg-blue-600 hover:bg-blue-700">
           プランを生成する ✨
         </Button>
       </div>

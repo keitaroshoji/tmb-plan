@@ -70,8 +70,8 @@ export function PlanFeatureSection({ contractPlan, contractAddons }: Props) {
           <FeatureGroup
             icon="◎"
             label="標準搭載（追加費用なし）"
-            badgeClass="bg-green-100 text-green-700"
-            headerClass="text-green-800"
+            badgeClass="bg-blue-100 text-blue-700"
+            headerClass="text-blue-800"
             features={stdFeatures}
           />
         )}
@@ -104,8 +104,8 @@ export function PlanFeatureSection({ contractPlan, contractAddons }: Props) {
           <FeatureGroup
             icon="✕"
             label="このプランでは利用不可"
-            badgeClass="bg-red-100 text-red-600"
-            headerClass="text-red-700"
+            badgeClass="bg-orange-100 text-orange-700"
+            headerClass="text-orange-700"
             features={unavailable}
             muted
           />

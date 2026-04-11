@@ -36,9 +36,9 @@ export function CounterScriptSection({ scripts }: Props) {
                   <p className="text-sm text-blue-900 leading-relaxed">{s.counter}</p>
                 </div>
                 {s.supportingData && (
-                  <div className="rounded-lg bg-green-50 border border-green-200 p-3">
-                    <p className="text-xs font-semibold text-green-700 mb-1">裏付けデータ・事例</p>
-                    <p className="text-sm text-green-800">{s.supportingData}</p>
+                  <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
+                    <p className="text-xs font-semibold text-blue-700 mb-1">裏付けデータ・事例</p>
+                    <p className="text-sm text-blue-800">{s.supportingData}</p>
                   </div>
                 )}
                 <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">

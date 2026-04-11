@@ -4,15 +4,15 @@ import React from 'react'
 import { UseCaseProposal } from '@/src/types/plan'
 
 const PRIORITY_STYLES = {
-  high: { label: '優先度: 高', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700' },
+  high: { label: '優先度: 高', bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700' },
   medium: { label: '優先度: 中', bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700' },
   low: { label: '優先度: 低', bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', badge: 'bg-gray-100 text-gray-600' },
 }
 
 const EFFORT_STYLES = {
-  easy: { label: '導入: 簡単', badge: 'bg-green-100 text-green-700' },
+  easy: { label: '導入: 簡単', badge: 'bg-blue-100 text-blue-700' },
   medium: { label: '導入: 中程度', badge: 'bg-blue-100 text-blue-700' },
-  hard: { label: '導入: 難しい', badge: 'bg-purple-100 text-purple-700' },
+  hard: { label: '導入: 難しい', badge: 'bg-blue-100 text-blue-700' },
 }
 
 interface Props {

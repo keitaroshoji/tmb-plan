@@ -58,7 +58,7 @@ export function Step06DeviceEnv() {
 
       {/* デバイス種別 */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">使用するデバイス <span className="text-red-500">*</span>（複数可）</label>
+        <label className="text-sm font-semibold text-gray-700">使用するデバイス <span className="text-orange-500">*</span>（複数可）</label>
         <div className="grid grid-cols-1 gap-2">
           {DEVICE_TYPES.map((item) => (
             <ChoiceCard
@@ -77,7 +77,7 @@ export function Step06DeviceEnv() {
       {/* 利用環境 */}
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-semibold text-gray-700">利用環境の条件 <span className="text-red-500">*</span></label>
+          <label className="text-sm font-semibold text-gray-700">利用環境の条件 <span className="text-orange-500">*</span></label>
           {hasSpecial && (
             <span className="text-xs bg-orange-100 text-orange-700 border border-orange-200 rounded-full px-2.5 py-0.5 font-medium">
               複数選択可

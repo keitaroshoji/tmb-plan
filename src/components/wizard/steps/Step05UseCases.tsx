@@ -51,7 +51,7 @@ export function Step05UseCases() {
 
       {/* 活用シーン */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">活用シーン <span className="text-red-500">*</span>（複数可）</label>
+        <label className="text-sm font-semibold text-gray-700">活用シーン <span className="text-orange-500">*</span>（複数可）</label>
         <div className="grid grid-cols-1 gap-2">
           {USE_CASES.map((item) => (
             <ChoiceCard
@@ -69,7 +69,7 @@ export function Step05UseCases() {
 
       {/* マニュアル種類 */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">マニュアルの種類 <span className="text-red-500">*</span>（複数可）</label>
+        <label className="text-sm font-semibold text-gray-700">マニュアルの種類 <span className="text-orange-500">*</span>（複数可）</label>
         <div className="grid grid-cols-2 gap-2">
           {MANUAL_TYPES.map((item) => (
             <ChoiceCard
@@ -86,7 +86,7 @@ export function Step05UseCases() {
 
       {/* マニュアル品質 */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">マニュアル作成の方針 <span className="text-red-500">*</span></label>
+        <label className="text-sm font-semibold text-gray-700">マニュアル作成の方針 <span className="text-orange-500">*</span></label>
         <div className="grid grid-cols-2 gap-3">
           <ChoiceCard
             label="かんたん・手軽に"

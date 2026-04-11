@@ -49,7 +49,7 @@ export function Step03Goals() {
       {/* 主目的（複数選択） */}
       <div className="space-y-3">
         <label className="text-sm font-semibold text-gray-700">
-          導入の目的 <span className="text-red-500">*</span>
+          導入の目的 <span className="text-orange-500">*</span>
           <span className="ml-2 text-xs font-normal text-gray-400">（複数選択可）</span>
         </label>
         <div className="grid grid-cols-1 gap-2">
@@ -68,7 +68,7 @@ export function Step03Goals() {
 
       {/* 優先KPI */}
       <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">優先KPI <span className="text-red-500">*</span></label>
+        <label className="text-sm font-semibold text-gray-700">優先KPI <span className="text-orange-500">*</span></label>
         <div className="grid grid-cols-1 gap-2">
           {KPIS.map((item) => (
             <ChoiceCard

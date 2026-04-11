@@ -69,7 +69,7 @@ function SectionHeader({
       <div>
         <h2 className="text-base font-bold text-gray-900">
           {title}
-          {required && <span className="ml-1.5 text-xs font-normal text-red-500">*必須</span>}
+          {required && <span className="ml-1.5 text-xs font-normal text-orange-500">*必須</span>}
         </h2>
         <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>
       </div>
@@ -184,7 +184,7 @@ export function StepChallengesGoalsBarriers() {
 
         <div>
           <p className="text-sm font-semibold text-gray-700 mb-2">
-            導入の目的 <span className="text-red-500">*</span>
+            導入の目的 <span className="text-orange-500">*</span>
             <span className="ml-2 text-xs font-normal text-gray-400">（複数選択可）</span>
           </p>
           <div className="grid grid-cols-1 gap-2">
@@ -203,7 +203,7 @@ export function StepChallengesGoalsBarriers() {
 
         <div>
           <p className="text-sm font-semibold text-gray-700 mb-2">
-            優先KPI <span className="text-red-500">*</span>
+            優先KPI <span className="text-orange-500">*</span>
           </p>
           <div className="grid grid-cols-1 gap-2">
             {KPIS.map((item) => (
