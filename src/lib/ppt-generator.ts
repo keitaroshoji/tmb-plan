@@ -41,12 +41,16 @@ const PHASE_COLORS = [
 
 // ==================== スライドサイズ（LAYOUT_16x9 = 10" × 5.625"） ====================
 
-const SW    = 10
-const SH    = 5.625
-const BAR_H = 0.38          // ヘッドラインバー高さ（12pt用）
-const HDR_H = 0.85          // 総ヘッダー高さ（バー + メインメッセージライン）
-const MG    = 0.45          // 左右余白（≈11.5mm）
-const CW    = SW - MG * 2   // コンテンツ幅 ≈ 9.10"
+const SW           = 10
+const SH           = 5.625
+const CX           = SW / 2        // スライド中央X = 5"
+const CY           = SH / 2        // スライド中央Y = 2.8125"
+const BAR_H        = 0.38          // ヘッドラインバー高さ（12pt用）
+const HDR_H        = 1.23          // 総ヘッダー高さ（バー + メインメッセージライン）
+const MG           = CX - 11.5 / 2.54   // 左右余白: センターから11.5cm ≈ 0.472"
+const CW           = SW - MG * 2         // コンテンツ幅: 11.5cm×2 = 23cm ≈ 9.055"
+const CONTENT_Y    = CY - 3.9 / 2.54    // コンテンツ上端: センターから上3.9cm ≈ 1.277"
+const CONTENT_END  = CY + 5.9 / 2.54    // コンテンツ下端: センターから下5.9cm ≈ 5.135"
 
 // ==================== フォント ====================
 
@@ -181,7 +185,7 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
 
   addHeader(sl, prs, '前提情報', `${company} 様`)
 
-  const Y0 = HDR_H + 0.09
+  const Y0 = CONTENT_Y
   const LX = MG
   const LW = 4.5
   const RX = MG + LW + 0.17
@@ -264,7 +268,7 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
 
   addHeader(sl, prs, 'プランサマリー')
 
-  const Y0 = HDR_H + 0.09
+  const Y0 = CONTENT_Y
   const LW = (CW - 0.15) / 2
   const RX = MG + LW + 0.15
 
@@ -349,7 +353,7 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
   const scenarios = plan.usageScenarios ?? []
   const cardW = (CW - 0.11 * 3) / 4
   const cardY = MY + 0.25
-  const cardH = SH - cardY - 0.14
+  const cardH = CONTENT_END - cardY - 0.05
 
   scenarios.slice(0, 4).forEach((s, i) => {
     const cx = MG + i * (cardW + 0.11)
@@ -387,11 +391,11 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
   addHeader(sl, prs, '年間スケジュール（四半期）', '4フェーズの活動計画')
 
   const phases   = plan.phases ?? []
-  const Y0       = HDR_H + 0.08
+  const Y0       = CONTENT_Y
   const LABEL_W  = 1.05
   const PHASE_W  = (CW - LABEL_W) / Math.max(phases.length, 1)
   const PHASE_HDR = 0.56
-  const CAT_H    = (SH - Y0 - PHASE_HDR - 0.04) / ACTIVITY_CATEGORIES.length
+  const CAT_H    = (CONTENT_END - Y0 - PHASE_HDR - 0.04) / ACTIVITY_CATEGORIES.length
 
   // フェーズヘッダー
   phases.forEach((phase, pi) => {
@@ -478,9 +482,9 @@ function addMonthlySlide(
   const COL_ACTION = CW - COL_MONTH - COL_PHASE - COL_TITLE
 
   const HDR_ROW_H  = 0.26
-  const DATA_ROW_H = (SH - HDR_H - HDR_ROW_H - 0.09) / monthNums.length
+  const DATA_ROW_H = (CONTENT_END - CONTENT_Y - HDR_ROW_H - 0.04) / monthNums.length
 
-  const tableY = HDR_H + 0.06
+  const tableY = CONTENT_Y
   const tableX = MG
 
   // テーブルヘッダー行
@@ -596,7 +600,7 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
 
   addHeader(sl, prs, 'デバイス配置イメージ', `運用スタイル: ${devicePlan.operationStyleLabel}`)
 
-  const Y0 = HDR_H + 0.14
+  const Y0 = CONTENT_Y
 
   // --- 台数サマリー (3ボックス) ---
   const BOX_W  = 2.62
@@ -713,7 +717,7 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
 
   // --- 注記 ---
   sl.addText('※ デバイスレンタルサービス料金（Studist提供）の概算です。実際の見積は別途ご案内します。', {
-    x: MG, y: SH - 0.22, w: CW, h: 0.19,
+    x: MG, y: CONTENT_END - 0.19, w: CW, h: 0.19,
     fontFace: FONT, fontSize: 6, color: GRAY, italic: true,
   })
 }
