@@ -150,6 +150,35 @@ function secBar(sl: Sl, prs: PptxGenJS, x: number, y: number, w: number, text: s
  * \n 区切りのテキストを pptxgenjs テキスト配列（段落間スペース付き）に変換
  * paraSpaceAfter を使って各段落の後ろに余白を追加する
  */
+/**
+ * 日本語テキストを PPT スライド向けに改行整形する
+ * 1. 既存の \n で段落分割
+ * 2. 各段落が maxChars を超える場合、句読点（。！？）の後で折り返す
+ */
+function wrapJapanese(text: string, maxChars = 22): string {
+  const paragraphs = text.split('\n').map(s => s.trim()).filter(Boolean)
+  const result: string[] = []
+  for (const para of paragraphs) {
+    if (para.length <= maxChars) {
+      result.push(para)
+      continue
+    }
+    // 句読点の後で分割
+    const chunks = para.split(/(?<=[。！？])/)
+    let line = ''
+    for (const chunk of chunks) {
+      if ((line + chunk).length > maxChars && line.length > 0) {
+        result.push(line)
+        line = chunk
+      } else {
+        line += chunk
+      }
+    }
+    if (line) result.push(line)
+  }
+  return result.join('\n')
+}
+
 function toParagraphs(text: string, spacePt = 5): { text: string; options?: { paraSpaceAfter?: number } }[] {
   const lines = text.split('\n').filter(l => l.trim().length > 0)
   if (lines.length <= 1) return [{ text: text.trim() }]
@@ -377,7 +406,7 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
     x: MG, y: Y0 + 0.22, w: LW, h: TEXT_H,
     fill: { color: GRAY_LT }, line: { color: 'E5E7EB', width: 0.5 },
   })
-  sl.addText(toParagraphs(plan.projectOverview ?? plan.summary ?? ''), {
+  sl.addText(toParagraphs(wrapJapanese(plan.projectOverview ?? plan.summary ?? '')), {
     x: MG + 0.10, y: Y0 + 0.22, w: LW - 0.20, h: TEXT_H,
     fontFace: FONT, fontSize: 9, color: DARK, valign: 'middle', align: 'left',
   })
@@ -395,7 +424,7 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
     x: RX, y: Y0 + 0.22, w: LW, h: TEXT_H,
     fill: { color: GRAY_LT }, line: { color: 'E5E7EB', width: 0.5 },
   })
-  sl.addText(toParagraphs(plan.promotionPoints ?? ''), {
+  sl.addText(toParagraphs(wrapJapanese(plan.promotionPoints ?? '')), {
     x: RX + 0.10, y: Y0 + 0.22, w: LW - 0.20, h: TEXT_H,
     fontFace: FONT, fontSize: 9, color: DARK, valign: 'middle', align: 'left',
   })
