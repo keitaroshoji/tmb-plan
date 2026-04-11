@@ -469,7 +469,7 @@ function addUsageScenariosSlide(prs: PptxGenJS, plan: GeneratedPlan) {
   })
   const cell = (text: string, fill = WHITE): TC => ({
     text,
-    options: { fontFace: FONT, fontSize: 8, color: DARK, fill: { color: fill }, valign: 'top', align: 'left' },
+    options: { fontFace: FONT, fontSize: 8, color: DARK, fill: { color: fill }, valign: 'middle', align: 'left' },
   })
 
   const headerRow: TC[] = [
