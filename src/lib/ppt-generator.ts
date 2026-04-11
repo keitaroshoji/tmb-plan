@@ -9,34 +9,39 @@ import {
   BARRIER_LABELS,
 } from '@/src/data/labels'
 
-// ==================== カラー定数（テンプレート準拠） ====================
+// ==================== カラー定数（3系統パレット統一） ====================
+// Main color family（チャコール系）
+const DARK         = '2B2F33'   // メインカラー最暗 / 本文テキスト
+const COVER_BAR    = '3C434D'   // メインカラー暗  / カバー・フッター
+const SLATE        = '4C5359'   // メインカラー中  / 13ヶ月以降
+const GRAY         = '7A848F'   // メインカラー明  / サブテキスト
+const GRAY_LT      = 'F3F4F6'   // メインカラー最明 / 背景・偶数行
+const GRAY_XLT     = 'F9FAFB'   // メインカラー超明 / 13ヶ月以降背景
 
-const PRIMARY      = '3B88ED'   // accent1 プライマリブルー
-const PRIMARY_DK   = '1244CC'   // accent2 ダークブルー
-const PRIMARY_LT   = 'D6E8FB'   // ライトブルー
-const ORANGE       = 'F7970F'   // accent5 オレンジ
-const ORANGE_LT    = 'FEF3DC'   // ライトオレンジ
-const ORANGE_DK    = 'B06B0A'   // ダークオレンジ
-const GREEN        = '2D8653'   // グリーン
-const GREEN_LT     = 'D1FAE5'   // ライトグリーン
-const GREEN_DK     = '1B5E3A'   // ダークグリーン
-const PURPLE       = '6B4FBB'   // パープル
-const PURPLE_LT    = 'EDE9FE'   // ライトパープル
-const PURPLE_DK    = '4C1D95'   // ダークパープル
-const RED          = 'D91616'   // accent6 レッド
-const DARK         = '2B2F33'   // dk1 ダークテキスト
-const GRAY         = '7A848F'   // accent3 グレー
-const GRAY_LT      = 'F3F4F6'   // ライトグレー
-const COVER_BAR    = '3C434D'   // カバースライドの黒帯
+// Sub color family（ブルー系）
+const PRIMARY      = '3B88ED'   // サブカラーメイン
+const PRIMARY_DK   = '1244CC'   // サブカラー暗
+const PRIMARY_LT   = 'D6E8FB'   // サブカラー明
+const PRIMARY_MDK  = '1A56B8'   // サブカラー中暗（Phase 4用）
+const PRIMARY_MLT  = 'C7D7F5'   // サブカラー中明（Phase 4背景）
+
+// Accent color family（オレンジ系）
+const ORANGE       = 'F7970F'   // アクセントメイン
+const ORANGE_LT    = 'FEF3DC'   // アクセント明
+const ORANGE_DK    = 'B06B0A'   // アクセント暗
+
 const WHITE        = 'FFFFFF'
-const GRAY13       = '4C5359'   // 13ヶ月以降
-const GRAY13_LT    = 'F9FAFB'
 
+// 13ヶ月以降（後方互換）
+const GRAY13       = SLATE
+const GRAY13_LT    = GRAY_XLT
+
+// フェーズカラー：Main / Sub / Accent の3系統から4色
 const PHASE_COLORS = [
-  { bg: PRIMARY, light: PRIMARY_LT, text: PRIMARY_DK  },
-  { bg: GREEN,   light: GREEN_LT,   text: GREEN_DK    },
-  { bg: ORANGE,  light: ORANGE_LT,  text: ORANGE_DK   },
-  { bg: PURPLE,  light: PURPLE_LT,  text: PURPLE_DK   },
+  { bg: PRIMARY,     light: PRIMARY_LT,  text: PRIMARY_DK  },  // Phase 1: ブルー
+  { bg: COVER_BAR,   light: GRAY_LT,     text: DARK        },  // Phase 2: チャコール
+  { bg: ORANGE,      light: ORANGE_LT,   text: ORANGE_DK   },  // Phase 3: オレンジ
+  { bg: PRIMARY_MDK, light: PRIMARY_MLT, text: PRIMARY_DK  },  // Phase 4: ダークブルー
 ]
 
 // ==================== スライドサイズ（LAYOUT_16x9 = 10" × 5.625"） ====================
@@ -245,7 +250,7 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
   })
   ly += orgRows.length * 0.28 + 0.19
 
-  secBar(sl, prs, LX, ly, LW, '推進上の障壁', RED)
+  secBar(sl, prs, LX, ly, LW, '推進上の障壁', DARK)
   ly += 0.25
   answers.operationalBarriers.map(b => BARRIER_LABELS[b] ?? b).slice(0, 5).forEach((b, i) => {
     sl.addText(`• ${b}`, { x: LX + 0.09, y: ly + i * 0.23, w: LW - 0.16, h: 0.22, fontFace: FONT, fontSize: 7, color: DARK })
@@ -340,7 +345,7 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
   const KPI_Y = Y0 + 0.22 + TEXT_H + 0.09
   const kpiTargets = plan.kpiTargets ?? []
   if (kpiTargets.length > 0) {
-    secBar(sl, prs, MG, KPI_Y, CW, 'KPI目標', GREEN)
+    secBar(sl, prs, MG, KPI_Y, CW, 'KPI目標', ORANGE)
     const kpiCardW = (CW - 0.08 * (kpiTargets.length - 1)) / kpiTargets.length
     const kpiCardH = 0.42
     kpiTargets.slice(0, 3).forEach((k, i) => {
@@ -348,19 +353,19 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
       const ky = KPI_Y + 0.24
       sl.addShape(prs.ShapeType.rect, {
         x: kx, y: ky, w: kpiCardW, h: kpiCardH,
-        fill: { color: GREEN_LT }, line: { color: 'A7F3D0', width: 0.5 },
+        fill: { color: ORANGE_LT }, line: { color: ORANGE, width: 0.5 },
       })
       sl.addText(k.kpi, {
         x: kx + 0.07, y: ky + 0.03, w: kpiCardW - 0.12, h: 0.16,
-        fontFace: FONT, fontSize: 6.5, bold: true, color: GREEN_DK, valign: 'middle',
+        fontFace: FONT, fontSize: 6.5, bold: true, color: ORANGE_DK, valign: 'middle',
       })
       sl.addText(k.target, {
         x: kx + 0.07, y: ky + 0.20, w: kpiCardW - 0.12, h: 0.16,
-        fontFace: FONT, fontSize: 8, bold: true, color: GREEN_DK, valign: 'middle',
+        fontFace: FONT, fontSize: 8, bold: true, color: ORANGE_DK, valign: 'middle',
       })
       sl.addText(k.timing, {
         x: kx + 0.07, y: ky + 0.32, w: kpiCardW - 0.12, h: 0.10,
-        fontFace: FONT, fontSize: 5.5, color: GREEN, valign: 'middle',
+        fontFace: FONT, fontSize: 5.5, color: ORANGE, valign: 'middle',
       })
     })
   }
@@ -641,7 +646,7 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
   const boxes = [
     { label: '理想台数',   value: `${devicePlan.idealDeviceCount}`,   bg: PRIMARY_LT, text: PRIMARY    },
     { label: '現在の台数', value: `${devicePlan.currentDeviceCount}`, bg: GRAY_LT,    text: GRAY       },
-    { label: '不足台数',   value: `${devicePlan.shortfallCount}`,     bg: GREEN_LT,   text: GREEN      },
+    { label: '不足台数',   value: `${devicePlan.shortfallCount}`,     bg: ORANGE_LT,  text: ORANGE_DK  },
   ]
   boxes.forEach((box, i) => {
     const bx = MG + i * (BOX_W + boxGap)
@@ -667,7 +672,7 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
   let assessAction: string
 
   if (ideal === 0) {
-    assessColor = GREEN; assessIcon = '✅'; assessStatus = '運用環境：問題なし'
+    assessColor = PRIMARY; assessIcon = '✅'; assessStatus = '運用環境：問題なし'
     assessBody = `BYODタイプのため追加端末不要。スタッフへのアプリ配布・ログイン付与を1ヶ月目に組み込んでください。`
     assessAction = ''
   } else if (current === 0 && shortfall > 0) {
@@ -675,29 +680,36 @@ function addDeviceSlide(prs: PptxGenJS, devicePlan: DevicePlan) {
     assessBody = `現在の端末保有数が未入力のため充足状況を評価できません。実際の保有台数を確認してください。`
     assessAction = ''
   } else if (shortfall === 0) {
-    assessColor = GREEN; assessIcon = '✅'; assessStatus = '運用環境：充足'
+    assessColor = PRIMARY; assessIcon = '✅'; assessStatus = '運用環境：充足'
     assessBody = `現在${current}台で「${styleShort}」の計画通りの運用を開始できます。追加調達不要です。`
     assessAction = '端末初期設定・アプリ配布を1ヶ月目のアクションに組み込んでください。'
   } else {
     const ratio = Math.round((shortfall / ideal) * 100)
     if (shortfall <= Math.ceil(ideal * 0.3)) {
-      assessColor = ORANGE_DK; assessIcon = '⚠️'; assessStatus = `軽微な不足あり（${shortfall}台・理想比${ratio}%）`
+      assessColor = ORANGE; assessIcon = '⚠️'; assessStatus = `軽微な不足あり（${shortfall}台・理想比${ratio}%）`
       assessBody = `現状${current}台で優先拠点から先行導入が可能。不足分は段階調達で対応できます。`
       assessAction = '不足分の調達・納期確認を1〜2ヶ月目のアクションに設定してください。'
     } else if (shortfall <= Math.ceil(ideal * 0.6)) {
-      assessColor = RED; assessIcon = '⚠️'; assessStatus = `要対応 — 端末不足が運用に影響（${shortfall}台不足・${ratio}%未充足）`
+      assessColor = ORANGE_DK; assessIcon = '⚠️'; assessStatus = `要対応 — 端末不足が運用に影響（${shortfall}台不足・${ratio}%未充足）`
       assessBody = `現状${current}台では「${styleShort}」の全面展開が困難。調達完了まではパイロット運用に絞ることを推奨します。`
       assessAction = '端末調達計画を1ヶ月目の最優先タスクとして経営層に提案してください。'
     } else {
-      assessColor = RED; assessIcon = '❌'; assessStatus = `要対応 — 計画した運用の開始が困難（${shortfall}台不足・現状は理想の${100 - ratio}%）`
+      assessColor = DARK; assessIcon = '❌'; assessStatus = `要対応 — 計画した運用の開始が困難（${shortfall}台不足・現状は理想の${100 - ratio}%）`
       assessBody = `このままでは「${styleShort}」での本格運用は開始できず、事業課題の解決が大幅に遅延するリスクがあります。`
       assessAction = '端末調達予算・スケジュールを最優先で確定し、初月のアクションに設定してください。'
     }
   }
 
+  // アセスメント背景色マッピング（パレット内のみ）
+  const assessBg =
+    assessColor === PRIMARY  ? PRIMARY_LT :
+    assessColor === ORANGE   ? ORANGE_LT  :
+    assessColor === ORANGE_DK ? ORANGE_LT :
+    assessColor === DARK     ? GRAY_LT    : GRAY_LT
+
   sl.addShape(prs.ShapeType.rect, {
     x: MG, y: ASSESS_Y, w: CW, h: ASSESS_H,
-    fill: { color: assessColor === GREEN ? GREEN_LT : assessColor === ORANGE_DK ? ORANGE_LT : assessColor === GRAY ? GRAY_LT : 'FEE2E2' },
+    fill: { color: assessBg },
     line: { color: assessColor, width: 1 },
   })
   sl.addText(`${assessIcon} ${assessStatus}`, {
