@@ -104,16 +104,15 @@ function addFooter(sl: Sl, prs: PptxGenJS) {
     x: 0, y: fy, w: SW, h: fh,
     fill: { color: BRAND_COLOR }, line: { color: BRAND_COLOR, width: 0 },
   })
-  // フッターロゴ
+  // フッターロゴ（1601×365px: アスペクト比 4.386）
   try {
-    const lh = fh * 0.60
-    const lw = lh / 0.282 * 1.240
+    const lh = fh * 0.50                    // フッター高さの50%（上下に均等余白）
+    const lw = lh * (1601 / 365)            // 実際のアスペクト比で幅を算出
     sl.addImage({ path: FOOTER_LOGO_PATH, x: MG, y: fy + (fh - lh) / 2, w: lw, h: lh })
   } catch {
-    // フォールバック: 既存ロゴ
     try {
-      const lh = fh * 0.60
-      const lw = lh / 0.282 * 1.240
+      const lh = fh * 0.50
+      const lw = lh * (190 / 44)            // studist-logo.png のアスペクト比
       sl.addImage({ path: STUDIST_LOGO_PATH, x: MG, y: fy + (fh - lh) / 2, w: lw, h: lh })
     } catch {
       sl.addText('studist', { x: MG, y: fy, w: 1.2, h: fh, fontFace: FONT, fontSize: 7, color: WHITE, valign: 'middle' })
