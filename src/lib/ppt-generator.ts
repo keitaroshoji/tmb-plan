@@ -378,8 +378,8 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
     fill: { color: GRAY_LT }, line: { color: 'E5E7EB', width: 0.5 },
   })
   sl.addText(toParagraphs(plan.projectOverview ?? plan.summary ?? ''), {
-    x: MG + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: TEXT_H - 0.10,
-    fontFace: FONT, fontSize: 8, color: DARK, valign: 'top', align: 'left',
+    x: MG + 0.10, y: Y0 + 0.22, w: LW - 0.20, h: TEXT_H,
+    fontFace: FONT, fontSize: 9, color: DARK, valign: 'middle', align: 'left',
   })
 
   // --- 推進上のポイント ---
@@ -396,8 +396,8 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
     fill: { color: GRAY_LT }, line: { color: 'E5E7EB', width: 0.5 },
   })
   sl.addText(toParagraphs(plan.promotionPoints ?? ''), {
-    x: RX + 0.10, y: Y0 + 0.27, w: LW - 0.20, h: TEXT_H - 0.10,
-    fontFace: FONT, fontSize: 8, color: DARK, valign: 'top', align: 'left',
+    x: RX + 0.10, y: Y0 + 0.22, w: LW - 0.20, h: TEXT_H,
+    fontFace: FONT, fontSize: 9, color: DARK, valign: 'middle', align: 'left',
   })
 
   // --- KPI目標（青ベース・目標値のみオレンジ強調） ---
