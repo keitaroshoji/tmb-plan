@@ -104,6 +104,8 @@ export interface GeneratedPlan {
   counterScripts?: CounterScript[]
   bottleneckHints?: BottleneckHint[]
   usageScenarios?: UsageScenario[]
+  featureStories?: FeatureStory[]
+  manualUsagePairs?: ManualUsagePair[]
 }
 
 export interface UsageScenario {
@@ -111,4 +113,22 @@ export interface UsageScenario {
   user: string          // 誰が使うか
   scene: string         // どのようなシーンで
   effect: string        // どのような効果が出るか
+}
+
+export interface FeatureStory {
+  feature: string       // 活用するTeachme Biz機能名
+  user: string          // 誰が（業種固有の役職・立場）
+  scene: string         // どんな場面・困りごと（現場感ある描写）
+  effect: string        // どう変わるか（即時効果＋組織的な変化）
+}
+
+export interface ManualUsagePair {
+  targetUser: string   // 誰のために（対象者）※左右共通
+  // 左カード: 作るマニュアル
+  manualTitle: string  // マニュアルタイトル
+  content: string      // どんな内容（収録する手順・情報の概要。1〜2文）
+  // 右カード: こう使う
+  feature: string      // 活用するTeachme Biz機能名
+  scene: string        // どのようなシーンで使うか（1〜2文）
+  effect: string       // どういう効果が出るか（1〜2文）
 }

@@ -6,7 +6,7 @@ import { useWizardStore } from '@/src/store/wizardStore'
 import { matchCaseStudies, matchCaseHints, CaseHint } from '@/src/lib/case-matcher'
 import { matchInsights } from '@/src/lib/insight-matcher'
 import { recommendDevicePlan, DevicePlan } from '@/src/lib/device-recommender'
-import { CaseStudy, GeneratedPlan, ACTIVITY_CATEGORIES, BarrierAction, Phase, UsageScenario } from '@/src/types/plan'
+import { CaseStudy, GeneratedPlan, ACTIVITY_CATEGORIES, BarrierAction, Phase, UsageScenario, FeatureStory, ManualUsagePair } from '@/src/types/plan'
 import { TmbWizardAnswers } from '@/src/types/answers'
 import { Button } from '@/src/components/ui/Button'
 import {
@@ -15,6 +15,13 @@ import {
   USE_CASE_LABELS, MANUAL_TYPE_LABELS, MANUAL_QUALITY_LABELS,
   ENV_CONDITION_LABELS, OPERATION_STYLE_LABELS,
 } from '@/src/data/labels'
+import { GmpWarningBanner, SectionHeading, SectionSkeleton, SectionFailed } from '@/src/components/result/shared'
+import { PlanFeatureSection } from '@/src/components/result/PlanFeatureSection'
+import { getPlanById, TmbPlanId } from '@/src/data/tmb-plans'
+import { getDepartmentsForIndustry } from '@/src/data/industry-departments'
+import { isGmpRelevant } from '@/src/lib/gmp-detector'
+import { matchResources } from '@/src/lib/resource-matcher'
+import { HelpfulResource } from '@/src/data/helpful-resources'
 
 // ==================== 型ガード ====================
 
@@ -92,51 +99,6 @@ const CAT_ICONS: Record<string, string> = {
   初期設定: '⚙️', マニュアル作成: '📝', マニュアル活用: '📖', 効果測定: '📊', その他: '💬',
 }
 
-// ==================== セクション見出し ====================
-
-function SectionHeading({ icon, title, sub }: { icon: string; title: string; sub?: string }) {
-  return (
-    <div className="mb-6 pb-4 border-b border-gray-200">
-      <div className="flex items-center gap-3">
-        <div className="w-1 h-7 rounded-full bg-blue-600 shrink-0" />
-        <span className="text-xl leading-none">{icon}</span>
-        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-      </div>
-      {sub && <p className="text-sm text-gray-400 mt-1.5 ml-[2.75rem]">{sub}</p>}
-    </div>
-  )
-}
-
-// ==================== セクション生成失敗 ====================
-
-function SectionFailed() {
-  return (
-    <div className="rounded-xl bg-gray-50 border border-dashed border-gray-300 px-6 py-5 text-center">
-      <p className="text-sm text-gray-400">このセクションの生成に失敗しました。ヘッダーの「🔄 再生成」ボタンをお試しください。</p>
-    </div>
-  )
-}
-
-// ==================== セクションスケルトン ====================
-
-function SectionSkeleton({ rows = 3 }: { rows?: number }) {
-  return (
-    <div className="rounded-xl bg-white border border-gray-200 p-8 shadow-sm animate-pulse">
-      <div className="flex items-center gap-2 mb-5">
-        <div className="h-3 w-3 rounded-full bg-blue-300 animate-bounce" style={{ animationDelay: '0ms' }} />
-        <div className="h-3 w-3 rounded-full bg-blue-200 animate-bounce" style={{ animationDelay: '150ms' }} />
-        <div className="h-3 w-3 rounded-full bg-blue-100 animate-bounce" style={{ animationDelay: '300ms' }} />
-        <span className="text-xs text-gray-400 ml-1">生成中...</span>
-      </div>
-      <div className="space-y-3">
-        {Array.from({ length: rows }).map((_, i) => (
-          <div key={i} className="h-3 bg-gray-100 rounded" style={{ width: `${90 - i * 10}%` }} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ==================== デバイス配置ビジュアル ====================
 
 const DEVICE_ICONS: Record<string, string> = {
@@ -197,7 +159,27 @@ function PremiseInfo({ answers }: { answers: TmbWizardAnswers }) {
         <PremiseRow label="企業規模" value={answers.companySize ? COMPANY_SIZE_LABELS[answers.companySize] : '—'} />
         <PremiseRow label="拠点数" value={`${answers.locationCount}拠点`} />
         <PremiseRow label="FC・フランチャイズ" value={answers.isFranchise === true ? 'あり' : answers.isFranchise === false ? 'なし' : '—'} />
-        {answers.departmentNote && <PremiseRow label="対象部門・事業部" value={answers.departmentNote} />}
+        {answers.industry === 'manufacturing' && answers.manufacturingRegulations.length > 0 && (
+          <PremiseRow label="適用規格" value={
+            <TagList items={answers.manufacturingRegulations.map((r) => {
+              const labels: Record<string, string> = {
+                iso9001: 'ISO 9001', iatf16949: 'IATF 16949',
+                gmp_qms: 'GMP / QMS省令', iso14001: 'ISO 14001', other: 'その他規格',
+              }
+              return labels[r] ?? r
+            })} />
+          } />
+        )}
+        {(answers.targetDepartments ?? []).length > 0 && (
+          <PremiseRow label="活用対象部門" value={
+            <TagList items={
+              getDepartmentsForIndustry(answers.industry)
+                .filter((d) => (answers.targetDepartments ?? []).includes(d.value))
+                .map((d) => d.label)
+            } />
+          } />
+        )}
+        {answers.departmentNote && <PremiseRow label="対象部門・事業部（備考）" value={answers.departmentNote} />}
         {answers.projectStartDate && <PremiseRow label="プロジェクト開始" value={addMonthsToDate(answers.projectStartDate, 0)} />}
       </PremiseSection>
 
@@ -618,7 +600,7 @@ function getPhaseIndex(month: number, phases: Phase[]): number {
 
 export default function ResultPage() {
   const router = useRouter()
-  const { answers, isComplete, resetWizard, generatedPlan, setPlan, clearPlan, isGenerating, setGenerating } = useWizardStore()
+  const { answers, isComplete, resetWizard, generatedPlan, setPlan, clearPlan, isGenerating, setGenerating, startEdit } = useWizardStore()
   const [cases, setCases] = useState<CaseStudy[]>([])
   const [caseHints, setCaseHints] = useState<CaseHint[]>([])
   const [insightHints, setInsightHints] = useState<{ label: string; url?: string }[]>([])
@@ -627,6 +609,8 @@ export default function ResultPage() {
   const [downloading, setDownloading] = useState(false)
   const [partialPlan, setPartialPlan] = useState<Partial<GeneratedPlan>>({})
   const [sectionReady, setSectionReady] = useState({ phases: false, schedule: false, barrier: false })
+  const [extraPairs, setExtraPairs] = useState<ManualUsagePair[]>([])
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const accumulatedRef = useRef<Partial<GeneratedPlan>>({})
 
   useEffect(() => {
@@ -702,6 +686,12 @@ export default function ResultPage() {
             } else if (event.type === 'usage') {
               acc.usageScenarios = event.usageScenarios as GeneratedPlan['usageScenarios']
               setPartialPlan({ ...acc })
+            } else if (event.type === 'feature_stories') {
+              acc.featureStories = event.featureStories as GeneratedPlan['featureStories']
+              setPartialPlan({ ...acc })
+            } else if (event.type === 'manual_usage_pairs') {
+              acc.manualUsagePairs = event.manualUsagePairs as GeneratedPlan['manualUsagePairs']
+              setPartialPlan({ ...acc })
             } else if (event.type === 'done') {
               setPlan(accumulatedRef.current as GeneratedPlan)
             }
@@ -742,6 +732,28 @@ export default function ResultPage() {
     }
   }
 
+  const handleLoadMore = async () => {
+    if (!answers || isLoadingMore) return
+    setIsLoadingMore(true)
+    try {
+      const allPairs = [...(plan?.manualUsagePairs ?? []), ...extraPairs]
+      const existingTitles = allPairs.map((p) => p.manualTitle)
+      const existingFeatures = allPairs.map((p) => p.feature)
+      const res = await fetch('/api/generate-more-scenarios', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers, existingTitles, existingFeatures }),
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setExtraPairs((prev) => [...prev, ...(data.manualUsagePairs ?? [])])
+    } catch {
+      // silently fail
+    } finally {
+      setIsLoadingMore(false)
+    }
+  }
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -755,6 +767,11 @@ export default function ResultPage() {
 
   const plan = Object.keys(partialPlan).length > 0 ? partialPlan : generatedPlan
   const barrierActions = plan?.barrierActions ? normalizeBarrierActions(plan.barrierActions as unknown[]) : []
+
+  const recommendedResources = React.useMemo(
+    () => (answers ? matchResources(answers, 3) : []),
+    [answers]
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -782,10 +799,11 @@ export default function ResultPage() {
             )}
             <Button variant="outline" size="sm" onClick={() => { resetWizard(); router.push('/') }}>最初から</Button>
             <Button variant="outline" size="sm"
-              onClick={() => { clearPlan(); setPartialPlan({}); window.scrollTo({ top: 0, behavior: 'smooth' }); generatePlan() }}
+              onClick={() => { startEdit(1); router.push('/wizard?step=1') }}
               disabled={isGenerating}>
-              🔄 再生成
+              ✏️ 情報を更新して再策定
             </Button>
+
             <Button size="sm" onClick={handleDownloadPpt} disabled={!generatedPlan || downloading} loading={downloading}
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">
               📊 PPTをダウンロード
@@ -797,32 +815,82 @@ export default function ResultPage() {
       <main className="mx-auto max-w-[1600px] px-16 py-10 space-y-16">
 
         {/* ==================== 1. タイトル ==================== */}
-        <section className="rounded-xl bg-white border border-gray-200 shadow-sm px-8 py-7">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-blue-600 text-xs font-semibold mb-2 tracking-widest uppercase">Teachme Biz 運用プランご提案</p>
-              <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-                {answers.companyName} 様
-              </h1>
-              <p className="text-base font-medium text-gray-500 mt-1">12ヶ月 運用プラン</p>
-              {plan?.theme && (
-                <div className="mt-4 inline-block bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
-                  <p className="text-blue-800 text-sm font-medium leading-relaxed">{plan.theme}</p>
+        {(() => {
+          const isUncontracted = answers.contractPlan === 'uncontracted'
+          const contractPlanDef = answers.contractPlan && !isUncontracted
+            ? getPlanById(answers.contractPlan as TmbPlanId)
+            : null
+          return (
+            <section className="rounded-xl bg-white border border-gray-200 shadow-sm px-8 py-7">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-blue-600 text-xs font-semibold mb-2 tracking-widest uppercase">Teachme Biz 運用プランご提案</p>
+                  <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+                    {answers.companyName} 様
+                  </h1>
+                  <p className="text-base font-medium text-gray-500 mt-1">12ヶ月 運用プラン</p>
+
+                  {/* 契約プランバッジ */}
+                  {(contractPlanDef || isUncontracted) && (
+                    <div className="mt-4 flex flex-wrap items-center gap-3">
+                      <div className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold shadow-sm ${
+                        isUncontracted
+                          ? 'bg-gray-400 text-white'
+                          : contractPlanDef!.isNew
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-700 text-white'
+                      }`}>
+                        <span>🔧</span>
+                        {isUncontracted ? (
+                          <span>未契約</span>
+                        ) : (
+                          <>
+                            <span>{contractPlanDef!.label}</span>
+                            <span className="opacity-80 font-normal text-xs border-l border-white/30 pl-2">
+                              ¥{contractPlanDef!.monthlyFee.toLocaleString()}/月
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      {!isUncontracted && (answers.contractAddons ?? []).length > 0 && (
+                        <span className="text-xs text-gray-500">
+                          + オプション {(answers.contractAddons ?? []).length}件追加
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {plan?.theme && (
+                    <div className="mt-3 inline-block bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
+                      <p className="text-blue-800 text-sm font-medium leading-relaxed">{plan.theme}</p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="text-right text-gray-400 text-sm space-y-1 shrink-0 ml-10 mt-1">
-              <p className="text-sm font-semibold text-gray-600">{answers.locationCount}拠点 / 計{answers.locationCount * answers.staffPerLocation}名</p>
-              <p className="text-xs">作成日: {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-            </div>
-          </div>
-        </section>
+                <div className="text-right text-gray-400 text-sm space-y-1 shrink-0 ml-10 mt-1">
+                  <p className="text-sm font-semibold text-gray-600">{answers.locationCount}拠点 / 計{answers.locationCount * answers.staffPerLocation}名</p>
+                  <p className="text-xs">作成日: {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                </div>
+              </div>
+            </section>
+          )
+        })()}
 
         {/* ==================== 1.5. 前提情報 ==================== */}
         <section>
           <SectionHeading icon="📝" title="前提情報" sub="ヒアリング内容の整理" />
           <PremiseInfo answers={answers} />
         </section>
+
+        {/* ==================== 1.7. 契約プランと利用可能機能 ==================== */}
+        {answers.contractPlan && (
+          <section>
+            <SectionHeading icon="🔧" title="契約プランと利用可能機能" sub="このプランニングの前提となる機能構成" />
+            <PlanFeatureSection
+              contractPlan={answers.contractPlan}
+              contractAddons={answers.contractAddons ?? []}
+            />
+          </section>
+        )}
 
         {/* ==================== 2. サマリー ==================== */}
         <section>
@@ -887,35 +955,70 @@ export default function ResultPage() {
           </section>
         )}
 
-        {/* ==================== 3. マニュアル活用イメージ ==================== */}
+        {/* ==================== 3. 活用シナリオ ==================== */}
         <section>
-          <SectionHeading icon="📖" title="マニュアル活用イメージ" sub="どんなマニュアルを、誰が、どのシーンで使い、どんな効果を出すか" />
-          {(plan?.usageScenarios?.length ?? 0) > 0 ? (
-            <div className="grid grid-cols-2 gap-5">
-              {(plan!.usageScenarios as UsageScenario[]).map((s, i) => (
-                <div key={i} className="rounded-xl bg-white border border-gray-200 overflow-hidden shadow-sm">
-                  <div className="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
-                    <p className="text-gray-700 font-bold text-sm leading-snug">{s.manualTitle}</p>
-                  </div>
-                  <div className="p-5 space-y-2.5">
-                    <div className="flex items-start gap-2.5">
-                      <span className="text-xs font-bold text-gray-400 w-14 shrink-0 mt-0.5">誰が</span>
-                      <p className="text-sm text-gray-800">{s.user}</p>
+          <SectionHeading icon="🎬" title="活用シナリオ提案" sub="誰のために・何を作り・どう使うか — CSのシナリオ知識を可視化" />
+          {isGmpRelevant(answers) && <GmpWarningBanner />}
+          {(() => {
+            const allPairs = [...(plan?.manualUsagePairs ?? []), ...extraPairs]
+            if (allPairs.length > 0) {
+              return (
+                <div className="space-y-5">
+                  {allPairs.map((pair, i) => (
+                    <div key={i} className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                      {/* 共通ヘッダー: 対象者 */}
+                      <div className="bg-gray-800 px-5 py-3 flex items-center gap-2">
+                        <span className="text-white text-sm">👤</span>
+                        <span className="text-white font-bold text-sm">{pair.targetUser}</span>
+                      </div>
+                      {/* ペアカード */}
+                      <div className="grid grid-cols-2 divide-x divide-gray-200 bg-white">
+                        {/* 左: 作るマニュアル */}
+                        <div className="p-5">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-base">📄</span>
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">作るマニュアル</span>
+                          </div>
+                          <p className="font-bold text-gray-900 text-sm mb-2">{pair.manualTitle}</p>
+                          <p className="text-sm text-gray-600 leading-relaxed">{pair.content}</p>
+                        </div>
+                        {/* 右: こう使う */}
+                        <div className="p-5">
+                          <div className="flex items-center gap-2 mb-3">
+                            <span className="text-base">⚡</span>
+                            <span className="inline-block bg-blue-600 text-white text-[11px] font-semibold rounded-full px-2.5 py-0.5 leading-tight">{pair.feature}</span>
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed mb-2">{pair.scene}</p>
+                          <div className="rounded-lg bg-green-50 border border-green-200 px-3 py-2">
+                            <p className="text-sm text-green-800 font-medium leading-relaxed">{pair.effect}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-2.5">
-                      <span className="text-xs font-bold text-gray-400 w-14 shrink-0 mt-0.5">シーン</span>
-                      <p className="text-sm text-gray-700 leading-relaxed">{s.scene}</p>
-                    </div>
-                    <div className="flex items-start gap-2.5 rounded-lg bg-green-50 border border-green-200 px-3 py-2">
-                      <span className="text-xs font-bold text-green-600 w-14 shrink-0 mt-0.5">効果</span>
-                      <p className="text-sm text-green-800 font-medium leading-relaxed">{s.effect}</p>
-                    </div>
+                  ))}
+                  {/* さらに追加ボタン */}
+                  <div className="flex justify-center pt-2">
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={isLoadingMore}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-blue-300 text-blue-600 font-semibold text-sm hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isLoadingMore ? (
+                        <>
+                          <span className="inline-block h-4 w-4 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
+                          生成中...
+                        </>
+                      ) : (
+                        <>＋ さらに別のシナリオを追加する</>
+                      )}
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : isGenerating && <SectionSkeleton rows={4} />}
+              )
+            }
+            if (isGenerating) return <SectionSkeleton rows={4} />
+            return null
+          })()}
         </section>
 
         {/* ==================== 4. 年間スケジュール（四半期） ==================== */}
@@ -1106,6 +1209,32 @@ export default function ResultPage() {
             </div>
           ) : isGenerating ? <SectionSkeleton rows={4} /> : <SectionFailed />}
         </section>
+
+        {/* ==================== お役立ち資料 ==================== */}
+        {recommendedResources.length > 0 && (
+          <section>
+            <SectionHeading icon="📚" title="お役立ち資料" sub="入力内容をもとに、参考になりそうな資料をピックアップしました" />
+            <div className="space-y-3">
+              {recommendedResources.map((r: HelpfulResource) => (
+                <div key={r.id} className="rounded-xl bg-white border border-gray-200 shadow-sm px-5 py-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="font-bold text-gray-900 text-sm leading-snug">{r.title}</p>
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{r.description}</p>
+                  </div>
+                  <a
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors whitespace-nowrap"
+                  >
+                    資料を見る
+                    <span className="text-white/80">↗</span>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ==================== 6. 類似他社事例 ==================== */}
         {cases.length > 0 && (

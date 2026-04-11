@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation'
 import { useWizardStore, ExtractedProfile } from '@/src/store/wizardStore'
 import { Button } from '@/src/components/ui/Button'
 import { ChoiceCard } from '@/src/components/ui/ChoiceCard'
-import { Industry, CompanySize } from '@/src/types/answers'
+import { Industry, CompanySize, ManufacturingRegulation } from '@/src/types/answers'
 import { RETAIL_SUB_INDUSTRIES, getSubIndustriesForIndustry } from '@/src/data/industry-segments'
+import { getDepartmentsForIndustry } from '@/src/data/industry-departments'
 
 const INDUSTRIES: { value: Industry; label: string; icon: string }[] = [
   { value: 'agriculture',  label: '農業・林業',                    icon: '🌾' },
@@ -28,6 +29,14 @@ const INDUSTRIES: { value: Industry; label: string; icon: string }[] = [
   { value: 'other',        label: 'サービス業（その他）・公務',        icon: '📋' },
 ]
 
+const MANUFACTURING_REGULATIONS: { value: ManufacturingRegulation; label: string; desc: string }[] = [
+  { value: 'iso9001',   label: 'ISO 9001',      desc: '品質マネジメントシステム（汎用）' },
+  { value: 'iatf16949', label: 'IATF 16949',    desc: '自動車産業向け品質管理規格' },
+  { value: 'gmp_qms',  label: 'GMP / QMS省令', desc: '医薬品・医療機器製造（薬機法）' },
+  { value: 'iso14001',  label: 'ISO 14001',      desc: '環境マネジメントシステム' },
+  { value: 'other',     label: 'その他の規格',    desc: 'HACCP、ISO 45001 など' },
+]
+
 const SIZES: { value: CompanySize; label: string; desc: string }[] = [
   { value: 'under50', label: '〜50名', desc: 'スタートアップ・中小企業' },
   { value: 'under200', label: '50〜200名', desc: '中小〜中堅企業' },
@@ -43,6 +52,16 @@ export function Step01BasicInfo() {
 
   const subIndustries = getSubIndustriesForIndustry(answers.industry)
   const requiresSubIndustry = subIndustries.length > 0
+  const departments = getDepartmentsForIndustry(answers.industry)
+
+  const toggleDepartment = (value: string) => {
+    const current = answers.targetDepartments ?? []
+    updateAnswers({
+      targetDepartments: current.includes(value)
+        ? current.filter((d) => d !== value)
+        : [...current, value],
+    })
+  }
 
   const canProceed =
     answers.companyName.trim().length > 0 &&
@@ -64,10 +83,12 @@ export function Step01BasicInfo() {
       </div>
 
       {/* AI推定バナー（社名/メモ入力モード時） */}
-      {extractedProfile && (answers.entryMode === 'company' || answers.entryMode === 'memo') && (
+      {extractedProfile && (answers.entryMode === 'company' || answers.entryMode === 'memo' || answers.entryMode === 'file') && (
         <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
           <p className="text-xs font-semibold text-blue-700 mb-1">
-            {answers.entryMode === 'company' ? '🔍 社名からAIが情報を推定しました' : '📋 メモからAIが情報を抽出しました'}
+            {answers.entryMode === 'company' ? '🔍 社名からAIが情報を推定しました'
+              : answers.entryMode === 'file' ? '📄 ファイルからAIが情報を抽出しました'
+              : '📋 メモからAIが情報を抽出しました'}
           </p>
           <p className="text-xs text-blue-600">
             {extractedProfile.confidence === 'high' ? '信頼度: 高' : extractedProfile.confidence === 'medium' ? '信頼度: 中' : '信頼度: 低'}
@@ -142,19 +163,210 @@ export function Step01BasicInfo() {
         </div>
       )}
 
-      {/* 企業規模 */}
-      <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">従業員規模 <span className="text-red-500">*</span></label>
-        <div className="grid grid-cols-1 gap-2">
-          {SIZES.map((item) => (
-            <ChoiceCard
-              key={item.value}
-              label={item.label}
-              description={item.desc}
-              selected={answers.companySize === item.value}
-              onClick={() => updateAnswers({ companySize: item.value })}
-            />
-          ))}
+      {/* 製造業向け規格（製造業選択時のみ） */}
+      {answers.industry === 'manufacturing' && (
+        <div className="space-y-3">
+          <label className="text-sm font-semibold text-gray-700">
+            考慮すべき規格・基準
+            <span className="ml-2 text-xs font-normal text-gray-400">（任意・該当するものを選択）</span>
+          </label>
+          <div className="grid grid-cols-1 gap-2">
+            {MANUFACTURING_REGULATIONS.map((item) => {
+              const selected = answers.manufacturingRegulations.includes(item.value)
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => {
+                    const regs = answers.manufacturingRegulations
+                    updateAnswers({
+                      manufacturingRegulations: selected
+                        ? regs.filter((r) => r !== item.value)
+                        : [...regs, item.value],
+                    })
+                  }}
+                  className={`w-full text-left rounded-lg border px-4 py-3 transition-colors ${
+                    selected
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className={`text-sm font-semibold ${selected ? 'text-blue-700' : 'text-gray-800'}`}>
+                        {item.label}
+                      </span>
+                      <span className="ml-2 text-xs text-gray-400">{item.desc}</span>
+                    </div>
+                    {selected && <span className="text-blue-500 text-sm">✓</span>}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 活用対象部門（業種選択後に表示） */}
+      {answers.industry && departments.length > 0 && (
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-semibold text-gray-700">
+              Teachme Biz活用を想定する部門
+              <span className="ml-2 text-xs font-normal text-gray-400">（複数選択可・任意）</span>
+            </label>
+            <p className="mt-0.5 text-xs text-gray-400">選択した部門に合わせた運用シナリオを提案します</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {departments.map((dept) => {
+              const selected = (answers.targetDepartments ?? []).includes(dept.value)
+              return (
+                <button
+                  key={dept.value}
+                  type="button"
+                  onClick={() => toggleDepartment(dept.value)}
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors ${
+                    selected
+                      ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <span>{dept.icon}</span>
+                  <span>{dept.label}</span>
+                  {selected && <span className="ml-auto text-blue-500 text-xs">✓</span>}
+                </button>
+              )
+            })}
+          </div>
+          {(answers.targetDepartments ?? []).length > 0 && (
+            <p className="text-xs text-blue-600">{(answers.targetDepartments ?? []).length}部門選択中</p>
+          )}
+        </div>
+      )}
+
+      {/* 企業規模 + 拠点数（2カラム） */}
+      <div className="grid grid-cols-2 gap-5 items-start">
+        {/* 企業規模 */}
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-gray-700">従業員規模 <span className="text-red-500">*</span></label>
+          <div className="flex flex-col gap-1.5">
+            {SIZES.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => updateAnswers({ companySize: item.value })}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                  answers.companySize === item.value
+                    ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
+                    : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <span className="flex-1 font-medium text-sm">{item.label}</span>
+                {answers.companySize === item.value && <span className="text-blue-500 text-xs">✓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 拠点数 + FC + 開始年月 */}
+        <div className="space-y-4">
+          {/* 拠点数 */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-gray-700">拠点・店舗数</label>
+            <p className="text-xs text-gray-400">活用を想定する拠点・店舗数</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={locationInput}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9]/g, '')
+                  setLocationInput(raw)
+                  const val = parseInt(raw, 10)
+                  if (!isNaN(val) && val >= 1) updateAnswers({ locationCount: val })
+                }}
+                onBlur={() => {
+                  const val = parseInt(locationInput, 10)
+                  const fixed = isNaN(val) || val < 1 ? 1 : val
+                  setLocationInput(String(fixed))
+                  updateAnswers({ locationCount: fixed })
+                }}
+                placeholder="例：5"
+                className="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-500">拠点</span>
+            </div>
+          </div>
+
+          {/* FC */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-gray-700">FC事業者？ <span className="text-red-500">*</span></label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => updateAnswers({ isFranchise: true })}
+                className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
+                  answers.isFranchise === true
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                🏪 あり
+              </button>
+              <button
+                type="button"
+                onClick={() => updateAnswers({ isFranchise: false })}
+                className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
+                  answers.isFranchise === false
+                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                🏢 なし
+              </button>
+            </div>
+          </div>
+
+          {/* プロジェクト開始年月 */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-gray-700">
+              開始年月
+              <span className="ml-1.5 text-xs font-normal text-gray-400">（任意）</span>
+            </label>
+            <p className="text-xs text-gray-400">スケジュールのカレンダー表記に使用</p>
+            <div className="flex items-center gap-1.5">
+              <select
+                value={answers.projectStartDate ? answers.projectStartDate.split('-')[0] : ''}
+                onChange={(e) => {
+                  const year = e.target.value
+                  const month = answers.projectStartDate ? answers.projectStartDate.split('-')[1] : '01'
+                  updateAnswers({ projectStartDate: year ? `${year}-${month}` : '' })
+                }}
+                className="rounded-lg border border-gray-300 px-2 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">年</option>
+                {Array.from({ length: 8 }, (_, i) => 2025 + i).map((y) => (
+                  <option key={y} value={String(y)}>{y}</option>
+                ))}
+              </select>
+              <span className="text-xs text-gray-400">年</span>
+              <select
+                value={answers.projectStartDate ? answers.projectStartDate.split('-')[1] : ''}
+                onChange={(e) => {
+                  const month = e.target.value
+                  const year = answers.projectStartDate ? answers.projectStartDate.split('-')[0] : String(new Date().getFullYear())
+                  updateAnswers({ projectStartDate: month && year ? `${year}-${month.padStart(2, '0')}` : '' })
+                }}
+                className="rounded-lg border border-gray-300 px-2 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="">月</option>
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                  <option key={m} value={String(m).padStart(2, '0')}>{m}</option>
+                ))}
+              </select>
+              <span className="text-xs text-gray-400">月</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -174,90 +386,6 @@ export function Step01BasicInfo() {
           />
         </div>
       )}
-
-      {/* 拠点数 */}
-      <div className="space-y-2">
-        <label className="text-sm font-semibold text-gray-700">拠点・店舗数</label>
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            inputMode="numeric"
-            value={locationInput}
-            onChange={(e) => {
-              const raw = e.target.value.replace(/[^0-9]/g, '')
-              setLocationInput(raw)
-              const val = parseInt(raw, 10)
-              if (!isNaN(val) && val >= 1) updateAnswers({ locationCount: val })
-            }}
-            onBlur={() => {
-              const val = parseInt(locationInput, 10)
-              const fixed = isNaN(val) || val < 1 ? 1 : val
-              setLocationInput(String(fixed))
-              updateAnswers({ locationCount: fixed })
-            }}
-            placeholder="例：5"
-            className="w-28 rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-500">拠点</span>
-        </div>
-      </div>
-
-      {/* プロジェクト開始年月 */}
-      <div className="space-y-2">
-        <label className="text-sm font-semibold text-gray-700">
-          プロジェクト開始年月
-          <span className="ml-2 text-xs font-normal text-gray-400">（任意・スケジュールのカレンダー表記に使用）</span>
-        </label>
-        <div className="flex items-center gap-2">
-          <select
-            value={answers.projectStartDate ? answers.projectStartDate.split('-')[0] : ''}
-            onChange={(e) => {
-              const year = e.target.value
-              const month = answers.projectStartDate ? answers.projectStartDate.split('-')[1] : '01'
-              updateAnswers({ projectStartDate: year ? `${year}-${month}` : '' })
-            }}
-            className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="">年を選択</option>
-            {Array.from({ length: 6 }, (_, i) => new Date().getFullYear() + i).map((y) => (
-              <option key={y} value={String(y)}>{y}年</option>
-            ))}
-          </select>
-          <select
-            value={answers.projectStartDate ? answers.projectStartDate.split('-')[1] : ''}
-            onChange={(e) => {
-              const month = e.target.value
-              const year = answers.projectStartDate ? answers.projectStartDate.split('-')[0] : String(new Date().getFullYear())
-              updateAnswers({ projectStartDate: month && year ? `${year}-${month.padStart(2, '0')}` : '' })
-            }}
-            className="rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="">月を選択</option>
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-              <option key={m} value={String(m).padStart(2, '0')}>{m}月</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* FC */}
-      <div className="space-y-3">
-        <label className="text-sm font-semibold text-gray-700">FC（フランチャイズ）事業者ですか？ <span className="text-red-500">*</span></label>
-        <div className="grid grid-cols-2 gap-3">
-          <ChoiceCard
-            label="はい（FC本部・加盟店あり）"
-            icon="🏪"
-            selected={answers.isFranchise === true}
-            onClick={() => updateAnswers({ isFranchise: true })}
-          />
-          <ChoiceCard
-            label="いいえ（独立事業）"
-            icon="🏢"
-            selected={answers.isFranchise === false}
-            onClick={() => updateAnswers({ isFranchise: false })}
-          />
-        </div>
-      </div>
 
       <div className="flex justify-end pt-4">
         <Button onClick={handleNext} disabled={!canProceed} size="lg">

@@ -149,7 +149,7 @@ export function Step07Operations() {
       )}
 
       <div className="flex justify-between pt-4">
-        <Button variant="outline" onClick={() => { prevStep(); router.push('/wizard?step=7') }}>
+        <Button variant="outline" onClick={() => { prevStep(); router.push('/wizard?step=5') }}>
           ← 戻る
         </Button>
         <Button onClick={handleSubmit} disabled={!canProceed} size="lg" className="bg-green-600 hover:bg-green-700">

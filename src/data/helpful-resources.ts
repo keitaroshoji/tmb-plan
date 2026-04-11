@@ -1,0 +1,136 @@
+export interface HelpfulResource {
+  id: string
+  title: string
+  description: string  // 1文の概要
+  url: string
+  // マッチングタグ
+  industries: string[]   // 業種コード or 'all'
+  challenges: string[]   // challengeコード or 'all'
+  usageStatuses: string[] // 'none'|'partial'|'active'|'expanding'|'all'
+  companySizes: string[]  // 'under50'|'under200'|'under500'|'under1000'|'over1000'|'all'
+  barriers: string[]     // operationalBarrierコード or 'all'
+  baseScore: number      // 基本スコア（優先度）
+}
+
+export const HELPFUL_RESOURCES: HelpfulResource[] = [
+  {
+    id: 'manual_creation_guide',
+    title: 'Teachme Bizでのマニュアル作成虎の巻',
+    description: '何からマニュアルを作ればよいか・現場に使われるための整備ノウハウを解説',
+    url: 'https://help.teachme.jp/hc/ja/articles/18933797297561',
+    industries: ['all'],
+    challenges: ['manual_creation', 'standardization', 'knowledge_transfer'],
+    usageStatuses: ['none', 'partial'],
+    companySizes: ['all'],
+    barriers: ['no_creation_knowhow', 'no_time_for_creation'],
+    baseScore: 10,
+  },
+  {
+    id: 'business_inventory',
+    title: 'マニュアル活用の第一歩 効果的な業務棚卸の方法とは',
+    description: '業務を洗い出し・整理して、マニュアル化の優先順位を決める5ステップを紹介',
+    url: 'https://help.teachme.jp/hc/ja/articles/28988368615065',
+    industries: ['manufacturing', 'medical', 'logistics', 'retail', 'all'],
+    challenges: ['standardization', 'knowledge_transfer', 'manual_creation'],
+    usageStatuses: ['none', 'partial'],
+    companySizes: ['all'],
+    barriers: ['no_time_for_creation', 'no_creation_knowhow'],
+    baseScore: 8,
+  },
+  {
+    id: 'promotion_mindset',
+    title: 'Teachme Bizの運用推進者としての心構えと運用推進について',
+    description: '推進担当者が社内でTeachme Bizを定着させるための役割・施策・事例を整理',
+    url: 'https://help.teachme.jp/hc/ja/articles/28988275116697',
+    industries: ['all'],
+    challenges: ['standardization', 'talent_development'],
+    usageStatuses: ['none', 'partial', 'active'],
+    companySizes: ['under200', 'under500', 'under1000', 'over1000'],
+    barriers: ['no_team_structure', 'hard_to_involve', 'low_adoption_concern'],
+    baseScore: 9,
+  },
+  {
+    id: 'operation_plan',
+    title: '運用計画の策定と進捗管理の方法',
+    description: '導入フェーズごとのToDoとKPI設定・スケジュール管理のサンプルを提供',
+    url: 'https://help.teachme.jp/hc/ja/articles/28988339587993',
+    industries: ['all'],
+    challenges: ['standardization', 'multi_store'],
+    usageStatuses: ['none', 'partial'],
+    companySizes: ['under500', 'under1000', 'over1000'],
+    barriers: ['no_team_structure'],
+    baseScore: 8,
+  },
+  {
+    id: 'review_meeting',
+    title: 'マニュアルのレビュー会の進め方',
+    description: 'マニュアルを「作って終わり」にしない定期レビュー会の設計・運営方法',
+    url: 'https://help.teachme.jp/hc/ja/articles/36370502765849',
+    industries: ['manufacturing', 'medical', 'food_service', 'retail'],
+    challenges: ['iso_compliance', 'standardization'],
+    usageStatuses: ['active', 'expanding'],
+    companySizes: ['all'],
+    barriers: ['maintenance_concern'],
+    baseScore: 7,
+  },
+  {
+    id: 'goal_setting',
+    title: '運用成功のカギを握る 目的・目標の設定方法',
+    description: 'KGI・KPI設定から効果を経営層に示すレポート作成まで、目標管理の全体像',
+    url: 'https://help.teachme.jp/hc/ja/sections/38309310094233',
+    industries: ['all'],
+    challenges: ['cost_reduction', 'standardization'],
+    usageStatuses: ['none', 'partial'],
+    companySizes: ['all'],
+    barriers: ['all'],
+    baseScore: 7,
+  },
+  {
+    id: 'manual_adoption',
+    title: '作ったマニュアルを見てもらうためのマニュアル運用の設計術',
+    description: '閲覧率が上がらない原因と、ポータル活用・通知・浸透施策の具体的なアイデア集',
+    url: 'https://help.teachme.jp/hc/ja/sections/38309310094233',
+    industries: ['all'],
+    challenges: ['standardization', 'talent_development'],
+    usageStatuses: ['partial', 'active'],
+    companySizes: ['all'],
+    barriers: ['low_adoption_concern', 'maintenance_concern'],
+    baseScore: 9,
+  },
+  {
+    id: 'effect_verification',
+    title: 'Teachme Biz 効果検証ガイド',
+    description: '導入効果を数値で示し、継続利用・予算確保の稟議を通すための効果測定手法',
+    url: 'https://help.teachme.jp/hc/ja/sections/38309310094233',
+    industries: ['all'],
+    challenges: ['cost_reduction'],
+    usageStatuses: ['active', 'expanding'],
+    companySizes: ['under500', 'under1000', 'over1000'],
+    barriers: ['all'],
+    baseScore: 7,
+  },
+  {
+    id: 'foreign_staff',
+    title: 'Teachme Bizを活用した外国人材教育の事例',
+    description: '自動翻訳×動画マニュアルで外国人材の早期定着・育成コスト削減を実現した事例',
+    url: 'https://help.teachme.jp/hc/ja/sections/38309310094233',
+    industries: ['manufacturing', 'food_service', 'logistics', 'medical', 'beauty'],
+    challenges: ['foreign_staff'],
+    usageStatuses: ['all'],
+    companySizes: ['all'],
+    barriers: ['all'],
+    baseScore: 12,
+  },
+  {
+    id: 'account_design',
+    title: 'Teachme Biz運用の土台となるアカウント設計の考え方',
+    description: '権限設計・フォルダ構造・グループ設定など多拠点展開に向けた初期設計ガイド',
+    url: 'https://help.teachme.jp/hc/ja/sections/38309310094233',
+    industries: ['manufacturing', 'retail', 'logistics', 'food_service'],
+    challenges: ['multi_store', 'remote_management'],
+    usageStatuses: ['none', 'partial'],
+    companySizes: ['under500', 'under1000', 'over1000'],
+    barriers: ['no_team_structure'],
+    baseScore: 6,
+  },
+]

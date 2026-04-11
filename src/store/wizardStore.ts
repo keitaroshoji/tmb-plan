@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import { TmbWizardAnswers, INITIAL_ANSWERS } from '@/src/types/answers'
 import { GeneratedPlan, CaseStudy } from '@/src/types/plan'
 
-export const TOTAL_STEPS = 8
+export const TOTAL_STEPS = 6
 
 // メモ解析・社名解析の抽出結果
 export interface ExtractedProfile {
@@ -25,6 +25,7 @@ interface WizardState {
   currentStep: number
   answers: TmbWizardAnswers
   isComplete: boolean
+  isEditMode: boolean   // 再策定モード中フラグ
   isGenerating: boolean
   generatedPlan: GeneratedPlan | null
   matchedCases: CaseStudy[]
@@ -57,6 +58,7 @@ interface WizardState {
   // Reset
   resetWizard: () => void
   startEdit: (step: number) => void
+  cancelEdit: () => void
 }
 
 export const useWizardStore = create<WizardState>()(
@@ -65,6 +67,7 @@ export const useWizardStore = create<WizardState>()(
       currentStep: 1,
       answers: INITIAL_ANSWERS,
       isComplete: false,
+      isEditMode: false,
       isGenerating: false,
       generatedPlan: null,
       matchedCases: [],
@@ -84,7 +87,7 @@ export const useWizardStore = create<WizardState>()(
       updateAnswers: (partial) =>
         set((state) => ({ answers: { ...state.answers, ...partial } })),
 
-      completeWizard: () => set({ isComplete: true }),
+      completeWizard: () => set({ isComplete: true, isEditMode: false }),
       setGenerating: (v) => set({ isGenerating: v }),
       setPlan: (plan) => set({ generatedPlan: plan }),
       setCases: (cases) => set({ matchedCases: cases }),
@@ -99,6 +102,7 @@ export const useWizardStore = create<WizardState>()(
           currentStep: 1,
           answers: INITIAL_ANSWERS,
           isComplete: false,
+          isEditMode: false,
           isGenerating: false,
           generatedPlan: null,
           matchedCases: [],
@@ -107,7 +111,10 @@ export const useWizardStore = create<WizardState>()(
         }),
 
       startEdit: (step) =>
-        set({ currentStep: step, isComplete: false }),
+        set({ currentStep: step, isComplete: false, isEditMode: true, generatedPlan: null }),
+
+      cancelEdit: () =>
+        set({ isComplete: true, isEditMode: false }),
     }),
     {
       name: 'tmb-wizard-store',
@@ -125,7 +132,7 @@ export const useWizardStore = create<WizardState>()(
           }
         }
       }),
-      version: 3,
+      version: 6,
       migrate: (persistedState: unknown, version: number) => {
         let state = persistedState as WizardState
         if (version <= 1) {
@@ -153,6 +160,37 @@ export const useWizardStore = create<WizardState>()(
               ...state.answers,
               projectStartDate: '',
             },
+          }
+        }
+        if (version <= 3) {
+          // v3→v4: contractPlan / contractAddons を追加
+          state = {
+            ...state,
+            answers: {
+              ...state.answers,
+              contractPlan: null,
+              contractAddons: [],
+            },
+          }
+        }
+        if (version <= 4) {
+          // v4→v5: targetDepartments / *Note フィールドを追加
+          state = {
+            ...state,
+            answers: {
+              ...state.answers,
+              targetDepartments: [],
+              challengeNote: '',
+              goalNote: '',
+              barrierNote: '',
+            },
+          }
+        }
+        if (version <= 5) {
+          // v5→v6: ステップ数を8→6に変更、currentStep をリセット
+          state = {
+            ...state,
+            currentStep: 1,
           }
         }
         return state

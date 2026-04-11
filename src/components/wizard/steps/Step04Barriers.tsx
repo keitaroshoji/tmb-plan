@@ -57,6 +57,21 @@ export function Step04Barriers() {
         <p className="text-xs text-blue-600">{answers.operationalBarriers.length}件選択中</p>
       )}
 
+      {/* 自由記入欄 */}
+      <div className="space-y-2">
+        <label className="text-sm font-semibold text-gray-700">
+          その他・補足
+          <span className="ml-2 text-xs font-normal text-gray-400">（任意）</span>
+        </label>
+        <textarea
+          value={answers.barrierNote ?? ''}
+          onChange={(e) => updateAnswers({ barrierNote: e.target.value })}
+          placeholder="上記に当てはまらない課題や、現場の状況・懸念点を自由にご記入ください"
+          rows={3}
+          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+        />
+      </div>
+
       <div className="flex justify-between pt-4">
         <Button variant="outline" onClick={() => { prevStep(); router.push('/wizard?step=4') }}>
           ← 戻る

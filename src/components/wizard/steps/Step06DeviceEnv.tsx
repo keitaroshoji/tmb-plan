@@ -111,10 +111,10 @@ export function Step06DeviceEnv() {
       </div>
 
       <div className="flex justify-between pt-4">
-        <Button variant="outline" onClick={() => { prevStep(); router.push('/wizard?step=6') }}>
+        <Button variant="outline" onClick={() => { prevStep(); router.push('/wizard?step=4') }}>
           ← 戻る
         </Button>
-        <Button onClick={() => { nextStep(); router.push('/wizard?step=8') }} disabled={!canProceed} size="lg">
+        <Button onClick={() => { nextStep(); router.push('/wizard?step=6') }} disabled={!canProceed} size="lg">
           次へ →
         </Button>
       </div>

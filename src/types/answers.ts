@@ -1,5 +1,5 @@
 // ==================== 入力モード ====================
-export type EntryMode = 'manual' | 'company' | 'memo'
+export type EntryMode = 'manual' | 'company' | 'memo' | 'file'
 
 // ==================== 利用状況 ====================
 export type UsageStatus = 'none' | 'partial' | 'active' | 'expanding'
@@ -117,6 +117,14 @@ export type OperationStyle =
   | 'individual'
   | 'byod'
 
+// ==================== 製造業規格 ====================
+export type ManufacturingRegulation =
+  | 'iso9001'      // ISO 9001（品質管理）
+  | 'iatf16949'    // IATF 16949（自動車品質）
+  | 'gmp_qms'      // GMP / QMS省令（医薬品・医療機器）
+  | 'iso14001'     // ISO 14001（環境管理）
+  | 'other'        // その他規格
+
 // ==================== メインの回答型 ====================
 export interface TmbWizardAnswers {
   // 入力モード
@@ -126,26 +134,35 @@ export interface TmbWizardAnswers {
   companyName: string
   industry: Industry | null
   subIndustry: string | null  // 業種サブセグメント（小売業の場合など）
+  manufacturingRegulations: ManufacturingRegulation[]  // 製造業選択時のみ使用
   companySize: CompanySize | null
   locationCount: number
   isFranchise: boolean | null
   departmentNote: string  // 大企業の場合の部門・事業部メモ
   projectStartDate: string  // プロジェクト開始年月 "YYYY-MM"
 
+  // Step 1b: 活用対象部門
+  targetDepartments: string[]        // 業種別部門の複数選択
+
   // Step 2: 経営課題
   challenges: Challenge[]
+  challengeNote: string              // 経営課題の自由記入
 
   // Step 3: 導入目的・期待効果
   primaryGoals: PrimaryGoal[]
   priorityKpi: KpiType | null
   targetValue: string
+  goalNote: string                   // 導入目的の自由記入
 
-  // Step 3b: 現在の用途（新規）
-  usageStatus: UsageStatus | null  // 現在の利用状況
-  currentUseCases: string  // 現在の用途（自由記述）
+  // Step 3b: 契約プラン・現在の用途
+  contractPlan: string | null        // 契約中のプランID（TmbPlanId）
+  contractAddons: string[]           // 追加済みの有料オプション（TmbFeatureId[]）
+  usageStatus: UsageStatus | null    // 現在の利用状況
+  currentUseCases: string            // 現在の用途（自由記述）
 
   // Step 4: 運用課題（推進上の障壁）
   operationalBarriers: OperationalBarrier[]
+  barrierNote: string                // 運用課題の自由記入
 
   // Step 5: 活用シーン・マニュアル
   useCases: UseCase[]
@@ -174,18 +191,25 @@ export const INITIAL_ANSWERS: TmbWizardAnswers = {
   companyName: '',
   industry: null,
   subIndustry: null,
+  manufacturingRegulations: [],
   companySize: null,
   locationCount: 1,
   isFranchise: null,
   departmentNote: '',
   projectStartDate: '',
+  targetDepartments: [],
   challenges: [],
+  challengeNote: '',
   primaryGoals: [],
   priorityKpi: null,
   targetValue: '',
+  goalNote: '',
+  contractPlan: null,
+  contractAddons: [],
   usageStatus: null,
   currentUseCases: '',
   operationalBarriers: [],
+  barrierNote: '',
   useCases: [],
   manualTypes: [],
   manualQuality: null,

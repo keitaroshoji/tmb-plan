@@ -106,10 +106,10 @@ export function Step05UseCases() {
       </div>
 
       <div className="flex justify-between pt-4">
-        <Button variant="outline" onClick={() => { prevStep(); router.push('/wizard?step=5') }}>
+        <Button variant="outline" onClick={() => { prevStep(); router.push('/wizard?step=3') }}>
           ← 戻る
         </Button>
-        <Button onClick={() => { nextStep(); router.push('/wizard?step=7') }} disabled={!canProceed} size="lg">
+        <Button onClick={() => { nextStep(); router.push('/wizard?step=5') }} disabled={!canProceed} size="lg">
           次へ →
         </Button>
       </div>

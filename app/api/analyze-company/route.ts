@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 
+export const maxDuration = 30
+
 const client = new Anthropic()
 
 const SYSTEM_PROMPT = `あなたはTeachme BizのCS担当者向けアシスタントです。
@@ -18,26 +20,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '企業名を入力してください' }, { status: 400 })
     }
 
-    const message = await client.messages.create(
-      {
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
-        system: [
-          {
-            type: 'text',
-            text: SYSTEM_PROMPT,
-            cache_control: { type: 'ephemeral' },
-          },
-        ],
-        messages: [
-          {
-            role: 'user',
-            content: `企業名: ${companyName.trim()}\n\n${JSON_SCHEMA}`,
-          },
-        ],
-      },
-      { timeout: 8000 }
-    )
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: [
+        {
+          type: 'text',
+          text: SYSTEM_PROMPT,
+          cache_control: { type: 'ephemeral' },
+        },
+      ],
+      messages: [
+        {
+          role: 'user',
+          content: `企業名: ${companyName.trim()}\n\n${JSON_SCHEMA}`,
+        },
+      ],
+    })
 
     const text = message.content[0].type === 'text' ? message.content[0].text : ''
     const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/)
