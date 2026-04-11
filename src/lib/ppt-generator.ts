@@ -172,25 +172,26 @@ function addCoverSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
     // ロゴ画像が見つからない場合はスキップ
   }
 
-  // タイトルテキスト（黒文字・背景なし）
+  // タイトルテキスト（上下センターライン上に配置）
   const company = answers.companyName || '顧客'
+  const TITLE_H = 0.45
   sl.addText(`${company} 様　Teachme Biz 運用プランご提案`, {
-    x: 0.832, y: 2.398, w: 8.210, h: 0.404,
+    x: MG, y: CY - TITLE_H / 2, w: CW, h: TITLE_H,
     fontFace: FONT, fontSize: 24, bold: true, color: DARK, valign: 'middle',
   })
 
-  // 提案日（黒文字・背景なし）
+  // 提案日（Noto Sans JP 8pt・黒文字・タイトル直下）
   const today = new Date()
   const dateStr = `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日`
   sl.addText(dateStr, {
-    x: 0.832, y: 4.127, w: 4, h: 0.22,
+    x: MG, y: CY + TITLE_H / 2 + 0.08, w: CW, h: 0.22,
     fontFace: FONT, fontSize: 8, color: DARK, valign: 'middle',
   })
 
-  // 企業名（下段・黒文字・背景なし）
+  // 企業名（日付直下・12pt・黒文字）
   sl.addText(company, {
-    x: 0.832, y: 4.357, w: 6, h: 0.22,
-    fontFace: FONT, fontSize: 9, bold: true, color: DARK, valign: 'middle',
+    x: MG, y: CY + TITLE_H / 2 + 0.08 + 0.22 + 0.06, w: CW, h: 0.30,
+    fontFace: FONT, fontSize: 12, bold: true, color: DARK, valign: 'middle',
   })
 }
 
