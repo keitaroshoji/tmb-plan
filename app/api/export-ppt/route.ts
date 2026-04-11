@@ -9,72 +9,83 @@ export const maxDuration = 90
 
 const client = new Anthropic()
 
-// ==================== PPT向けテキスト簡素化 ====================
+// ==================== PPT向けテキスト簡素化ヘルパー ====================
 
-/**
- * PowerPoint向けにテキストを体言止め・20〜30%短縮する
- * 対象: projectOverview / promotionPoints / schedule actions / barrierActions
- */
-async function simplifyPlanForPpt(plan: GeneratedPlan): Promise<GeneratedPlan> {
-  // 対象データを抽出
-  const input = {
-    projectOverview: plan.projectOverview ?? '',
-    promotionPoints: plan.promotionPoints ?? '',
-    scheduleActions: (plan.schedule ?? []).map(s => s.actions.slice(0, 2)),
-    barrierCounters: (plan.barrierActions ?? []).map(b => b.counter),
-    manualScenes:    (plan.manualUsagePairs ?? []).map(p => p.scene),
-    manualEffects:   (plan.manualUsagePairs ?? []).map(p => p.effect),
-  }
-
-  const prompt = `以下のプレゼンテーション用テキストをPowerPoint向けに簡素化してください。
+/** Claude に JSON を投げて簡素化済み JSON を返す（失敗時は null） */
+async function callSimplify<T>(inputObj: T, rules: string, maxTokens = 1024): Promise<T | null> {
+  const prompt = `以下のJSONのテキスト値をPowerPoint向けに簡素化してください。
 
 【ルール】
-・語尾を体言止めにする（「〜します」→「〜」、「〜が重要です」→「〜が重要」、「〜を行う」→「〜の実施」）
-・文字数を元の70〜80%程度に削減（20〜30%削減）
-・内容・意味は変えない
-・projectOverview / promotionPoints の \\n（改行）はそのまま維持する
-・JSONのみ返す
+${rules}
 
-入力:
-${JSON.stringify(input, null, 2)}
+入力JSON:
+${JSON.stringify(inputObj, null, 2)}
 
-出力JSON（同じキー構造で）:`
+出力: 同じキー構造のJSONのみ返してください。説明文は不要です。`
 
   try {
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 2048,
+      max_tokens: maxTokens,
+      system: 'あなたはJSON変換の専門家です。入力JSONと同じキー構造のJSONのみ返してください。',
       messages: [{ role: 'user', content: prompt }],
     })
-
-    const text = message.content[0].type === 'text' ? message.content[0].text : ''
-    const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/)
-    const jsonStr = jsonMatch ? (jsonMatch[1] ?? jsonMatch[0]) : text
-    const simplified = JSON.parse(jsonStr) as typeof input
-
-    // 簡素化済みデータでプランを上書き
-    return {
-      ...plan,
-      projectOverview: simplified.projectOverview || plan.projectOverview,
-      promotionPoints: simplified.promotionPoints || plan.promotionPoints,
-      schedule: (plan.schedule ?? []).map((s, i) => ({
-        ...s,
-        actions: simplified.scheduleActions[i] ?? s.actions,
-      })),
-      barrierActions: (plan.barrierActions ?? []).map((b, i) => ({
-        ...b,
-        counter: simplified.barrierCounters[i] ?? b.counter,
-      })),
-      manualUsagePairs: (plan.manualUsagePairs ?? []).map((p, i) => ({
-        ...p,
-        scene:  simplified.manualScenes[i]  ?? p.scene,
-        effect: simplified.manualEffects[i] ?? p.effect,
-      })),
-    }
+    const raw = message.content[0].type === 'text' ? message.content[0].text : ''
+    const m = raw.match(/```json\n?([\s\S]*?)\n?```/) || raw.match(/(\{[\s\S]*\})/)
+    const jsonStr = m ? (m[1] ?? m[0]) : raw.trim()
+    return JSON.parse(jsonStr) as T
   } catch (e) {
-    // 簡素化に失敗してもオリジナルで続行
-    console.warn('PPT simplification failed, using original:', e)
-    return plan
+    console.warn('[simplify] parse/API error:', e)
+    return null
+  }
+}
+
+// ==================== PPT向けテキスト簡素化（2分割呼び出し） ====================
+
+async function simplifyPlanForPpt(plan: GeneratedPlan): Promise<GeneratedPlan> {
+  const RULES_OVERVIEW = `・語尾を体言止めにする（「〜します」→省略、「〜が重要です」→「〜が重要」）
+・文字数を元の70〜80%程度に削減（20〜30%削減）
+・内容・意味は変えない
+・\\n（改行）はそのまま維持する`
+
+  const RULES_ACTIONS = `・語尾を体言止めにする（「〜します」→「〜の実施」、「〜を行います」→「〜を実施」）
+・各アクション文字数を元の60〜75%程度に削減
+・箇条書きの意味・内容は変えない`
+
+  // ── Call 1: 概要テキスト（projectOverview / promotionPoints / barrierCounters / manualScenes/Effects） ──
+  const overviewInput = {
+    projectOverview: plan.projectOverview ?? '',
+    promotionPoints: plan.promotionPoints ?? '',
+    barrierCounters: (plan.barrierActions ?? []).map(b => b.counter),
+    manualScenes:    (plan.manualUsagePairs ?? []).map(p => p.scene),
+    manualEffects:   (plan.manualUsagePairs ?? []).map(p => p.effect),
+  }
+  const simplifiedOverview = await callSimplify(overviewInput, RULES_OVERVIEW, 1500)
+
+  // ── Call 2: スケジュールアクション（13ヶ月分 × 2件） ──
+  const scheduleInput = {
+    actions: (plan.schedule ?? []).map(s => s.actions.slice(0, 2)),
+  }
+  const simplifiedSchedule = await callSimplify(scheduleInput, RULES_ACTIONS, 2000)
+
+  // ── マージ ──
+  return {
+    ...plan,
+    projectOverview: simplifiedOverview?.projectOverview || plan.projectOverview,
+    promotionPoints: simplifiedOverview?.promotionPoints || plan.promotionPoints,
+    schedule: (plan.schedule ?? []).map((s, i) => ({
+      ...s,
+      actions: simplifiedSchedule?.actions[i] ?? s.actions,
+    })),
+    barrierActions: (plan.barrierActions ?? []).map((b, i) => ({
+      ...b,
+      counter: simplifiedOverview?.barrierCounters[i] ?? b.counter,
+    })),
+    manualUsagePairs: (plan.manualUsagePairs ?? []).map((p, i) => ({
+      ...p,
+      scene:  simplifiedOverview?.manualScenes[i]  ?? p.scene,
+      effect: simplifiedOverview?.manualEffects[i] ?? p.effect,
+    })),
   }
 }
 

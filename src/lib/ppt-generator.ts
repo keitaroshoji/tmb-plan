@@ -177,7 +177,7 @@ function addCoverSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
 
   // Studistロゴ
   try {
-    sl.addImage({ path: STUDIST_LOGO_PATH, x: 0.732, y: 2.162, w: 1.240, h: 0.282 })
+    sl.addImage({ path: STUDIST_LOGO_PATH, x: MG, y: 2.162, w: 1.240, h: 0.282 })
   } catch {
     // ロゴ画像が見つからない場合はスキップ
   }
