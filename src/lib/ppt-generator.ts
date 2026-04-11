@@ -43,9 +43,10 @@ const PHASE_COLORS = [
 
 const SW    = 10
 const SH    = 5.625
-const HDR_H = 0.64
-const MG    = 0.22
-const CW    = SW - MG * 2    // 9.56"
+const BAR_H = 0.38          // ヘッドラインバー高さ（12pt用）
+const HDR_H = 0.85          // 総ヘッダー高さ（バー + メインメッセージライン）
+const MG    = 0.45          // 左右余白（≈11.5mm）
+const CW    = SW - MG * 2   // コンテンツ幅 ≈ 9.10"
 
 // ==================== フォント ====================
 
@@ -63,18 +64,20 @@ type Sl = ReturnType<InstanceType<typeof PptxGenJS>['addSlide']>
 // ==================== ユーティリティ ====================
 
 function addHeader(sl: Sl, prs: PptxGenJS, title: string, sub?: string) {
+  // ヘッドラインバー（12pt）
   sl.addShape(prs.ShapeType.rect, {
-    x: 0, y: 0, w: SW, h: HDR_H,
+    x: 0, y: 0, w: SW, h: BAR_H,
     fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },
   })
   sl.addText(title, {
-    x: MG, y: 0, w: 6, h: HDR_H,
-    fontFace: FONT, fontSize: 16, bold: true, color: WHITE, valign: 'middle',
+    x: MG, y: 0, w: SW - MG, h: BAR_H,
+    fontFace: FONT, fontSize: 12, bold: true, color: WHITE, valign: 'middle',
   })
+  // メインメッセージライン（16pt）
   if (sub) {
     sl.addText(sub, {
-      x: 6.2, y: 0, w: SW - 6.45, h: HDR_H,
-      fontFace: FONT, fontSize: 8, color: PRIMARY_LT, valign: 'middle', align: 'right',
+      x: MG, y: BAR_H + 0.05, w: CW, h: HDR_H - BAR_H - 0.05,
+      fontFace: FONT, fontSize: 16, bold: true, color: DARK, valign: 'middle',
     })
   }
 }
@@ -136,7 +139,7 @@ function addCoverSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
   const company = answers.companyName || '顧客'
   sl.addText(`${company} 様　Teachme Biz 運用プランご提案`, {
     x: 0.832, y: 2.398, w: 8.210, h: 0.404,
-    fontFace: FONT, fontSize: 13, bold: true, color: WHITE, valign: 'middle',
+    fontFace: FONT, fontSize: 16, bold: true, color: WHITE, valign: 'middle',
   })
 
   // 日付行の背景
