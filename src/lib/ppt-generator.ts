@@ -80,7 +80,7 @@ function addHeader(sl: Sl, prs: PptxGenJS, title: string, sub?: string) {
   // テキスト開始X: センターから左11.5cm = MG（余白ゼロ）
   sl.addText(title, {
     x: MG, y: HEADLINE_LINE_Y - 0.27, w: CW, h: 0.24,
-    fontFace: FONT, fontSize: 12, color: DARK, valign: 'middle',
+    fontFace: FONT, fontSize: 12, color: DARK, valign: 'middle', margin: 0,
   })
   // ヘッドラインライン（全幅・BRAND_COLOR）
   sl.addShape(prs.ShapeType.rect, {
@@ -263,6 +263,7 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
       colW: [1.10, LW - 1.10],
       rowH: [HDR_H, ...orgRows.map(() => DATA_H)],
       border: { type: 'solid', pt: 0.5, color: 'E5E7EB' },
+      fontFace: FONT,
     },
   )
 
@@ -280,6 +281,7 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
       colW: [LW],
       rowH: [HDR_H, ...barriers.map(() => DATA_H)],
       border: { type: 'solid', pt: 0.5, color: 'E5E7EB' },
+      fontFace: FONT,
     },
   )
 
@@ -296,6 +298,7 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
       colW: [RW],
       rowH: [HDR_H, ...challenges.map(() => DATA_H)],
       border: { type: 'solid', pt: 0.5, color: 'E5E7EB' },
+      fontFace: FONT,
     },
   )
 
@@ -319,6 +322,7 @@ function addPremiseSlide(prs: PptxGenJS, answers: TmbWizardAnswers) {
       colW: [1.00, RW - 1.00],
       rowH: [HDR_H, ...goalRows.map(() => DATA_H)],
       border: { type: 'solid', pt: 0.5, color: 'E5E7EB' },
+      fontFace: FONT,
     },
   )
 
@@ -412,54 +416,81 @@ function addSummarySlide(prs: PptxGenJS, plan: GeneratedPlan) {
 function addUsageScenariosSlide(prs: PptxGenJS, plan: GeneratedPlan) {
   const sl = prs.addSlide()
   sl.background = { color: WHITE }
-  addHeader(sl, prs, 'マニュアル活用イメージ', '業務シーン別の活用パターン')
+  addHeader(sl, prs, 'マニュアル活用イメージ', '作るマニュアル・使うシーン・生まれる効果')
 
+  // manualUsagePairs を優先、なければ usageScenarios にフォールバック
+  const pairs = plan.manualUsagePairs ?? []
   const scenarios = plan.usageScenarios ?? []
+  const items = pairs.length > 0 ? pairs : scenarios.map(s => ({
+    targetUser: s.user,
+    manualTitle: s.manualTitle,
+    content: s.scene,
+    feature: '',
+    scene: s.scene,
+    effect: s.effect,
+  }))
+
   const GAP = 0.14
   const cardW = (CW - GAP * 2) / 3
   const cardY = CONTENT_Y + 0.26
   const cardH = CONTENT_END - cardY - 0.05
-  const TITLE_H = 0.30
+  const TITLE_H = 0.28
+  const TAG_H   = 0.22
 
   secBar(sl, prs, MG, CONTENT_Y, CW, 'マニュアル活用イメージ', PRIMARY)
 
-  scenarios.slice(0, 3).forEach((s, i) => {
+  items.slice(0, 3).forEach((s, i) => {
     const cx = MG + i * (cardW + GAP)
 
-    // カードタイトル
+    // 対象者タグ
     sl.addShape(prs.ShapeType.rect, {
-      x: cx, y: cardY, w: cardW, h: TITLE_H,
+      x: cx, y: cardY, w: cardW, h: TAG_H,
+      fill: { color: PRIMARY_LT }, line: { color: PRIMARY_LT, width: 0 },
+    })
+    sl.addText(`対象: ${'targetUser' in s ? s.targetUser : ''}`, {
+      x: cx + 0.06, y: cardY, w: cardW - 0.08, h: TAG_H,
+      fontFace: FONT, fontSize: 7, color: PRIMARY_DK, valign: 'middle',
+    })
+
+    // カードタイトル（マニュアル名）
+    sl.addShape(prs.ShapeType.rect, {
+      x: cx, y: cardY + TAG_H, w: cardW, h: TITLE_H,
       fill: { color: PRIMARY }, line: { color: PRIMARY, width: 0 },
     })
     sl.addText(s.manualTitle, {
-      x: cx + 0.06, y: cardY, w: cardW - 0.08, h: TITLE_H,
+      x: cx + 0.06, y: cardY + TAG_H, w: cardW - 0.08, h: TITLE_H,
       fontFace: FONT, fontSize: 8, bold: true, color: WHITE, valign: 'middle',
     })
 
     // カード本体
+    const bodyY = cardY + TAG_H + TITLE_H
+    const bodyH = cardH - TAG_H - TITLE_H
     sl.addShape(prs.ShapeType.rect, {
-      x: cx, y: cardY + TITLE_H, w: cardW, h: cardH - TITLE_H,
+      x: cx, y: bodyY, w: cardW, h: bodyH,
       fill: { color: GRAY_LT }, line: { color: 'E5E7EB', width: 0.5 },
     })
 
-    // 3行（誰が・場面・効果）
-    const ROW_H = (cardH - TITLE_H) / 3
-    const rows: [string, string][] = [['誰が', s.user], ['場面', s.scene], ['効果', s.effect]]
-    rows.forEach(([label, text], ri) => {
-      const ry = cardY + TITLE_H + ri * ROW_H
-      // 区切り線（1行目以外）
+    // 3行（場面・機能・効果）
+    const ROW_H = bodyH / 3
+    const rowData: [string, string][] = [
+      ['場面', 'scene' in s ? s.scene : ''],
+      ['機能', 'feature' in s ? s.feature : ''],
+      ['効果', s.effect],
+    ]
+    rowData.forEach(([label, text], ri) => {
+      const ry = bodyY + ri * ROW_H
       if (ri > 0) {
         sl.addShape(prs.ShapeType.rect, {
-          x: cx, y: ry, w: cardW, h: 0.008,
+          x: cx, y: ry, w: cardW, h: 0.007,
           fill: { color: 'E5E7EB' }, line: { color: 'E5E7EB', width: 0 },
         })
       }
       sl.addText(label, {
-        x: cx + 0.08, y: ry + 0.06, w: 0.50, h: 0.20,
-        fontFace: FONT, fontSize: 7.5, bold: true, color: PRIMARY, valign: 'middle',
+        x: cx + 0.08, y: ry + 0.05, w: 0.48, h: 0.18,
+        fontFace: FONT, fontSize: 7, bold: true, color: PRIMARY, valign: 'middle',
       })
       sl.addText(text, {
-        x: cx + 0.08, y: ry + 0.28, w: cardW - 0.14, h: ROW_H - 0.30,
+        x: cx + 0.08, y: ry + 0.24, w: cardW - 0.14, h: ROW_H - 0.26,
         fontFace: FONT, fontSize: 7.5, color: DARK, valign: 'top', align: 'left',
       })
     })
@@ -536,6 +567,7 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
     colW: [LABEL_W, ...phases.map(() => PHASE_W)],
     rowH: [PHASE_HDR, ...ACTIVITY_CATEGORIES.map(() => CAT_H)],
     border: { type: 'solid', pt: 0.5, color: 'E5E7EB' },
+    fontFace: FONT, fontSize: 8,
   })
 
   addFooter(sl, prs)
@@ -549,11 +581,12 @@ function addMonthlySlide(
   answers: TmbWizardAnswers,
   monthNums: number[],
   title: string,
+  subMessage?: string,
 ) {
   const sl = prs.addSlide()
   sl.background = { color: WHITE }
 
-  addHeader(sl, prs, title)
+  addHeader(sl, prs, title, subMessage)
 
   const phases = plan.phases ?? []
 
@@ -620,6 +653,7 @@ function addMonthlySlide(
     colW: [COL_MONTH, COL_PHASE, COL_TITLE, COL_ACTION],
     rowH: [HDR_ROW_H, ...monthNums.map(() => DATA_ROW_H)],
     border: { type: 'solid', pt: 0.5, color: 'E5E7EB' },
+    fontFace: FONT, fontSize: 7,
   })
 
   addFooter(sl, prs)
@@ -867,8 +901,8 @@ export async function generatePptBuffer(
   addSummarySlide(prs, plan)
   addUsageScenariosSlide(prs, plan)
   addPhaseScheduleSlide(prs, plan, answers)
-  addMonthlySlide(prs, plan, answers, firstHalf,  '月次スケジュール（前半：1〜6ヶ月目）')
-  addMonthlySlide(prs, plan, answers, secondHalf, '月次スケジュール（後半：7〜12ヶ月目＋中長期）')
+  addMonthlySlide(prs, plan, answers, firstHalf,  '月次スケジュール（前半：1〜6ヶ月目）',  '月ごとのテーマとアクションで、定着の土台をつくる')
+  addMonthlySlide(prs, plan, answers, secondHalf, '月次スケジュール（後半：7〜12ヶ月目＋中長期）', '活用の深化・横展開・効果測定で成果をつないでいく')
   addDeviceSlide(prs, devicePlan)
   addCaseStudiesSlide(prs, cases)
 
