@@ -557,7 +557,7 @@ function addPhaseScheduleSlide(prs: PptxGenJS, plan: GeneratedPlan, answers: Tmb
           options: {
             color: DARK,
             fill: { color: WHITE },
-            align: 'left' as const, valign: 'top' as const, fontSize: 8,
+            align: 'left' as const, valign: 'middle' as const, fontSize: 8,
           },
         }
       }),
@@ -647,7 +647,7 @@ function addMonthlySlide(
       },
       {
         text: m ? m.actions.slice(0, 2).map(a => `• ${a}`).join('\n') : '',
-        options: { color: DARK, fill: { color: WHITE }, align: 'left' as const, valign: 'top' as const, fontSize: 8 },
+        options: { color: DARK, fill: { color: WHITE }, align: 'left' as const, valign: 'middle' as const, fontSize: 8 },
       },
     ]
   })
