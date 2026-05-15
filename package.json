@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
-    "next": "16.2.2",
+    "next": "^16.2.5",
     "officeparser": "^6.0.7",
     "pdf-parse": "^2.4.5",
     "pptxgenjs": "^4.0.1",
